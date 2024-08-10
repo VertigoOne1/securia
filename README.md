@@ -17,6 +17,7 @@ https://github.com/openlit/openlit
 ## Main points
 
 Event driven exception handling with DLQ
+
 Local dev is k3s + strimzi + kdashboard
 
 ## Ultralytics
@@ -86,7 +87,12 @@ image 24/24 /pics_http/image_20240810_131610.jpg: 544x640 (no detections), 1386.
 
 `securia/pics_http/results/image_20240810_131508.jpg`
 
-# Local dev setup
+## Local dev setup
 
 Review k3s directory
 
+done
+
+## Install local kafka
+
+Review strimzi directory
