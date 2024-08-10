@@ -13,7 +13,7 @@ PASSWORD = "asdf1234"
 
 # Image capture settings
 CAPTURE_INTERVAL = 5  # seconds
-OUTPUT_FOLDER = "pics_http"
+OUTPUT_FOLDER = "input"
 
 # Create output folder if it doesn't exist
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)

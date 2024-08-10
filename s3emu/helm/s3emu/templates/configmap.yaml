@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: s3emu-config-{{ .Values.postfix }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+data:
+  config.yml: |-
+    {{- .Values.s3emuConfig | toYaml | nindent 4 }}

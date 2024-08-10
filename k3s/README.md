@@ -17,7 +17,7 @@ kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get nodes
 ```bash
 helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
 helm repo update
-helm --kubeconfig /etc/rancher/k3s/k3s.yaml upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
+helm --kubeconfig /etc/rancher/k3s/k3s.yaml upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard --values kdashboard.yaml
 ```
 
 ### Full Permissions
@@ -42,3 +42,12 @@ lk describe apiservice/v1beta1.metrics.k8s.io0
 was on wrong port number (443 should be 4443)
 
 sorted out, running
+
+## Access
+
+```bash
+kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443
+```
+
+https://localhost:8443
+
