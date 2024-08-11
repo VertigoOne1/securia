@@ -1,0 +1,14 @@
+name: Test K8s Access
+
+on: workflow_dispatch
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: print vars
+        run: env
+      - name: Checkout repo
+        uses: actions/checkout@v1
+      - uses: azure/setup-kubectl@v1
+      - run: kubectl get pods -A
