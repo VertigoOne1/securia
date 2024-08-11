@@ -31,7 +31,7 @@ appConfig:
     camera_username: view
     camera_password: "asdf1234"
     capture_interval: 5
-    write_local_file: True
+    write_local_file: False
     temp_output_folder: /tmp/images
     channel_delay_time: 0.3
     collection_timeout: 10

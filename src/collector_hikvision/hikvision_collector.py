@@ -24,8 +24,6 @@ def capture_hikvision_image(channel):
                 logger.debug(f"Cookies - {response.cookies}")
                 logger.debug(f"Encoding - {response.encoding}")
                 timestamp = datetime.now().strftime(config['collector']['time_format'])
-                output_file = os.path.join(f"{config['collector']['temp_output_folder']}", f"{config['collector']['image_filename_prefix']}_{channel}_{timestamp}.json")
-                logger.debug(f"Writing - {output_file}")
                 content_hash = calculate_sha256(response.content)
                 base64_image = base64.b64encode(response.content).decode('utf-8')
                 image_data = {
@@ -39,6 +37,8 @@ def capture_hikvision_image(channel):
                     "image_base64": f"{base64_image}"
                 }
                 if config['collector']['write_local_file']:
+                    output_file = os.path.join(f"{config['collector']['temp_output_folder']}", f"{config['collector']['image_filename_prefix']}_{channel}_{timestamp}.json")
+                    logger.debug(f"Writing - {output_file}")
                     with open(output_file, "a") as json_file:
                         json.dump(image_data, json_file)
                         json_file.write('\n')  # Add newline for easier reading and appending

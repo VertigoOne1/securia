@@ -7,12 +7,12 @@ RUN apk update && apk add python3-dev \
 
 RUN apk add librdkafka-dev --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
 
-WORKDIR /
+WORKDIR /app
 
 COPY . .
 
-COPY requirements.txt ./
+COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD [ "python", "./app.py" ]
+CMD [ "python", "app.py" ]

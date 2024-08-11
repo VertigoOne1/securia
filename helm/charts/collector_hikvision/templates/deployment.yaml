@@ -28,8 +28,9 @@ spec:
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           volumeMounts:
-            - mountPath: /app
+            - mountPath: /app/config.yml
               name: {{ .Values.app.general.app_name }}-data
+              subPath: config.yml
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
