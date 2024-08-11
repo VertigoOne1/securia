@@ -1,0 +1,3 @@
+# Ignores for docker-build
+__pycache__
+/modules/__pycache__

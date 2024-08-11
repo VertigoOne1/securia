@@ -1,6 +1,6 @@
 apiVersion: v2
 name: s3emu
-description: A Helm chart that deploys IOT.NXT specific admin tooling
+description: A Helm chart that deploys S3 Ninja for S3 Emulation
 
 type: application
 
