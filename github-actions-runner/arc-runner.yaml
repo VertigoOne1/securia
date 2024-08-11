@@ -8,3 +8,9 @@ spec:
   template:
     spec:
       repository: VertigoOne1/securia
+      automountServiceAccountToken: true
+      serviceAccountName: arc-user
+      serviceAccount: arc-user
+      labels:
+        - "local-laptop"
+        - "self-hosted"
