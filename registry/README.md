@@ -50,8 +50,6 @@ mirrors:
   "10.0.0.59:5000":
     endpoint:
       - "http://10.0.0.59:5000"
-configs:
-  "10.0.0.59:5000":
 ```
 
 `sudo systemctl restart k3s`
