@@ -3,7 +3,7 @@ apiVersion: apps/v1
 metadata:
   name: {{ .Values.app.general.app_name }}
   labels:
-    app: hikcol-{{ .Values.postfix }}
+    app: preproc-{{ .Values.postfix }}
     {{- include "app.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}

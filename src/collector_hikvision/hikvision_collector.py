@@ -34,7 +34,9 @@ def capture_hikvision_image(channel):
                     "channel": f"{channel}",
                     "object_name": f"{config['collector']['image_filename_prefix']}_{timestamp}.json",
                     "hash": f"{content_hash}",
-                    "image_base64": f"{base64_image}"
+                    "image_base64": f"{base64_image}",
+                    "recorder_status_code":f"{response.status_code or None}",
+                    "status":f"ok"
                 }
                 if config['collector']['write_local_file']:
                     output_file = os.path.join(f"{config['collector']['temp_output_folder']}", f"{config['collector']['image_filename_prefix']}_{channel}_{timestamp}.json")
@@ -47,13 +49,40 @@ def capture_hikvision_image(channel):
                 return image_data
             else:
                 logger.error(f"Failed to capture image. Status code: {response.status_code}")
-                return None
+                image_data = {
+                    "collected_timestamp": f"{timestamp}",
+                    "uri": f"{snapshot_url}",
+                    "content_type": f"{response.headers.get('Content-Type', None)}",
+                    "content_length": f"{response.headers.get('Content-Length', None)}",
+                    "channel": f"{channel}",
+                    "recorder_status_code":f"{response.status_code or None}",
+                    "status":f"recorder_error_response"
+                }
+                return image_data
         except requests.RequestException as e:
             logger.error(f"Request Exception - Error capturing image: {e}")
-            return None
+            image_data = {
+                "collected_timestamp": f"{timestamp}",
+                "uri": f"{snapshot_url}",
+                "content_type": f"{response.headers.get('Content-Type', None)}",
+                "content_length": f"{response.headers.get('Content-Length', None)}",
+                "channel": f"{channel}",
+                "recorder_status_code":f"{response.status_code or None}",
+                "status":f"recorder_request_exception"
+            }
+            return image_data
         except:
             logger.error(f"General Exception")
             logger.error(traceback.format_exc())
-            return None
+            image_data = {
+                "collected_timestamp": f"{timestamp}",
+                "uri": f"{snapshot_url}",
+                "content_type": f"{response.headers.get('Content-Type', None)}",
+                "content_length": f"{response.headers.get('Content-Length', None)}",
+                "channel": f"{channel}",
+                "recorder_status_code":f"{response.status_code or None}",
+                "status":f"general_exception"
+            }
+            return image_data
         finally:
             time.sleep(config['collector']['channel_delay_time'])

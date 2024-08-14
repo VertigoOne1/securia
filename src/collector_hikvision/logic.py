@@ -17,7 +17,7 @@ from time import sleep
 import hikvision_collector
 import time, datetime
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-from eventbus import KafkaProducerSingleton
+from eventbus import KafkaClientSingleton
 
 import logger, metrics
 
@@ -32,7 +32,7 @@ class BearerAuth(requests.auth.AuthBase):
         r.headers["authorization"] = "Bearer " + self.token
         return r
 
-producer = KafkaProducerSingleton.get_instance()
+kafka_client = KafkaClientSingleton.get_instance()
 
 def hikvision_collection():
     while True:
@@ -40,11 +40,14 @@ def hikvision_collection():
         for channel in config['collector']['channels']:
             image_dict = hikvision_collector.capture_hikvision_image(channel)
             if image_dict is not None:
-                logger.debug(f"Received - Channel - {image_dict['channel']} | Size - {image_dict['content_length']}")
-                metrics.p_image_collect_success.labels(config['collector']['camera_fqdn'],channel).inc()
+                logger.debug(f"Received - Channel - {image_dict['channel'] or None} | Size - {image_dict['content_length'] or None} | StatusCode - {image_dict['recorder_status_code'] or None}")
+                if image_dict['content_length'] == "ok":
+                    metrics.p_image_collect_success.labels(config['collector']['camera_fqdn'],channel).inc()
+                else:
+                    metrics.p_image_collect_fail.labels(config['collector']['camera_fqdn'],channel).inc()
                 partition_key=f"{config['collector']['camera_fqdn']}-{channel}"
                 topic = partition_key
-                send_result = producer.send_message(topic, partition_key, image_dict)
+                send_result = kafka_client.send_message(topic, partition_key, image_dict)
                 if send_result:
                     logger.debug(f"send success - {partition_key}")
                     metrics.p_image_transmit_success.labels(config['collector']['camera_fqdn'],channel).inc()
@@ -53,5 +56,5 @@ def hikvision_collection():
                     metrics.p_image_transmit_fail.labels(config['collector']['camera_fqdn'],channel).inc()
             else:
                 metrics.p_image_collect_fail.labels(config['collector']['camera_fqdn'],channel).inc()
-                logger.error(f"No image received")
+                logger.error(f"No image received, this is functionally impossible")
         time.sleep(config['collector']['capture_interval'])
