@@ -20,6 +20,17 @@ helm repo update
 helm --kubeconfig /etc/rancher/k3s/k3s.yaml upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard --values kdashboard.yaml
 ```
 
+### Changes
+
+- set the service to nodeport, so it sticks to a port
+
+https://localhost:32281
+
+### TODO
+
+- zoink it via traefik ingress to 443.. so you get a nice clean working cert
+
+
 ### Full Permissions
 
 ```bash

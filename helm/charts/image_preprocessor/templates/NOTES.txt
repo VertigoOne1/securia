@@ -1,2 +1,2 @@
 ---
-Securia - Hikvision Collector
+Securia - Image Preprocessor

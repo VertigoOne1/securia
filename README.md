@@ -14,11 +14,17 @@ https://github.com/AlexanderMelde/SPHAR-Dataset/releases
 
 https://github.com/openlit/openlit
 
+https://huggingface.co/keras-io/low-light-image-enhancement
+
 ## Main points
 
 Event driven exception handling with DLQ
 
-Local dev is k3s + strimzi + kdashboard
+Local dev is k3s + strimzi + kdashboard + percona pstgresql + s3ninja
+
+## Secrets management
+
+age + sops + templatisation
 
 ## Ultralytics
 
@@ -96,3 +102,26 @@ done
 ## Install local kafka
 
 Review strimzi directory
+
+## Playing with SOPS + AGE
+
+### Generate identity
+
+age-keygen -o securia.key
+
+### Encrypt
+
+cat image1.jpeg | age -r age1yzynsad4vklswdacwm7jq6hptd9u9n9v3lq9l3xdhfcyke94a9lsa82xh6 > image.jpeg.age
+
+### Decrypt
+
+age -d -i securia.key -o test.jpeg image.jpeg.age
+
+## Local Links
+
+Dashboard - https://localhost:32281
+S3 Ninja  - http://localhost:32650/ui
+PGBouncer - localhost:32617
+Kafka     - localhost:32394
+Registry  - 10.0.0.59:5000
+Ingres    - 10.0.0.59:443
