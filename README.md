@@ -111,11 +111,15 @@ age-keygen -o securia.key
 
 ### Encrypt
 
+```bash
 cat image1.jpeg | age -r age1yzynsad4vklswdacwm7jq6hptd9u9n9v3lq9l3xdhfcyke94a9lsa82xh6 > image.jpeg.age
+```
 
 ### Decrypt
 
+```bash
 age -d -i securia.key -o test.jpeg image.jpeg.age
+```
 
 ## Local Links
 
@@ -125,3 +129,26 @@ PGBouncer - localhost:32617
 Kafka     - localhost:32394
 Registry  - 10.0.0.59:5000
 Ingres    - 10.0.0.59:443
+
+## Token for Kubernetes Dashboard
+
+```bash
+lk -n kubernetes-dashboard get secrets admin-user -o yaml | yq .data.token | base64 -d
+```
+
+## Database bootstrap
+
+The bootstrap and user creation is handled by the percona operator helm chart.
+The passwords are collected from the cluster. In future i'll set them to inject as a secret
+
+below works in dbbeaver
+
+```sql
+@set name = securiaapi
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ${name};
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${name};
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO ${name};
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO ${name};
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO ${name};
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO ${name};
+```

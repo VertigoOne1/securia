@@ -42,10 +42,13 @@ def run_continuously(interval=1):
     continuous_thread.start()
     return cease_continuous_run
 
+def health_check():
+    logger.debug("Scheduler active")
+
 def start_schedules():
     if config["scheduler"]["enabled"]:
         logger.info("Starting scheduled tasks")
-        schedule.every(config["collector"]["capture_interval"]).seconds.do()
+        schedule.every(30).seconds.do(health_check)
     else:
         logger.info("Scheduler not enabled")
 

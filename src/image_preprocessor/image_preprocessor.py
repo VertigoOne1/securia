@@ -5,6 +5,10 @@ from envyaml import EnvYAML
 from datetime import datetime
 from requests.auth import HTTPDigestAuth
 import logger
+import s3
+
+import models
+from database import get_db
 
 logger = logger.setup_custom_logger(__name__)
 config = EnvYAML('config.yml')
@@ -14,19 +18,29 @@ def calculate_sha256(content):
     sha256_hash.update(content)
     return sha256_hash.hexdigest()
 
+def checkhash(image_dict):
+    image = base64.b64decode(image_dict['image_base64']).decode('utf-8')
+    image_hash = calculate_sha256(image)
+    if image_hash == image_dict['hash']:
+        logger.info(f"Image not manipulated")
+        return True
+    else:
+        logger.info(f"IMAGE MANIPULATED!!!")
+        return False
 
-                # image_data = {
-                #     "collected_timestamp": f"{timestamp}",
-                #     "uri": f"{snapshot_url}",
-                #     "content_type": f"{response.headers.get('Content-Type', None)}",
-                #     "content_length": f"{response.headers.get('Content-Length', None)}",
-                #     "channel": f"{channel}",
-                #     "object_name": f"{config['collector']['image_filename_prefix']}_{timestamp}.json",
-                #     "hash": f"{content_hash}",
-                #     "image_base64": f"{base64_image}",
-                #     "recorder_status_code":f"{response.status_code or None}",
-                #     "status":f"ok"
-                # }
+# Message Format
+    # image_data = {
+    #     "collected_timestamp": f"{timestamp}",
+    #     "uri": f"{snapshot_url}",
+    #     "content_type": f"{response.headers.get('Content-Type', None)}",
+    #     "content_length": f"{response.headers.get('Content-Length', None)}",
+    #     "channel": f"{channel}",
+    #     "object_name": f"{config['collector']['image_filename_prefix']}_{timestamp}.json",
+    #     "hash": f"{content_hash}",
+    #     "image_base64": f"{base64_image}",
+    #     "recorder_status_code":f"{response.status_code or None}",
+    #     "status":f"ok"
+    # }
 
 def preprocess_image(message):
     try:
@@ -43,7 +57,24 @@ def preprocess_image(message):
                 logger.debug(f"Writing - {output_file}")
                 with open(output_file, "a") as json_file:
                     json.dump(message, json_file)
-                    json_file.write('\n')  # Add newline for easier reading and appending
+            if checkhash(image_dict):
+                # Submit to API
+                try:
+
+                except:
+                    logger.error("sqlalchemy exception")
+                    logger.error(traceback.format_exc())
+                try:
+                except:
+                    logger.error("sqlalchemy exception")
+                    logger.error(traceback.format_exc())
+                # file_path = 'path/to/your/file.txt'
+                # bucket_name = 'your-bucket-name'
+                # object_name = 'your-object-name.txt'
+                # endpoint_url = 'localhost'  # Change this to your emulated S3 endpoint
+                # port = 4566  # Change this to the port your emulated S3 is running on
+                # s3.upload_file()
+            # else:
 
             logger.info(f"Image data saved for image received at timestamp: {image_dict['collected_timestamp']}")
     except KeyboardInterrupt:

@@ -30,6 +30,12 @@ helm --kubeconfig /etc/rancher/k3s/k3s.yaml upgrade my-pg percona/pg-db \
   --set finalizers={'percona\.com\/delete-pvc,percona\.com\/delete-ssl'} \
   --set users[0].name=test \
   --set users[0].databases={mytest} \
+  --set users[1].name=preproc \
+  --set users[1].databases={securia} \
+  --set users[2].name=securiaadmin \
+  --set users[2].databases={securia} \
+  --set users[3].name=securiaapi \
+  --set users[3].databases={securia} \
   --install \
   --namespace postgresql
 ```
@@ -46,3 +52,7 @@ kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n postgresql run -i --rm --tty p
 ### in cluster connection string
 
 `postgresql://test:fQG%40%281as%28+D%3CZUkK%7BIKlys4g@my-pg-pg-db-pgbouncer.postgresql.svc:5432/mytest`
+
+### External connection string
+
+postgresql://test:fQG%40%281as%28+D%3CZUkK%7BIKlys4g@localhost:32617/mytest

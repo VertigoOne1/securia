@@ -1,14 +1,8 @@
 ---
 # It would be a good idea to create a "central config" for this, so colletors can auto-config themselves
 general:
-  app_name: image_preprocessor
+  app_name: securia_api
   default_debug_level: DEBUG
-preprocessor:
-  enabled: True
-  write_local_file: True
-  temp_output_folder: /tmp/kafka
-  time_format: "%Y%m%d_%H%M%S.%f%z"
-  image_filename_prefix: "image_dict"
 storage:
   bucket_name: test
   endpoint_hostname: localhost
@@ -25,10 +19,9 @@ kafka:
   consumer_group: preprocessor
   auto_offset_reset: latest
   value_serialiser: lambda x:json.dumps(x).encode('utf-8')
-flask:
+api:
   default_port: 8088
-  debug_level: INFO
-  debug_enabled: False
+  debug_level: debug
 scheduler:
   enabled: True
 metrics:
@@ -38,4 +31,4 @@ logging:
   enable_stdout_log_handler: True
   enable_kafka_log_handler: False
 database:
-  uri: 'postgresql+psycopg2://localhost:32617/securia?password=MGx%2Funk%3E%2FXv%5D%29j%3Axv5QMG5%5BI&user=preproc'
+  uri: 'postgresql+psycopg2://localhost:32617/securia?password=r[V>T(u:vn|9<oxgg:H<9S.|&user=securiaapi'
