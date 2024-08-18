@@ -1,2 +1,5 @@
 securia.key
 dashboard_token
+*.pyc
+**/*.pyc
+**/__pycache__
