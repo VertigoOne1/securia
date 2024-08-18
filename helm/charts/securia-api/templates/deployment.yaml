@@ -1,0 +1,56 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ .Values.app.general.app_name }}
+  labels:
+    app: securia-{{ .Values.postfix }}
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.app.general.app_name }}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: {{ .Values.app.general.app_name }}
+    spec:
+      containers:
+        - name: {{ .Values.app.general.app_name }}
+          image: "{{ printf "%s%s/%s%s" .Values.image.registry .Values.image.path .Values.image.name .Values.image.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: {{ .Values.service.name }}
+              protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /app/config.yml
+              name: {{ .Values.app.general.app_name }}-data
+              subPath: config.yml
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+      enableServiceLinks: false
+      {{- if .Values.persistence.enabled }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Values.app.general.app_name }}-storage
+      {{- end }}
+      volumes:
+        - name: {{ .Values.app.general.app_name }}-data
+          configMap:
+            name: {{ .Values.app.general.app_name }}-config
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
