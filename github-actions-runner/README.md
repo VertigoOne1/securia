@@ -1,6 +1,6 @@
 # Github Actions Runner
 
-To be able to use CI/CD via github Actions to your laptop, you need action runners able to execute on the local cluster
+To be able to use CI/CD via github Actions to your laptop, you need action runners able to execute on the local cluster (which is not exposed)
 
 https://github.com/actions/actions-runner-controller/blob/master/docs/installing-arc.md
 
@@ -30,7 +30,7 @@ helm repo add actions-runner-controller https://actions-runner-controller.github
 helm repo update
 ```
 
-Generate a github PAT with full-control on repo (you need to specify it below)
+Generate a github PAT with full-control on repo (you need to specify the key below)
 
 Create a clusterrolebinding with cluster-admin so the action running can run helm and kubectl against the private cluster
 
@@ -50,6 +50,8 @@ helm upgrade \
   --set authSecret.github_token=${GITHUB_PRIVATE_PAT} \
   --wait
 ```
+
+If you are going to mangling the cluster, you need some perms!
 
 `kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml apply -f arc_superuser_binding.yaml`
 
@@ -78,12 +80,14 @@ spec:
         - "local-laptop"
 ```
 
+`kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml apply -f arc_runner.yaml`
+
 ## Use it on github actions
 
 add below on every pipeline
 
 ```yaml
-runs-on: self-hosted  # or local-laptop
+runs-on: self-hosted  # or local-laptop, or whatever tag you made it
 ```
 
 ## Extra

@@ -64,10 +64,13 @@ A simple "local-dev" way would be to use SOPS and AGE, and setting up an identit
 in the private key to the provider, and keep your own, that key can then be used to decrypt any secrets using SOPS rather
 than managing the secrets, you manage only the key, which tremendously simplifies templating.
 
-### Generate identity
+### Generate identities
 
+```bash
 age-keygen -o securia.key
 age-keygen -o github_actions.key
+age-keygen -o azure_devops.key
+```
 
 ### Encrypt
 

@@ -18,7 +18,7 @@ helm --kubeconfig /etc/rancher/k3s/k3s.yaml install pg-operator percona/pg-opera
 helm --kubeconfig /etc/rancher/k3s/k3s.yaml install cluster1 percona/pg-db -n postgresql
 ```
 
-## Testing
+## Testing Cluster (suitable for a local k3s)
 
 ```bash
 helm --kubeconfig /etc/rancher/k3s/k3s.yaml upgrade my-pg percona/pg-db \
@@ -55,4 +55,4 @@ kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n postgresql run -i --rm --tty p
 
 ### External connection string
 
-postgresql://test:fQG%40%281as%28+D%3CZUkK%7BIKlys4g@localhost:32617/mytest
+`postgresql://test:fQG%40%281as%28+D%3CZUkK%7BIKlys4g@localhost:32617/mytest`

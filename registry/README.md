@@ -1,6 +1,6 @@
 # Local Docker registry
 
-Running containers requires a registry, this installs one in the cluster.
+Running containers requires a registry, this installs one in the cluster on my laptop.
 
 https://github.com/twuni/docker-registry.helm
 
@@ -13,7 +13,7 @@ helm repo update
 helm --kubeconfig /etc/rancher/k3s/k3s.yaml install twuni/docker-registry -n docker-registry --create-namespace
 ```
 
-## Using an insecure registry (on local)
+## Docker - Using an insecure registry (on local)
 
 https://www.oreilly.com/library/view/kubernetes-in-the/9781492043270/app03.html
 
@@ -29,7 +29,7 @@ add insecure registry
  }
 ```
 
-restart docker
+`sudo systemctl restart docker`
 
 ### Testing
 
@@ -39,7 +39,7 @@ docker tag nginx your_ip_here:5000/nginx
 docker push your_ip_here:5000/nginx
 ```
 
-## Add insecure registry (k3s)
+## K3s - Add insecure registry
 
 https://docs.k3s.io/installation/private-registry
 
@@ -56,7 +56,4 @@ mirrors:
 
 ### Testing
 
-```bash
-docker pull nginx
-docker tag nginx your_ip_here:5000/nginx
-docker push your_ip_here:5000/nginx
+can be done once you have some containers build

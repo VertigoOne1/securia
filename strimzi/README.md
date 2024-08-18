@@ -14,7 +14,7 @@ https://github.com/strimzi/strimzi-kafka-operator/tree/0.42.0/examples
 kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml apply -f dev_strimzi_cluster.yaml
 ```
 
-## UI
+## Kafka UI
 
 ```bash
 helm repo add kafka-ui https://provectus.github.io/kafka-ui-charts
@@ -29,6 +29,8 @@ kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml port-forward svc/kafka-ui 8080:80
 TODO: make it an ingress
 
 ## Testing/Sample Python
+
+requires some kafka pips, i already have it elsewhere, simple enough
 
 ```bash
 ./test_connection.py

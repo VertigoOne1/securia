@@ -28,8 +28,7 @@ https://localhost:32281
 
 ### TODO
 
-- zoink it via traefik ingress to 443.. so you get a nice clean working cert
-
+- zoink everything via traefik ingress to 443.. so you get a nice clean working cert
 
 ### Full Permissions
 
