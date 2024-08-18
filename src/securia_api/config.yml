@@ -22,8 +22,9 @@ kafka:
 api:
   default_port: 8088
   debug_level: debug
+  time_format: "%Y%m%d_%H%M%S.%f"
 scheduler:
-  enabled: True
+  enabled: False
 metrics:
   enabled: True
 logging:

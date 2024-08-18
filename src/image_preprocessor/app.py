@@ -11,8 +11,7 @@ from pprint import pformat
 from apicontroller import FlaskThread
 from scheduler import start_schedules
 
-import logger, logic, models, schemas, crud
-from database import get_db, engine
+import logger, logic
 
 logger = logger.setup_custom_logger(__name__)
 config = EnvYAML('config.yml')
@@ -26,3 +25,4 @@ if __name__ == '__main__':
     apiserver = startApiServer()
     logger.info(f"Start - {config['general']['app_name']}")
     # scheduling = start_schedules()
+    logic.collect_raw_images()

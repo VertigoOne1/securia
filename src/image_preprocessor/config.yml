@@ -3,6 +3,7 @@
 general:
   app_name: image_preprocessor
   default_debug_level: DEBUG
+  test_mode: True
 preprocessor:
   enabled: True
   write_local_file: True
@@ -26,11 +27,13 @@ kafka:
   auto_offset_reset: latest
   value_serialiser: lambda x:json.dumps(x).encode('utf-8')
 flask:
-  default_port: 8088
+  default_port: 8089
   debug_level: INFO
   debug_enabled: False
+api:
+  uri: http://10.0.0.95:8088/securia
 scheduler:
-  enabled: True
+  enabled: False
 metrics:
   enabled: True
 logging:

@@ -129,6 +129,7 @@ PGBouncer - localhost:32617
 Kafka     - localhost:32394
 Registry  - 10.0.0.59:5000
 Ingres    - 10.0.0.59:443
+API Docs  - http://10.0.0.95:8088/docs
 
 ## Token for Kubernetes Dashboard
 

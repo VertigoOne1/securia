@@ -45,7 +45,7 @@ def run_continuously(interval=1):
 def start_schedules():
     if config["scheduler"]["enabled"]:
         logger.info("Starting scheduled tasks")
-        schedule.every(config["collector"]["capture_interval"]).seconds.do()
+        # schedule.every(config["collector"]["capture_interval"]).seconds.do()
     else:
         logger.info("Scheduler not enabled")
 
