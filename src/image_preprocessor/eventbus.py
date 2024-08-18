@@ -3,6 +3,7 @@
 import sys, logging
 import json
 from kafka import KafkaProducer, KafkaConsumer
+from kafka.structs import TopicPartition
 from kafka.errors import KafkaError
 import os, logger, traceback
 from pprint import pformat
@@ -66,17 +67,25 @@ class KafkaClientSingleton:
                     **self.params,
                     group_id=group_id,
                     auto_offset_reset=auto_offset_reset,
+                    enable_auto_commit=False
                     value_deserializer=lambda x: json.loads(x.decode('utf-8'))
                 )
             self.consumer.subscribe(topics=(),pattern=f"^{topic_patterm}.*")
             logger.debug(f"Consuming from - {self.consumer.subscription()}")
             for message in self.consumer:
-                yield message.value
+                yield message
 
         except KafkaError as e:
             logger.error(f"Kafka consume exception: {str(e)}")
             logger.error(traceback.format_exc())
             yield None
+
+    def commit_offset(self, topic_partition, offset):
+        if self.consumer:
+            self.consumer.commit({topic_partition: offset})
+            logger.debug(f"Committed offset {offset} for partition {topic_partition}")
+        else:
+            logger.warning("Consumer not initialized. Cannot commit offset.")
 
     def close(self):
         logger.debug("Received close signal")

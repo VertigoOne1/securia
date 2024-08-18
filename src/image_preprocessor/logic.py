@@ -18,6 +18,7 @@ import image_preprocessor as image_preprocessor
 import time, datetime
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from eventbus import KafkaClientSingleton
+from kafka.structs import TopicPartition
 
 import logger, metrics
 
@@ -35,7 +36,8 @@ class BearerAuth(requests.auth.AuthBase):
 kafka_client = KafkaClientSingleton.get_instance()
 
 def collect_raw_images():
-    os.makedirs(config['preprocessor']['temp_output_folder'], exist_ok=True)
+    if config['preprocessor']['write_local_file']:
+        os.makedirs(config['preprocessor']['temp_output_folder'], exist_ok=True)
     if config['general']['test_mode']:
         logger.info("TEST MODE START")
         image_json = '''
@@ -54,21 +56,27 @@ def collect_raw_images():
         status = image_preprocessor.preprocess_image(json.loads(image_json))
         logger.info("TEST MODE END")
     else:
-        if config['preprocessor']['write_local_file']:
-            os.makedirs(config['preprocessor']['temp_output_folder'], exist_ok=True)
         while True:
             # Consume messages
             try:
-                for message in kafka_client.consume_messages(f'{config["kafka"]["topic_prefix"]}', f'{config["kafka"]["consumer_group"]}',config["kafka"]["auto_offset_reset"]):
+                for message in kafka_client.consume_messages(f'{config["kafka"]["topic_prefix"]}',
+                                                             f'{config["kafka"]["consumer_group"]}',
+                                                             config["kafka"]["auto_offset_reset"]):
+                    if message is None:
+                        continue
                     if message is not None:
-                        status = image_preprocessor.preprocess_image(message)
-                        if status == None:
-                            kafka_client.close()
-                            exit(130)
+                        logger.debug(f"Received message from: {message.topic} partition: {message.partition} at offset: {message.offset}")
+                        status = image_preprocessor.preprocess_image(message.value)
+                        if status is None:
+                            logger.error("Could not successfully complete message processing, not setting offset")
+                        else:
+                            logger.info("Processed message, setting offset")
+                            kafka_client.commit_offset(TopicPartition(message.topic, message.partition), message.offset + 1)
                     else:
                         logger.debug("Message was None, closing channel")
                         kafka_client.close()
                         break  # Exit if there was an error
+                    time.sleep(5)
             except KeyboardInterrupt:
                 logger.info("Quitting")
                 kafka_client.close()

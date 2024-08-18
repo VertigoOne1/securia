@@ -13,6 +13,10 @@ def create_s3_context(endpoint_url, port, access_key, access_secret_key):
     config = Config(
         s3={'addressing_style': 'path'},
         signature_version='s3v4',
+    retries = {
+      'max_attempts': 20,
+      'mode': 'standard'
+   }
     )
 
     # Create S3 client

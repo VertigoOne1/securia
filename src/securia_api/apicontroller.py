@@ -41,6 +41,13 @@ def start_api_server():
 def root():
     return {"message": "Hello, World!"}
 
+@app.get("/status")
+def status():
+    if config['api']['maintenance_mode']:
+        return {"status": "maintenance"}
+    else:
+        return {"status": "up"}
+
 @app.post("/post")
 async def create_post(db: db_dependency, post: schemas.CreatePost):
     logger.debug(f"{post.content}")
