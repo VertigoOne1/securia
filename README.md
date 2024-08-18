@@ -18,15 +18,100 @@ https://huggingface.co/keras-io/low-light-image-enhancement
 
 ## Main points
 
-Event driven exception handling with DLQ
+Event driven exception handling with DLQ for CCTV camera scraping
+
+Review securia/SecurAI.drawio for the big-picture
 
 Local dev is k3s + strimzi + kdashboard + percona pstgresql + s3ninja
+
+## Local Links
+
+- Dashboard - https://localhost:32281
+- S3 Ninja  - http://localhost:32650/ui
+- PGBouncer - localhost:32617
+- Kafka     - localhost:32394
+- Registry  - 10.0.0.59:5000
+- Ingres    - 10.0.0.59:443
+- API Docs  - http://10.0.0.95:8088/docs
 
 ## Secrets management
 
 age + sops + templatisation
 
-## Ultralytics
+## Local dev setup
+
+Review the readmes in:
+
+- k3s
+- strimzi
+- postgresql
+- registry
+- s3emu
+- github-actions-runner
+
+## Playing with SOPS + AGE
+
+The idea is to create a simple portable way to allow secret decryption to CICD systems regardless of "provider".
+
+- Github Actions -> Secrets
+- Azure DevOps -> Secrets / Keyvaults
+- AWS -> Vaults
+- etc -> etc
+
+You end up customising for each.
+
+A simple "local-dev" way would be to use SOPS and AGE, and setting up an identity for the provider. You only then check
+in the private key to the provider, and keep your own, that key can then be used to decrypt any secrets using SOPS rather
+than managing the secrets, you manage only the key, which tremendously simplifies templating.
+
+### Generate identity
+
+age-keygen -o securia.key
+age-keygen -o github_actions.key
+
+### Encrypt
+
+Here you can encrypt a secret for a specific identity, or multiple identities
+
+```bash
+cat image1.jpeg | age -r age1yzynsad4vklswdacwm7jq6hptd9u9n9v3lq9l3xdhfcyke94a9lsa82xh6 > image.jpeg.age
+```
+
+### Decrypt
+
+```bash
+age -d -i securia.key -o test.jpeg image.jpeg.age
+```
+
+or via SOPS
+
+## Token for Kubernetes Dashboard use
+
+```bash
+lk -n kubernetes-dashboard get secrets admin-user -o yaml | yq .data.token | base64 -d
+```
+
+## Database bootstrap
+
+The bootstrap and user creation is handled by the percona operator helm chart.
+
+The passwords are collected from the cluster secrets. In future i'll set them to inject as a secret and map via ENV using envYAML routines
+
+Setting access is still a pain
+
+below works in dbbeaver
+
+```sql
+@set name = securiaapi
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ${name};
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${name};
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO ${name};
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO ${name};
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO ${name};
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO ${name};
+```
+
+## Ultralytics review
 
 with gpu support
 
@@ -92,64 +177,3 @@ image 24/24 /pics_http/image_20240810_131610.jpg: 544x640 (no detections), 1386.
 ```
 
 `securia/pics_http/results/image_20240810_131508.jpg`
-
-## Local dev setup
-
-Review k3s directory
-
-done
-
-## Install local kafka
-
-Review strimzi directory
-
-## Playing with SOPS + AGE
-
-### Generate identity
-
-age-keygen -o securia.key
-
-### Encrypt
-
-```bash
-cat image1.jpeg | age -r age1yzynsad4vklswdacwm7jq6hptd9u9n9v3lq9l3xdhfcyke94a9lsa82xh6 > image.jpeg.age
-```
-
-### Decrypt
-
-```bash
-age -d -i securia.key -o test.jpeg image.jpeg.age
-```
-
-## Local Links
-
-Dashboard - https://localhost:32281
-S3 Ninja  - http://localhost:32650/ui
-PGBouncer - localhost:32617
-Kafka     - localhost:32394
-Registry  - 10.0.0.59:5000
-Ingres    - 10.0.0.59:443
-API Docs  - http://10.0.0.95:8088/docs
-
-## Token for Kubernetes Dashboard
-
-```bash
-lk -n kubernetes-dashboard get secrets admin-user -o yaml | yq .data.token | base64 -d
-```
-
-## Database bootstrap
-
-The bootstrap and user creation is handled by the percona operator helm chart.
-The passwords are collected from the cluster. In future i'll set them to inject as a secret
-
-below works in dbbeaver
-
-```sql
-@set name = securiaapi
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ${name};
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${name};
-GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO ${name};
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO ${name};
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO ${name};
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO ${name};
-```
