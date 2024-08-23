@@ -9,7 +9,7 @@ logger = logger.setup_custom_logger(__name__)
 
 config = EnvYAML('config.yml')
 
-def create_s3_context(endpoint_url, port, access_key, access_secret_key):
+def create_s3_context(endpoint_url, method, port, access_key, access_secret_key):
     config = Config(
         s3={'addressing_style': 'path'},
         signature_version='s3v4',
@@ -22,7 +22,7 @@ def create_s3_context(endpoint_url, port, access_key, access_secret_key):
     # Create S3 client
     s3_client = boto3.client(
         's3',
-        endpoint_url=f'http://{endpoint_url}:{port}',
+        endpoint_url=f'{method}://{endpoint_url}:{port}',
         aws_access_key_id=f'{access_key}',
         aws_secret_access_key=f'{access_secret_key}',
         config=config,

@@ -3,7 +3,7 @@
 general:
   app_name: image_preprocessor
   default_debug_level: DEBUG
-  test_mode: True
+  test_mode: False
 preprocessor:
   enabled: True
   write_local_file: True
@@ -12,7 +12,8 @@ preprocessor:
   image_filename_prefix: "image_dict"
 storage:
   bucket_name: test
-  endpoint_hostname: localhost
+  endpoint_hostname: 10.0.0.59
+  endpoint_method: http
   port: 32650
   access_key: AKIAIOSFODNN7EXAMPLE
   secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
@@ -22,16 +23,19 @@ kafka:
   sasl_mechanism: SCRAM-SHA-512
   sasl_plain_username: admin
   sasl_plain_password: Xr4i0hhtlnxsPZ9aMfMgM7DhZraddu3K
-  topic_prefix: collector.
+  subscribe_topic_prefix: collector.out.
+  produce_topic_prefix: preprocessor.out.
+  dlq_topic_prefix: preprocessor.dlq.out.
   consumer_group: preprocessor
-  auto_offset_reset: latest
+  auto_offset_reset: earliest
+  enable_auto_commit: True
   value_serialiser: lambda x:json.dumps(x).encode('utf-8')
 flask:
   default_port: 8089
   debug_level: INFO
   debug_enabled: False
 api:
-  uri: http://10.0.0.95:8088/securia
+  uri: http://10.0.0.95:30578/securia
 scheduler:
   enabled: False
 metrics:
@@ -40,5 +44,3 @@ logging:
   enable_file_log_handler: False
   enable_stdout_log_handler: True
   enable_kafka_log_handler: False
-database:
-  uri: 'postgresql+psycopg2://localhost:32617/securia?password=MGx%2Funk%3E%2FXv%5D%29j%3Axv5QMG5%5BI&user=preproc'

@@ -34,7 +34,8 @@ appConfig:
     image_filename_prefix: "image_dict"
   storage:
     bucket_name: test
-    endpoint_hostname: localhost
+    endpoint_hostname: 10.0.0.59
+    endpoint_method: http
     port: 32650
     access_key: AKIAIOSFODNN7EXAMPLE
     secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
@@ -53,7 +54,7 @@ appConfig:
     debug_level: INFO
     debug_enabled: False
   api:
-    uri: http://10.0.0.95:8088/securia
+    uri: http://10.0.59:30578/securia
   scheduler:
     enabled: False
   metrics:
@@ -62,8 +63,6 @@ appConfig:
     enable_file_log_handler: False
     enable_stdout_log_handler: True
     enable_kafka_log_handler: False
-  database:
-    uri: 'postgresql+psycopg2://localhost:32617/securia?password=MGx%2Funk%3E%2FXv%5D%29j%3Axv5QMG5%5BI&user=preproc'
 
 service:
   type: ClusterIP

@@ -9,10 +9,10 @@ RUN apk add librdkafka-dev --repository=https://dl-cdn.alpinelinux.org/alpine/ed
 
 WORKDIR /app
 
-COPY . .
-
 COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
 
 CMD [ "python", "app.py" ]

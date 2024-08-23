@@ -1,4 +1,5 @@
 envyaml
+urllib3==1.26.19
 requests
 pyOpenSSL
 json2html
@@ -6,7 +7,8 @@ flask
 prometheus_client
 schedule
 # kubernetes
-confluent-kafka
+# confluent-kafka
 # kafka-python
 kafka-python-ng
 prometheus-client
+boto3

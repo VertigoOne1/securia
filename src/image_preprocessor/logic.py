@@ -54,29 +54,58 @@ def collect_raw_images():
         }
         '''
         status = image_preprocessor.preprocess_image(json.loads(image_json))
+        if status is None:
+            logger.error("Could not successfully complete message processing")
+            exit()
+        else:
+            logger.info("Processed message, ID: {status} - notifying and then incrementing consumergroup offset")
+            topic = "image"
+            output = {}
+            output["image_id"] = status
+            message_out = json.dumps(output)
+            send_result = kafka_client.send_message(topic, "NA", message_out)
+            if send_result:
+                logger.info("Good to go")
+            else:
+                logger.error(f"Could not send notice of successful processing to my topic {topic}")
+        logger.debug(f"Image Link ID: {status}")
         logger.info("TEST MODE END")
     else:
         while True:
             # Consume messages
             try:
-                for message in kafka_client.consume_messages(f'{config["kafka"]["topic_prefix"]}',
+                for message in kafka_client.consume_messages(f'{config["kafka"]["subscribe_topic_prefix"]}',
                                                              f'{config["kafka"]["consumer_group"]}',
                                                              config["kafka"]["auto_offset_reset"]):
+                    logger.debug("- Message loop start -")
                     if message is None:
                         continue
                     if message is not None:
                         logger.debug(f"Received message from: {message.topic} partition: {message.partition} at offset: {message.offset}")
                         status = image_preprocessor.preprocess_image(message.value)
                         if status is None:
-                            logger.error("Could not successfully complete message processing, not setting offset")
+                            logger.error("Could not successfully complete message processing, send to DLQ and sleep for 2 seconds")
+                            logger.debug(f"Partition - {message.partition}")
+                            logger.debug(f"Offset - {message.offset}")
+                            topic = f'{config["kafka"]["dlq_topic_prefix"]}process'
+                            send_result = kafka_client.send_message(topic, "NA", message.value)
+                            sleep(2)
                         else:
-                            logger.info("Processed message, setting offset")
-                            kafka_client.commit_offset(TopicPartition(message.topic, message.partition), message.offset + 1)
+                            logger.info("Processed message, ID: {status} - notifying upstreams")
+                            topic = f'{config["kafka"]["produce_topic_prefix"]}image'
+                            output = {}
+                            output["image_id"] = status
+                            send_result = kafka_client.send_message(topic, "NA", output)
+                            if send_result:
+                                logger.debug(f"Notify success - {message_out}")
+                            else:
+                                logger.error(f"Could not send notice of successful processing to my topic {topic}")
+                            time.sleep(2)
                     else:
                         logger.debug("Message was None, closing channel")
                         kafka_client.close()
                         break  # Exit if there was an error
-                    time.sleep(5)
+                    logger.debug("- Message loop end -")
             except KeyboardInterrupt:
                 logger.info("Quitting")
                 kafka_client.close()

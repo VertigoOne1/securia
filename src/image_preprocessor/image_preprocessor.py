@@ -5,11 +5,6 @@ from envyaml import EnvYAML
 from datetime import datetime
 import logger
 import s3, tempfile
-from urllib3 import PoolManager
-from requests.packages.urllib3.util.retry import Retry
-
-retries = Retry(total=50, status_forcelist=[429, 500, 502, 503, 504], backoff_factor=0.5, backoff_max=60)
-http = PoolManager(retries=retries, num_pools=5)
 
 logger = logger.setup_custom_logger(__name__)
 config = EnvYAML('config.yml')
@@ -32,9 +27,10 @@ def checkhash(image_dict):
 def send_s3(image_dict):
     logger.debug("Send to S3")
     s3_context = s3.create_s3_context(config['storage']['endpoint_hostname'],
-                              config['storage']['port'],
-                              config['storage']['access_key'],
-                              config['storage']['secret_access_key'])
+                                      config['storage']['endpoint_method'],
+                                      config['storage']['port'],
+                                      config['storage']['access_key'],
+                                      config['storage']['secret_access_key'])
     import uuid
     object_name = uuid.uuid4()
     logger.debug(f"Image key: {object_name}")
@@ -68,8 +64,11 @@ def recorder_process(image_dict):
             logger.debug(f"Create Recorder Response - {data}")
             logger.debug(f"Recorder ID is {data['id']}")
             return data['id']
-        else:
+        elif resp.status_code == 200:
             return data['id']
+        else:
+            logger.error(f"Respose status: {resp.status_code}")
+            return None
     except:
         logger.error("recorder search/insert request exception")
         logger.error(traceback.format_exc())
@@ -92,9 +91,11 @@ def channel_process(image_dict, recorder_id):
                 data = resp.json()
                 logger.debug(f"Create Channnel Response - {data}")
                 logger.debug(f"Channel ID is {data['id']}")
+            elif resp.status_code == 200:
                 return data['id']
             else:
-                return data['id']
+                logger.error(f"Respose status: {resp.status_code}")
+                return None
         except:
             logger.error("channel search request exception")
             logger.error(traceback.format_exc())
@@ -120,8 +121,12 @@ def image_process(image_dict, channel_id, object_name):
             logger.debug(f"Sending - {request_body}")
             resp = requests.post(url, json = request_body)
             data = resp.json()
-            logger.debug(f"Image post resp - {data}")
-            return data['id']
+            if resp.status_code == 200:
+                logger.debug(f"Image post resp - {data}")
+                return data['id']
+            else:
+                logger.error(f"Respose status: {resp.status_code}")
+                return None
         except:
             logger.error("image post request exception")
             logger.error(traceback.format_exc())
@@ -130,17 +135,30 @@ def image_process(image_dict, channel_id, object_name):
         logger.error("Did not receive a valid channel_id or uuid")
         return None
 
-def preprocess_image(message):
-    logger.debug("Check if service is available")
-    url = f"{config['api']['uri']}/status"
-    request_body = {'uri': image_dict['uri']}
-    resp = requests.get(url, json = request_body)
-    data = resp.json()
-    if data["status"] != "up":
-        logger.error("API is in a mode that is not up, not doing anything")
-        return False
+# def check_api_available(): # Stupid Idea
+#     logger.info("Check if API service is available")
+#     try:
+#         url = f"{config['api']['uri']}/status"
+#         resp = requests.get(url)
+#         data = resp.json()
+#         if resp.status_code == 200:
+#             logger.debug("200 OK at least")
+#             if data["status"] != "up":
+#                 logger.error("API is in a mode that is not 'up', retry")
+#                 logger.error(f"Response is {data}")
+#                 return False
+#             else:
+#                 logger.debug("API available - continuing in 2 seconds")
+#                 return True
+#         else:
+#             logger.error("status_code is not 200, retry")
+#             return False
+#     except:
+#         logger.error("API is in a mode that is not 'up', retry")
+#         return False
+
+def preprocess_image(image_dict):
     try:
-        image_dict = message
         logger.debug(f"Received data from {image_dict['uri']} | Channel: {image_dict['channel']} | Status: {image_dict['status'] or 'None'}")
         image_dict["preproc_ingest_time"] = datetime.now().strftime(config['preprocessor']['time_format'])
         if image_dict is None:
@@ -152,7 +170,7 @@ def preprocess_image(message):
                                         f"{config['preprocessor']['image_filename_prefix']}_{image_dict['channel']}_{image_dict['collected_timestamp']}.json")
                 logger.debug(f"Writing - {output_file}")
                 with open(output_file, "a") as json_file:
-                    json.dump(message, json_file)
+                    json.dump(image_dict, json_file)
             if checkhash(image_dict):
                 linking = {}
                 # Submit to S3
@@ -171,13 +189,16 @@ def preprocess_image(message):
                         return linking['image_id']
                     else:
                         logger.error("Processes did not complete successfully")
-                        return False
+                        return None
                 else:
                     logger.error("Object submission to S3 failed")
-                    return False
+                    return None
             else:
                 logger.error("IMAGE MANIPULATION DETECTED")
-                return False
+                return None
     except KeyboardInterrupt:
         logger.info("Quitting")
         return None
+    except:
+        logger.error("bad packet")
+        logger.debug(f"{image_dict}")

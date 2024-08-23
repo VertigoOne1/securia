@@ -73,6 +73,8 @@ def setup_custom_logger(name):
     flask_log_level = logging.getLevelName(FLASK_DEBUG_LEVEL)
     flask_logging = logging.getLogger('werkzeug')
     flask_logging.setLevel(flask_log_level)
+    logger_urllib = logging.getLogger('urllib3')
+    logger_urllib.setLevel(logging.DEBUG)
     # flask_logging.default_handler.setFormatter(formatter) #Investigate this sometime
     logging.info(f"Flask debug logging set to - {FLASK_DEBUG_LEVEL}")
     logger2 = logging.getLogger()

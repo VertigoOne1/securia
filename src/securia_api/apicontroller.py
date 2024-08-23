@@ -41,7 +41,7 @@ def start_api_server():
 def root():
     return {"message": "Hello, World!"}
 
-@app.get("/status")
+@app.get("/securia/status")
 def status():
     if config['api']['maintenance_mode']:
         return {"status": "maintenance"}
@@ -63,12 +63,19 @@ async def create_post(db: db_dependency, post: schemas.CreatePost):
 
 @app.post("/securia/recorder")
 async def create_recorder(db: db_dependency, recorder: schemas.RecorderCreate):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Maintenance Mode')
     db_recorder = crud.create_recorder(db, recorder)
     logger.debug(f"Created new recorder with id: {db_recorder.id}")
     return db_recorder
 
+
+
+
 @app.post("/securia/recorder/search")
 async def search_recorder(db: db_dependency, recorder: schemas.RecorderCreate):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
     recorder = db.query(models.Recorder).filter(models.Recorder.uri == recorder.uri).first()
     if recorder is not None:
         logger.debug(f"Found recorder uri - {recorder.uri} : {recorder.id}")
@@ -77,6 +84,8 @@ async def search_recorder(db: db_dependency, recorder: schemas.RecorderCreate):
 
 @app.get("/securia/recorder/{recorder_id}")
 async def get_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
     recorder = db.query(models.Recorder).filter(models.Recorder.id == recorder_id).first()
     if recorder is not None:
         return recorder
@@ -86,12 +95,16 @@ async def get_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0)):
 
 @app.post("/securia/channel")
 async def create_channel(db: db_dependency, channel: schemas.ChannelCreate):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
     db_channel = crud.create_channel(db, channel)
     logger.debug(f"Created new Channel with id: {db_channel.id}")
     return db_channel
 
 @app.post("/securia/channel/search")
 async def search_channel(db: db_dependency, channel: schemas.ChannelSearch):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
     channel = db.query(models.Channel).filter(models.Channel.fid == channel.fid,
                                               models.Channel.channel_id == channel.channel_id).first()
     if channel is not None:
@@ -101,6 +114,8 @@ async def search_channel(db: db_dependency, channel: schemas.ChannelSearch):
 
 @app.get("/securia/channel/id/{channel_id}")
 async def get_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
     channel = db.query(models.Channel).filter(models.Channel.id == channel_id).first()
     if channel is not None:
         return channel
@@ -108,6 +123,8 @@ async def get_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0)):
 
 @app.get("/securia/channel/name/{channel_name}")
 async def get_channel_by_id(db: db_dependency, channel_name: str = Path(gt=0)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
     channel = db.query(models.Channel).filter(models.Channel.channel_id == channel_name).first()
     if channel is not None:
         return channel
@@ -117,6 +134,8 @@ async def get_channel_by_id(db: db_dependency, channel_name: str = Path(gt=0)):
 
 @app.post("/securia/image")
 async def create_image(db: db_dependency, image: schemas.ImageCreate):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
     logger.debug(f"received {image}")
     db_image = crud.create_image(db, image)
     logger.debug(f"Created new Image with id: {db_image.id}")
@@ -124,6 +143,8 @@ async def create_image(db: db_dependency, image: schemas.ImageCreate):
 
 @app.get("/securia/image/{image_id}")
 async def get_image_by_id(db: db_dependency, image_id: int = Path(gt=0)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
     image = db.query(models.Image).filter(models.Image.id == image_id).first()
     if image is not None:
         return image
@@ -133,12 +154,16 @@ async def get_image_by_id(db: db_dependency, image_id: int = Path(gt=0)):
 
 @app.post("/securia/detection")
 async def create_detection(db: db_dependency, detection: schemas.DetectionCreate):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
     db_detection = crud.create_detection(db, detection)
     logger.debug(f"Created new Detections with id: {db_detection.id}")
     return db_detection
 
 @app.get("/securia/detection/{detection_id}")
 async def get_detection_by_id(db: db_dependency, detection_id: int = Path(gt=0)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
     detection = db.query(models.Detection).filter(models.Detection.id == detection_id).first()
     if detection is not None:
         return detection

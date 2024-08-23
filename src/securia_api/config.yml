@@ -33,4 +33,4 @@ logging:
   enable_stdout_log_handler: True
   enable_kafka_log_handler: False
 database:
-  uri: 'postgresql+psycopg2://localhost:32617/securia?password=r[V>T(u:vn|9<oxgg:H<9S.|&user=securiaapi'
+  uri: 'postgresql+psycopg2://10.0.0.59:32617/securia?password=r[V>T(u:vn|9<oxgg:H<9S.|&user=securiaapi'

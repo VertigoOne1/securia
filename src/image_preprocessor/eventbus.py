@@ -15,7 +15,7 @@ config = EnvYAML('config.yml')
 
 logger = logging.getLogger('kafka')
 logger.addHandler(logging.StreamHandler(sys.stdout))
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 logger = logging.getLogger('kafka')
 
@@ -46,9 +46,8 @@ class KafkaClientSingleton:
 
             KafkaClientSingleton._instance = self
 
-    def send_message(self, input_topic, key, message):
+    def send_message(self, topic, key, message):
         try:
-            topic = f'{config["kafka"]["topic_prefix"]}-{input_topic}'
             logger.debug(f"Producing to - {topic}")
             keyb = key.encode('utf-8') if isinstance(key, str) else key
             self.producer.send(topic, key=keyb, value=message)
@@ -63,11 +62,10 @@ class KafkaClientSingleton:
         try:
             if self.consumer is None:
                 self.consumer = KafkaConsumer(
-                    "placeholder",
                     **self.params,
                     group_id=group_id,
                     auto_offset_reset=auto_offset_reset,
-                    enable_auto_commit=False
+                    enable_auto_commit=config["kafka"]["enable_auto_commit"],
                     value_deserializer=lambda x: json.loads(x.decode('utf-8'))
                 )
             self.consumer.subscribe(topics=(),pattern=f"^{topic_patterm}.*")
@@ -81,6 +79,7 @@ class KafkaClientSingleton:
             yield None
 
     def commit_offset(self, topic_partition, offset):
+        logger.debug(f"Commiting - {topic_partition} - {offset}")
         if self.consumer:
             self.consumer.commit({topic_partition: offset})
             logger.debug(f"Committed offset {offset} for partition {topic_partition}")
