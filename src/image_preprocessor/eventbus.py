@@ -57,7 +57,10 @@ class KafkaClientSingleton:
             logger.error(f"Kafka send exception: {str(e)}")
             logger.error(traceback.format_exc())
             return False
-
+        except:
+            logger.error(f"Likely configuration error")
+            logger.error(traceback.format_exc())
+            exit(1)
     def consume_messages(self, topic_patterm, group_id, auto_offset_reset='earliest'):
         try:
             if self.consumer is None:
@@ -77,6 +80,10 @@ class KafkaClientSingleton:
             logger.error(f"Kafka consume exception: {str(e)}")
             logger.error(traceback.format_exc())
             yield None
+        except:
+            logger.error(f"Likely configuration error")
+            logger.error(traceback.format_exc())
+            exit(1)
 
     def commit_offset(self, topic_partition, offset):
         logger.debug(f"Commiting - {topic_partition} - {offset}")

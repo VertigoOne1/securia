@@ -4,10 +4,3 @@ dashboard_token
 **/*.pyc
 **/__pycache__
 src/**/*.pyc
-src/image_preprocessor/__pycache__/apicontroller.cpython-310.pyc
-src/image_preprocessor/__pycache__/apicontroller.cpython-310.pyc
-src/image_preprocessor/__pycache__/eventbus.cpython-310.pyc
-src/image_preprocessor/__pycache__/image_preprocessor.cpython-310.pyc
-src/image_preprocessor/__pycache__/logger.cpython-310.pyc
-src/image_preprocessor/__pycache__/logic.cpython-310.pyc
-src/image_preprocessor/__pycache__/scheduler.cpython-310.pyc
