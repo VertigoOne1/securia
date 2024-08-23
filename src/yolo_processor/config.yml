@@ -1,0 +1,46 @@
+---
+# It would be a good idea to create a "central config" for this, so colletors can auto-config themselves
+general:
+  app_name: yolo_processor
+  default_debug_level: DEBUG
+  test_mode: False
+preprocessor:
+  enabled: True
+  write_local_file: True
+  temp_output_folder: /tmp/kafka
+  time_format: "%Y%m%d_%H%M%S.%f%z"
+  image_filename_prefix: "image_dict"
+storage:
+  bucket_name: test
+  endpoint_hostname: 10.0.0.59
+  endpoint_method: http
+  port: 32650
+  access_key: AKIAIOSFODNN7EXAMPLE
+  secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+kafka:
+  broker_url: ["10.0.0.59:32394"]
+  security_protocol: SASL_PLAINTEXT
+  sasl_mechanism: SCRAM-SHA-512
+  sasl_plain_username: admin
+  sasl_plain_password: Xr4i0hhtlnxsPZ9aMfMgM7DhZraddu3K
+  subscribe_topic_prefix: preprocessor.out.image
+  produce_topic_prefix: yolo.processor.out.
+  dlq_topic_prefix: yolo.dlq.out.
+  consumer_group: yoloprocessor
+  auto_offset_reset: earliest
+  enable_auto_commit: True
+  value_serialiser: lambda x:json.dumps(x).encode('utf-8')
+flask:
+  default_port: 8089
+  debug_level: INFO
+  debug_enabled: False
+api:
+  uri: http://10.0.0.95:30578/securia
+scheduler:
+  enabled: False
+metrics:
+  enabled: True
+logging:
+  enable_file_log_handler: False
+  enable_stdout_log_handler: True
+  enable_kafka_log_handler: False

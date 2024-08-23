@@ -5,8 +5,5 @@ json2html
 flask
 prometheus_client
 schedule
-# kubernetes
-confluent-kafka
-# kafka-python
 kafka-python-ng
 prometheus-client

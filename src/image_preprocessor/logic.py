@@ -97,7 +97,7 @@ def collect_raw_images():
                             output["image_id"] = status
                             send_result = kafka_client.send_message(topic, "NA", output)
                             if send_result:
-                                logger.debug(f"Notify success - {message_out}")
+                                logger.debug(f"Notify success - {output}")
                             else:
                                 logger.error(f"Could not send notice of successful processing to my topic {topic}")
                             time.sleep(2)
@@ -107,6 +107,11 @@ def collect_raw_images():
                         break  # Exit if there was an error
                     logger.debug("- Message loop end -")
             except KeyboardInterrupt:
-                logger.info("Quitting")
+                logger.info("Quitting by request of user")
                 kafka_client.close()
                 exit(130)
+            except:
+                logger.info("Exception")
+                kafka_client.close()
+                logger.error(traceback.format_exc())
+                exit(1)

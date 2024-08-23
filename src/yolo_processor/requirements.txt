@@ -1,0 +1,14 @@
+envyaml
+urllib3==1.26.19
+requests
+pyOpenSSL
+json2html
+flask
+prometheus_client
+schedule
+kafka-python-ng
+prometheus-client
+boto3
+ultralytics
+# cv2
+pillow
