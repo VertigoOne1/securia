@@ -69,6 +69,7 @@ class Detection(Base):
     id = Column(Integer,primary_key=True,nullable=False)
     fid = Column(Integer, ForeignKey('images.id'))
     detections = Column(JSONB)
+    processing_time_ms = Column(JSONB)
     detections_timestamp = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
     created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
 

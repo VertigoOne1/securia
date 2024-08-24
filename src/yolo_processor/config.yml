@@ -4,12 +4,15 @@ general:
   app_name: yolo_processor
   default_debug_level: DEBUG
   test_mode: False
-preprocessor:
+yolo:
   enabled: True
-  write_local_file: True
-  temp_output_folder: /tmp/kafka
+  model: yolov8l.pt
   time_format: "%Y%m%d_%H%M%S.%f%z"
-  image_filename_prefix: "image_dict"
+  image_filename_prefix: "predict"
+  write_local_file: False
+  temp_output_folder: yolo_tmp
+  save_predict_output: True
+  save_predict_crops: True
 storage:
   bucket_name: test
   endpoint_hostname: 10.0.0.59
@@ -35,7 +38,7 @@ flask:
   debug_level: INFO
   debug_enabled: False
 api:
-  uri: http://10.0.0.95:30578/securia
+  uri: http://10.0.0.95:8088/securia
 scheduler:
   enabled: False
 metrics:

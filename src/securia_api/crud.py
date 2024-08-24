@@ -9,10 +9,13 @@ config = EnvYAML('config.yml')
 
 def create_post(db: Session, post: schemas.CreatePost):
     db_post = models.Post(title=post.title, content=post.content)
-    db.add(db_post)
-    db.commit()
-    db.refresh(db_post)
-    return db_post
+    try:
+        db.add(db_post)
+        db.commit()
+        db.refresh(db_post)
+        return db_post
+    except:
+        return None
 
 def get_post(db: Session, post_id: int):
     return db.query(models.Post).filter(models.Post.id == post_id).first()
@@ -20,13 +23,16 @@ def get_post(db: Session, post_id: int):
 def create_recorder(db: Session,
                  recorder: schemas.RecorderCreate,
                  ):
-    db_recorder = models.Recorder(uri=recorder.uri)
-    logger.debug(f"New recorder URI - {recorder.uri}")
-    logger.debug(f"{db_recorder}")
-    db.add(db_recorder)
-    db.commit()
-    db.refresh(db_recorder)
-    return db_recorder
+    try:
+        db_recorder = models.Recorder(uri=recorder.uri)
+        logger.debug(f"New recorder URI - {recorder.uri}")
+        logger.debug(f"{db_recorder}")
+        db.add(db_recorder)
+        db.commit()
+        db.refresh(db_recorder)
+        return db_recorder
+    except:
+        return None
 
 def create_channel(db: Session,
                  channel: schemas.ChannelCreate,
@@ -57,13 +63,19 @@ def create_image(db: Session,
 
 def create_detection(db: Session,
                  detection: schemas.DetectionCreate,
-                 image_id
                  ):
-    db_detection = models.Detection(fid=image_id, detections=detection.detections)
-    db.add(db_detection)
-    db.commit()
-    db.refresh(db_detection)
-    return db_detection
+    db_detection = models.Detection(fid=detection.fid,
+                                    detections=detection.detections,
+                                    processing_time_ms=detection.processing_time_ms,
+                                    detections_timestamp=detection.detections_timestamp
+                                    )
+    try:
+        db.add(db_detection)
+        db.commit()
+        db.refresh(db_detection)
+        return db_detection
+    except:
+        return None
 
 # Add other CRUD operations as needed
 

@@ -1,4 +1,4 @@
-# Default values for securia-api.
+# Default values for yoloproc.
 # This is a YAML-formatted file.
 # Declare variables to be passed into the templates.
 
@@ -7,27 +7,38 @@ replicaCount: 1
 image:
   registry: "10.0.0.59:5000"
   path: "/securia"
-  name: "securia-api"
+  name: "yolo-processor"
   tag: ":latest"
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-postfix: "api"
+postfix: "yoloproc"
 
 app:
   general:
-    app_name: securia-api
-    app_debug_level: DEBUG
+    app_name: yolo-processor
+    app_debug_level: INFO
 
 appConfig:
   general:
-    app_name: securia_api
+    app_name: yolo_processor
     default_debug_level: DEBUG
+    test_mode: False
+  yolo:
+    enabled: True
+    model: yolov8l.pt
+    time_format: "%Y%m%d_%H%M%S.%f%z"
+    image_filename_prefix: "predict"
+    write_local_file: False
+    temp_output_folder: yolo_tmp
+    save_predict_output: True
+    save_predict_crops: True
   storage:
     bucket_name: test
-    endpoint_hostname: localhost
+    endpoint_hostname: 10.0.0.59
+    endpoint_method: http
     port: 32650
     access_key: AKIAIOSFODNN7EXAMPLE
     secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
@@ -37,15 +48,19 @@ appConfig:
     sasl_mechanism: SCRAM-SHA-512
     sasl_plain_username: admin
     sasl_plain_password: Xr4i0hhtlnxsPZ9aMfMgM7DhZraddu3K
-    topic_prefix: collector.
-    consumer_group: preprocessor
-    auto_offset_reset: latest
+    subscribe_topic_prefix: preprocessor.out.image
+    produce_topic_prefix: yolo.processor.out.
+    dlq_topic_prefix: yolo.dlq.out.
+    consumer_group: yoloprocessor
+    auto_offset_reset: earliest
+    enable_auto_commit: True
     value_serialiser: lambda x:json.dumps(x).encode('utf-8')
+  flask:
+    default_port: 8089
+    debug_level: INFO
+    debug_enabled: False
   api:
-    default_port: 8088
-    debug_level: debug
-    time_format: "%Y%m%d_%H%M%S.%f"
-    maintenance_mode: False
+    uri: http://10.0.0.95:30578/securia
   scheduler:
     enabled: False
   metrics:
@@ -54,13 +69,11 @@ appConfig:
     enable_file_log_handler: False
     enable_stdout_log_handler: True
     enable_kafka_log_handler: False
-  database:
-    uri: 'postgresql+psycopg2://10.0.0.59:32617/securia?password=r[V>T(u:vn|9<oxgg:H<9S.|&user=securiaapi'
 
 service:
-  type: NodePort
+  type: ClusterIP
   port: 8088
-  name: api
+  name: yoloproc
 
 serviceAccount:
   create: true
@@ -68,7 +81,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "securiaapi-sa"
+  name: "yoloproc-sa"
   bindingPostfix: "-crb"
 
 persistence:

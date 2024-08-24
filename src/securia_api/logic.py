@@ -8,15 +8,12 @@ import sys
 sys.path.append(r'./modules')
 
 from envyaml import EnvYAML
-import json, requests, socket
+import requests
 from time import sleep
-import os, fnmatch, traceback
 from pprint import pformat
 import urllib3
 from time import sleep
-import time, datetime
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-from eventbus import KafkaClientSingleton
 
 import logger, metrics
 

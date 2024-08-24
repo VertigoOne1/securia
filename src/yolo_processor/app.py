@@ -24,6 +24,5 @@ def startApiServer():
 if __name__ == '__main__':
     apiserver = startApiServer()
     logger.info(f"Start - {config['general']['app_name']}")
-    # scheduling = start_schedules()
-    logic.predict()
-    # logic.collect_raw_images()
+    # logic.predict()
+    logic.process_images()

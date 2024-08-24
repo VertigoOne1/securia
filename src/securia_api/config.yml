@@ -23,7 +23,7 @@ api:
   default_port: 8088
   debug_level: debug
   time_format: "%Y%m%d_%H%M%S.%f"
-  maintenance_mode: True
+  maintenance_mode: False
 scheduler:
   enabled: False
 metrics:

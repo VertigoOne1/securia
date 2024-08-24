@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Json, ValidationError, validator, field_validator
 from datetime import date, datetime, time, timedelta
 from typing import Any, List, Optional
+import json
 
 from envyaml import EnvYAML
 config = EnvYAML('config.yml')
@@ -84,7 +85,27 @@ class ImageCreate(ImageBase):
 class DetectionBase(BaseModel):
     fid: int
     detections: Json[Any]
-    detections_timestamp: datetime
+    processing_time_ms: Json[Any]
+    detections_timestamp: datetime = None
+
+    @field_validator('detections_timestamp', mode="before")
+    @classmethod
+    def parse_datetime(cls, value: Any)-> datetime:
+        # Define the format according to your input string
+        time_format = '%Y%m%d_%H%M%S.%f'  # e.g., "%Y%m%d_%H%M%S.%f"
+        return datetime.strptime(value, time_format)
+
+    # @field_validator('detections', mode="before")
+    # @classmethod
+    # def parse_jsons(cls, value: Any):
+    #     # Define the format according to your input string
+    #     return json.loads(value)
+
+    # @field_validator('processing_time_ms', mode="before")
+    # @classmethod
+    # def parse_jsons(cls, value: Any):
+    #     # Define the format according to your input string
+    #     return json.loads(value)
 
     class Config:
         from_attributes = True

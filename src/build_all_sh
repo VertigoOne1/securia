@@ -5,3 +5,5 @@ docker build image_preprocessor/ -t 10.0.0.59:5000/securia/image-preprocessor:la
 docker push 10.0.0.59:5000/securia/image-preprocessor:latest
 docker build securia_api/ -t 10.0.0.59:5000/securia/securia-api:latest
 docker push 10.0.0.59:5000/securia/securia-api:latest
+docker build yolo_processor/ -t 10.0.0.59:5000/securia/yolo-processor:latest
+docker push 10.0.0.59:5000/securia/yolo-processor:latest
