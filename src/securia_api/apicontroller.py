@@ -1,11 +1,12 @@
 import uvicorn
-from fastapi import FastAPI, Depends, HTTPException, Path
+from fastapi import FastAPI, Depends, HTTPException, Path, responses
 from sqlalchemy.orm import Session
 from typing import Annotated
 from prometheus_client import make_asgi_app
 from envyaml import EnvYAML
 from logger import setup_custom_logger
 from starlette import status
+import s3, tempfile
 
 import logger, logic, models, schemas, crud
 from database import engine, SessionLocal
@@ -167,6 +168,31 @@ async def get_image_by_id(db: db_dependency, image_id: int = Path(gt=0)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Image not found')
 
+@app.get("/securia/image_file/{image_id}",
+    responses = {
+        200: {
+            "content": {"image/jpeg": {}}
+        }
+    }
+)
+async def get_image_file_by_id(db: db_dependency, image_id: int = Path(gt=0)):
+    import io
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    image = db.query(models.Image).filter(models.Image.id == image_id).first()
+    if image is not None:
+        image_path = image.s3_path.split('/')
+        logger.debug(f'Bucket is {image_path[0]}, key is {image_path[1]}')
+        image = s3.fetch_image(image_path[0], image_path[1])
+        img_byte_arr = io.BytesIO()
+        image.save(img_byte_arr, format='JPEG')  # or 'PNG'
+        img_byte_arr.seek(0)
+        return responses.StreamingResponse(img_byte_arr, media_type="image/jpeg")  # or "image/png"
+
+    if image is None:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Image issue')
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Image not found')
+
 # Detection APIs
 
 @app.post("/securia/detection")
@@ -187,6 +213,30 @@ async def get_detection_by_id(db: db_dependency, detection_id: int = Path(gt=0))
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     detection = db.query(models.Detection).filter(models.Detection.id == detection_id).first()
+    if detection is not None:
+        return detection
+    if detection is None:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Detection not found')
+
+@app.post("/securia/detection_objects")
+async def create_detection(db: db_dependency, detectionobject: schemas.DetectionObjectCreate):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    try:
+        db_detectionobj = crud.create_detection_object(db, detectionobject)
+        if db_detectionobj is None:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
+    except:
+        logger.error("Issue somewhere")
+    logger.debug(f"Created new Detections with id: {db_detectionobj.id}")
+    return db_detectionobj
+
+@app.get("/securia/detection_objects/{detectionobject_id}")
+async def get_detection_by_id(db: db_dependency, detectionobject_id: int = Path(gt=0)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    detection = db.query(models.DetectionObjects).filter(models.DetectionObjects.id == detectionobject_id).first()
     if detection is not None:
         return detection
     if detection is None:

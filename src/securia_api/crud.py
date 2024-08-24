@@ -7,19 +7,6 @@ logger = logger.setup_custom_logger(__name__)
 
 config = EnvYAML('config.yml')
 
-def create_post(db: Session, post: schemas.CreatePost):
-    db_post = models.Post(title=post.title, content=post.content)
-    try:
-        db.add(db_post)
-        db.commit()
-        db.refresh(db_post)
-        return db_post
-    except:
-        return None
-
-def get_post(db: Session, post_id: int):
-    return db.query(models.Post).filter(models.Post.id == post_id).first()
-
 def create_recorder(db: Session,
                  recorder: schemas.RecorderCreate,
                  ):
@@ -66,6 +53,7 @@ def create_detection(db: Session,
                  ):
     db_detection = models.Detection(fid=detection.fid,
                                     detections=detection.detections,
+                                    detections_count=detection.detections_count,
                                     processing_time_ms=detection.processing_time_ms,
                                     detections_timestamp=detection.detections_timestamp
                                     )
@@ -74,6 +62,23 @@ def create_detection(db: Session,
         db.commit()
         db.refresh(db_detection)
         return db_detection
+    except:
+        return None
+
+def create_detection_object(db: Session,
+                 detectionobj: schemas.DetectionObjectCreate,
+                 ):
+    db_detectionobj = models.DetectionObjects(fid=detectionobj.fid,
+                                                 detection_class=detectionobj.detection_class,
+                                                 confidence=detectionobj.confidence,
+                                                 xyxy=detectionobj.xyxy,
+                                                 crop_s3_path=detectionobj.crop_s3_path
+                                                 )
+    try:
+        db.add(db_detectionobj)
+        db.commit()
+        db.refresh(db_detectionobj)
+        return db_detectionobj
     except:
         return None
 

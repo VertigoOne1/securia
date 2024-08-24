@@ -12,3 +12,4 @@ sqlalchemy
 pydantic
 psycopg2
 starlette
+boto3

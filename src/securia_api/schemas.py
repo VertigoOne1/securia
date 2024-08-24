@@ -85,6 +85,7 @@ class ImageCreate(ImageBase):
 class DetectionBase(BaseModel):
     fid: int
     detections: Json[Any]
+    detections_count: int
     processing_time_ms: Json[Any]
     detections_timestamp: datetime = None
 
@@ -95,21 +96,23 @@ class DetectionBase(BaseModel):
         time_format = '%Y%m%d_%H%M%S.%f'  # e.g., "%Y%m%d_%H%M%S.%f"
         return datetime.strptime(value, time_format)
 
-    # @field_validator('detections', mode="before")
-    # @classmethod
-    # def parse_jsons(cls, value: Any):
-    #     # Define the format according to your input string
-    #     return json.loads(value)
-
-    # @field_validator('processing_time_ms', mode="before")
-    # @classmethod
-    # def parse_jsons(cls, value: Any):
-    #     # Define the format according to your input string
-    #     return json.loads(value)
-
     class Config:
         from_attributes = True
 
 class DetectionCreate(DetectionBase):
+    class Config:
+        from_attributes = True
+
+class DetectionObjectBase(BaseModel):
+    fid: int
+    detection_class: str
+    confidence: float
+    xyxy: Json[Any]
+    crop_s3_path: str
+
+    class Config:
+        from_attributes = True
+
+class DetectionObjectCreate(DetectionObjectBase):
     class Config:
         from_attributes = True

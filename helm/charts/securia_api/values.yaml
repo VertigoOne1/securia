@@ -27,7 +27,8 @@ appConfig:
     default_debug_level: DEBUG
   storage:
     bucket_name: test
-    endpoint_hostname: localhost
+    endpoint_hostname: 10.0.0.59
+    endpoint_method: http
     port: 32650
     access_key: AKIAIOSFODNN7EXAMPLE
     secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"

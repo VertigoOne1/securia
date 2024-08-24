@@ -36,10 +36,6 @@ class BearerAuth(requests.auth.AuthBase):
 
 kafka_client = KafkaClientSingleton.get_instance()
 
-def predict(image):
-    predictions = image_predict.predict_image(image)
-    return predictions
-
 def fetch_image_key(id):
     logger.debug(f"Fetching key for {id}")
     try:
@@ -78,7 +74,6 @@ def fetch_image_s3(bucket, key):
     file_stream = response['Body']
     im = Image.open(file_stream)
     return im
-
 
 # db_detection = models.Detection(fid=detection.fid,
 #                                 detections=detection.detections,

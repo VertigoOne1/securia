@@ -37,7 +37,7 @@ Local dev is k3s + strimzi + kdashboard + percona pstgresql + s3ninja
 - Kafka UI  - http://localhost:31202
 - Registry  - 10.0.0.59:5000
 - Ingres    - 10.0.0.59:443
-- API Docs  - http://10.0.0.95:8088/docs
+- API Docs  - http://localhost:30578/docs
 
 ## Secrets management
 

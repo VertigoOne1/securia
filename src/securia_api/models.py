@@ -1,19 +1,10 @@
 from database import Base
-from sqlalchemy import Column, Integer, String, TIMESTAMP, Boolean, String, text, ForeignKey, Index
+from sqlalchemy import Column, Integer, String, TIMESTAMP, Boolean, String, text, ForeignKey, Index, Double
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
 
 from envyaml import EnvYAML
 config = EnvYAML('config.yml')
-
-class Post(Base):
-    __tablename__ = "posts"
-
-    id = Column(Integer,primary_key=True,nullable=False)
-    title = Column(String,nullable=False)
-    content = Column(String,nullable=False)
-    published = Column(Boolean, server_default='TRUE')
-    created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
 
 class Recorder(Base):
     __tablename__ = 'recorders'
@@ -62,6 +53,7 @@ class Image(Base):
     channel = relationship("Channel", back_populates="images")
     detections = relationship("Detection", back_populates="image")
 
+Index("idx_image", Image.id, Image.fid)
 
 class Detection(Base):
     __tablename__ = 'detections'
@@ -69,8 +61,27 @@ class Detection(Base):
     id = Column(Integer,primary_key=True,nullable=False)
     fid = Column(Integer, ForeignKey('images.id'))
     detections = Column(JSONB)
+    detections_count = Column(Integer, nullable=True)
     processing_time_ms = Column(JSONB)
     detections_timestamp = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
     created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
 
     image = relationship("Image", back_populates="detections")
+    detectionobjects = relationship("DetectionObjects", back_populates="detection_rel")
+
+Index("idx_detection", Detection.id, Detection.fid)
+
+class DetectionObjects(Base):
+    __tablename__ = 'detections_objects'
+
+    id = Column(Integer,primary_key=True,nullable=False)
+    fid = Column(Integer, ForeignKey('detections.id'))
+    detection_class = Column(String,nullable=False)
+    confidence = Column(Double, nullable=False)
+    xyxy = Column(JSONB)
+    crop_s3_path = Column(String,nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
+
+    detection_rel = relationship("Detection", back_populates="detectionobjects")
+
+Index("idx_detectionObj", DetectionObjects.id, DetectionObjects.fid, DetectionObjects.detection_class)
