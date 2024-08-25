@@ -1,4 +1,4 @@
-securia.key
+*.key
 dashboard_token
 *.pyc
 **/*.pyc

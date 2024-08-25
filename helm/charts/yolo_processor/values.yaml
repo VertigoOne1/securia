@@ -14,7 +14,9 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-runtimeclass: nvidia
+runtimeclass:
+  enabled: True
+  class: nvidia
 
 postfix: "yoloproc"
 
@@ -31,6 +33,7 @@ appConfig:
   yolo:
     enabled: True
     model: yolov8l.pt
+    augment: False
     time_format: "%Y%m%d_%H%M%S.%f%z"
     image_filename_prefix: "predict"
     write_local_file: False
@@ -132,7 +135,13 @@ podSecurityContext: {}
 
 securityContext: {}
 
-resources: {}
+resources:
+  limits:
+    cpu: 1200m
+    memory: 1800Mi
+  requests:
+    cpu: 700m
+    memory: 1200Mi
 
 nodeSelector: {}
 

@@ -1,0 +1,25 @@
+expose:
+  ingress:
+    annotations:
+      ingress.kubernetes.io/proxy-body-size: '0'
+      ingress.kubernetes.io/ssl-redirect: 'true'
+      nginx.ingress.kubernetes.io/proxy-body-size: '0'
+      nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    className: 'traefik'
+    controller: default
+  loadBalancer:
+    IP: ''
+    annotations: {}
+    name: harbor
+    ports:
+      httpPort: 80
+      httpsPort: 443
+    sourceRanges: null
+  tls:
+    certSource: secret
+    enabled: true
+    secret:
+      secretName: tls-harbor-ingress
+  type: ingress
+
+

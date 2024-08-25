@@ -12,7 +12,7 @@ config = EnvYAML('config.yml')
 def predict_image(image):
     from ultralytics import YOLO
     model = YOLO(config['yolo']['model'])
-    results = model.predict(source=image, save=False, imgsz=(704,576), augment=True)
+    results = model.predict(source=image, save=False, imgsz=(704,576), augment=config['yolo']['augment'])
     logger.debug("Predict complete")
     with tempfile.TemporaryDirectory() as tmpdirname:
         logger.debug(f'created temporary directory - {tmpdirname}')

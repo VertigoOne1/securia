@@ -15,6 +15,8 @@ helm --kubeconfig /etc/rancher/k3s/k3s.yaml install twuni/docker-registry -n doc
 
 ## Docker - Using an insecure registry (on local)
 
+Change it to use a nodeport to make your life easier, then add the nodeport, then it will work anywhere on your lan as well
+
 https://www.oreilly.com/library/view/kubernetes-in-the/9781492043270/app03.html
 
 `sudo vi /etc/docker/daemon.json`

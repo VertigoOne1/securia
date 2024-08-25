@@ -1,0 +1,6 @@
+creation_rules:
+    - age: >-
+        age14gv5gchyxmg76hnf69lsr6vqzgx8dka5kjnedrfesg2nt0yfhavs4n0xac,
+        age1qyehj2cqg9ud8eyctskq5ze8ynau06ehxe5dx6lq0jtqm5wf45dq2gjrjg,
+        age1yzynsad4vklswdacwm7jq6hptd9u9n9v3lq9l3xdhfcyke94a9lsa82xh6
+      path_regex: '_secrets\.yaml'

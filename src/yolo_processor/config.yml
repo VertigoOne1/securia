@@ -7,6 +7,7 @@ general:
 yolo:
   enabled: True
   model: yolov8l.pt
+  augment: False
   time_format: "%Y%m%d_%H%M%S.%f%z"
   image_filename_prefix: "predict"
   write_local_file: False
@@ -38,7 +39,7 @@ flask:
   debug_level: INFO
   debug_enabled: False
 api:
-  uri: http://10.0.0.95:8088/securia
+  uri: http://10.0.0.95:30578/securia
 scheduler:
   enabled: False
 metrics:

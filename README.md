@@ -65,13 +65,9 @@ Thus, single channel is fine at 2-5s interval, but anything more will fall behin
 - Ingres    - 10.0.0.59:443
 - API Docs  - http://localhost:30578/docs
 
-## Secrets management
-
-age + sops + templatisation
-
 ## Local dev setup
 
-Review the readmes in:
+Review the readmes in [](infra) folder:
 
 - k3s
 - strimzi
@@ -80,7 +76,9 @@ Review the readmes in:
 - s3emu
 - github-actions-runner
 
-## Playing with SOPS + AGE
+## Secrets management
+
+age + sops + helm + vscode
 
 The idea is to create a simple portable way to allow secret decryption to CICD systems regardless of "provider".
 
@@ -91,11 +89,43 @@ The idea is to create a simple portable way to allow secret decryption to CICD s
 
 You end up customising for each.
 
-A simple "local-dev" way would be to use SOPS and AGE, and setting up an identity for the provider. You only then check
-in the private key to the provider, and keep your own, that key can then be used to decrypt any secrets using SOPS rather
-than managing the secrets, you manage only the key, which tremendously simplifies templating.
+A simple "local-dev-managed" way would be to use SOPS and AGE, and setting up an identity each for the provider(s).
+
+You then only need to provide that identity to the provider as a secret, instead of the secrets for the applications.
+
+They can then decrypt any secrets using SOPS/helm rather than you managing the secrets at the provider.
+
+## AGE + SOPS
+
+### Installation
+
+install AGE
+
+```bash
+mkdir age_setup ; cd age_setup
+curl -LO https://github.com/FiloSottile/age/releases/download/v1.2.0/age-v1.2.0-linux-amd64.tar.gz
+tar xvfp age-v1.2.0-linux-amd64.tar.gz
+sudo mv age/age /usr/local/bin/age
+sudo mv age/age-keygen /usr/local/bin/age-keygen
+sudo chmod +x /usr/local/bin/age
+sudo chmod +x /usr/local/bin/age-keygen
+rm -r age_setup
+age --version
+```
+
+install SOPS
+
+```bash
+mkdir age_setup ; cd age_setup
+curl -LO https://github.com/getsops/sops/releases/download/v3.9.0/sops-v3.9.0.linux.amd64
+mv sops-v3.9.0.linux.amd64 /usr/local/bin/sops
+chmod +x /usr/local/bin/sops
+sops --version
+```
 
 ### Generate identities
+
+generate as needed for any system that needs to be able to decrypt, CICD, friends, not family.
 
 ```bash
 age-keygen -o securia.key
@@ -103,21 +133,47 @@ age-keygen -o github_actions.key
 age-keygen -o azure_devops.key
 ```
 
-### Encrypt
+### Create sops config file
 
-Here you can encrypt a secret for a specific identity, or multiple identities
+see .sops.yaml in the repo
+
+Basically it contains the identities that we need to be able to decrypt files, and the files we want to stay encrypted as a regex match.
+
+I elected to use `*_secret.yaml` (as i will mostly be encrypting yaml values).
+
+### Encrypt Process
+
+You can encrypt any file, sops will pick up the keys from .sops.yaml. -i is for "in-place"
 
 ```bash
-cat image1.jpeg | age -r age1yzynsad4vklswdacwm7jq6hptd9u9n9v3lq9l3xdhfcyke94a9lsa82xh6 > image.jpeg.age
+echo "text: hello there" > test.yaml
+sops --config .sops.yaml encrypt -i test.yaml
 ```
 
-### Decrypt
+### Decrypt Process
 
 ```bash
-age -d -i securia.key -o test.jpeg image.jpeg.age
+export SOPS_AGE_KEY_FILE=${HOME}/iot/securia/securia.key
+sops --config .sops.yaml decrypt -i test.yaml
 ```
 
-or via SOPS
+It is safe to try and decrypt any file, if it does not have the SOPS metadata, it does nothing, so you can loop over all files safely if you need to mass decrypt.
+
+### VSCode
+
+This extension looks at the path regex in your .sops.yaml and automagically encrypt and decrypts files that match, allowing you to edit files directly, and it seamlessly handles encryption and decryption in the background
+
+`https://marketplace.visualstudio.com/items?itemName=signageos.signageos-vscode-sops`
+
+### Helm integration
+
+```bash
+helm plugin install https://github.com/jkroepke/helm-secrets
+```
+
+Then you can you use protobuff like this to trigger the plugin, which will read the SOPS_AGE_KEY_FILE env var for the identity to use.
+
+`helm upgrade name . -f normal_values.yaml -f secrets://secrets.yaml`
 
 ## Token for Kubernetes Dashboard use
 
@@ -148,6 +204,16 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO ${name};
 ## Ultralytics review
 
 with gpu support
+
+### Requirements for docker gpu support
+
+```bash
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+sudo systemctl restart docker
+```
 
 ```bash
 sudo docker run -it --ipc=host --gpus all -v ./test_images:/pics_http ultralytics/ultralytics:latest bash
@@ -184,33 +250,10 @@ yolo segment predict model=yolov8n-seg.pt source='/pics_http/*' imgsz=640 save_t
 yolo detect predict model=yolov8l.pt source='/pics_http/*' imgsz=960 save_txt=true
 ```
 
-## Typical output
+## Yolo Performance
 
-```text
-image 1/24 /pics_http/image_20240810_131411.jpg: 544x640 (no detections), 903.8ms
-image 2/24 /pics_http/image_20240810_131417.jpg: 544x640 (no detections), 874.6ms
-image 3/24 /pics_http/image_20240810_131422.jpg: 544x640 (no detections), 882.0ms
-image 4/24 /pics_http/image_20240810_131427.jpg: 544x640 (no detections), 886.1ms
-image 5/24 /pics_http/image_20240810_131432.jpg: 544x640 (no detections), 872.5ms
-image 6/24 /pics_http/image_20240810_131437.jpg: 544x640 (no detections), 844.9ms
-image 7/24 /pics_http/image_20240810_131442.jpg: 544x640 (no detections), 871.9ms
-image 8/24 /pics_http/image_20240810_131447.jpg: 544x640 (no detections), 1311.1ms
-image 9/24 /pics_http/image_20240810_131452.jpg: 544x640 (no detections), 1480.4ms
-image 10/24 /pics_http/image_20240810_131457.jpg: 544x640 (no detections), 1421.8ms
-image 11/24 /pics_http/image_20240810_131503.jpg: 544x640 (no detections), 1477.3ms
-image 12/24 /pics_http/image_20240810_131508.jpg: 544x640 1 person, 1396.7ms
-image 13/24 /pics_http/image_20240810_131513.jpg: 544x640 1 person, 1 bottle, 1384.9ms
-image 14/24 /pics_http/image_20240810_131518.jpg: 544x640 1 person, 1 handbag, 1509.5ms
-image 15/24 /pics_http/image_20240810_131523.jpg: 544x640 1 person, 1416.9ms
-image 16/24 /pics_http/image_20240810_131528.jpg: 544x640 (no detections), 1331.6ms
-image 17/24 /pics_http/image_20240810_131533.jpg: 544x640 (no detections), 1356.8ms
-image 18/24 /pics_http/image_20240810_131539.jpg: 544x640 (no detections), 1488.3ms
-image 19/24 /pics_http/image_20240810_131544.jpg: 544x640 (no detections), 1381.9ms
-image 20/24 /pics_http/image_20240810_131549.jpg: 544x640 1 person, 1381.1ms
-image 21/24 /pics_http/image_20240810_131554.jpg: 544x640 (no detections), 1361.0ms
-image 22/24 /pics_http/image_20240810_131559.jpg: 544x640 (no detections), 1343.6ms
-image 23/24 /pics_http/image_20240810_131604.jpg: 544x640 (no detections), 1334.7ms
-image 24/24 /pics_http/image_20240810_131610.jpg: 544x640 (no detections), 1386.0ms
-```
+yolov8l.pt
 
-`securia/pics_http/results/image_20240810_131508.jpg`
+NVIDIA GeForce GTX 1650, 3889MiB - 95ms
+NVIDIA T500, 1871MiB - 74ms
+Intel Core(TM) i7-1165G7 2.80GHz - 950ms

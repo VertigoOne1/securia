@@ -24,7 +24,8 @@ spec:
             - containerPort: {{ .Values.service.port }}
               name: {{ .Values.service.name }}
               protocol: TCP
-          resources: {}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           volumeMounts:
