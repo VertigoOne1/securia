@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  registry: "10.0.0.59:5000"
+  registry: "10.0.0.59:32419"
   path: "/securia"
   name: "image-preprocessor"
   tag: ":latest"

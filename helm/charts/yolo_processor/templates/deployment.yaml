@@ -11,6 +11,7 @@ spec:
     matchLabels:
       app: {{ .Values.app.general.app_name }}
   template:
+    runtimeclass: nvidia
     metadata:
       creationTimestamp: null
       labels:

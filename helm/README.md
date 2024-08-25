@@ -32,3 +32,9 @@ helm --kubeconfig /etc/rancher/k3s/k3s.yaml -n securia upgrade image-preprocesso
 helm --kubeconfig /etc/rancher/k3s/k3s.yaml -n securia upgrade securia-api charts/securia_api -i -f charts/securia_api/values.yaml --create-namespace
 helm --kubeconfig /etc/rancher/k3s/k3s.yaml -n securia upgrade yolo-processor charts/yolo_processor -i -f charts/yolo_processor/values.yaml --create-namespace
 ```
+
+## Deploy to GPU for testing
+
+```bash
+helm --kubeconfig ~/iot/kubeconfig/legion -n securia upgrade yolo-processor charts/yolo_processor -i -f charts/yolo_processor/values.yaml --create-namespace
+```

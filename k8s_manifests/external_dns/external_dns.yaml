@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: external-dns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: external-dns
+rules:
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get","watch","list"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get","watch","list"]
+  - apiGroups: ["networking","networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get","watch","list"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get","watch","list"]
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    verbs: ["get","watch","list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: external-dns-viewer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: external-dns
+subjects:
+- kind: ServiceAccount
+  name: external-dns
+  namespace: external-dns
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: external-dns
+  template:
+    metadata:
+      labels:
+        app: external-dns
+    spec:
+      serviceAccountName: external-dns
+      containers:
+      - name: external-dns
+        image: registry.k8s.io/external-dns/external-dns:v0.13.5
+        args:
+        - --source=ingress # ingress is also possible
+        - --domain-filter=!vault |
+                          $ANSIBLE_VAULT;1.1;AES256
+                          38316433623632383637323537313034323363656337663035663430393161323462613733393630
+                          6337376435383965636136373236653035303634363861610a316161616139336231343036343438
+                          34353537313036323761323036303965646361353139366230323666666362353062373238303234
+                          3663333839383762350a646163333364343862623338623536346133316635623738633930663330
+                          3436 # (optional) limit to only example.com domains; change to match the zone created above.
+        # - --zone-id-filter=023e105f4ecef8ad9ca31a8372d0c353 # (optional) limit to a specific zone.
+        - --provider=cloudflare
+        # - --cloudflare-proxied # (optional) enable the proxy feature of Cloudflare (DDOS protection, CDN...)
+        - --cloudflare-dns-records-per-page=100 # (optional) configure how many DNS records to fetch per request
+        envFrom:
+        - secretRef:
+            name: externaldns
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: externaldns
+type: Opaque
+data:
+!vault |
+$ANSIBLE_VAULT;1.1;AES256
+61653032653837323335316133333966383731363330353463396565323566366163643632633538
+3635663731393637643535303730373439373132623331300a636337616262623432373837386139
+62616461366261373439643431653335336461666638663166663164353964643461303432303562
+6162306639343336660a383336353936323832326236643661336463616136383037636163646138
+64663166613831343233363662363531623261333662366131613831373338616332336464323231
+38333463393637346531643864316565393163623232363939336637316432333333363234353630
+37643161306561366265376133306438633137323337643463313163376466396635646164316566
+32636636333933306165383638373033653035343834373932333738363934663533396164383739
+64386365653434303035393435656465613265326232333634306663316539623539

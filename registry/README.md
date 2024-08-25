@@ -24,7 +24,7 @@ add insecure registry
 ```json
 {
   "insecure-registries" : [
-    "your_ip_here:5000"
+    "your_ip_here:32419"
    ]
  }
 ```
@@ -35,8 +35,8 @@ add insecure registry
 
 ```bash
 docker pull nginx
-docker tag nginx your_ip_here:5000/nginx
-docker push your_ip_here:5000/nginx
+docker tag nginx your_ip_here:32419/nginx
+docker push your_ip_here:32419/nginx
 ```
 
 ## K3s - Add insecure registry
@@ -47,9 +47,9 @@ https://docs.k3s.io/installation/private-registry
 
 ```yaml
 mirrors:
-  "10.0.0.59:5000":
+  "10.0.0.59:32419":
     endpoint:
-      - "http://10.0.0.59:5000"
+      - "http://10.0.0.59:32419"
 ```
 
 `sudo systemctl restart k3s`

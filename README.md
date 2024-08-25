@@ -1,5 +1,7 @@
 # Security-AI
 
+Currently securia because i spelled like an idiot.. i was thinking actually SECURAI.
+
 ## Review
 
 https://medium.com/@MrBam44/yolo-object-detection-using-opencv-with-python-b6386c3d6fc1
@@ -20,22 +22,46 @@ UI for YoloV8
 
 https://github.com/Paperspace
 
+## Project Diagram
+
+[Project Diagram](SecurAI.drawio)
+
 ## Main points
 
-Event driven exception handling with DLQ for CCTV camera scraping
+Event driven exception handling with DLQ for CCTV camera scraping, object prediction and cropping.
 
 Review securia/SecurAI.drawio for the big-picture
 
 Local dev is k3s + strimzi + kdashboard + percona pstgresql + s3ninja
 
-## Local Links
+## Some lessons
+
+CPU vs GPU
+
+An i7 compared against a laptop T500 with 2Gb RAM, the GPU can process an image is about 60ms, while the CPU takes 1200ms.
+
+Thus, single channel is fine at 2-5s interval, but anything more will fall behind.
+
+## TODO
+
+- test yolo helm on gpu server
+- full grafana deployment
+- move nfs provisioner to server
+- redeploy harbor, check if artifactory might not be better, i need pip caching..
+- redeploy keycloak and work on automation
+- Turn gpustat --json into prometheus metrics (will need to watch temps)
+- test crop extraction and population
+- move s3 to nfs provisioner eventually
+- move main stack to server side with github actions
+
+## Local Dev Env Links
 
 - Dashboard - https://localhost:32281
 - S3 Ninja  - http://localhost:32650/ui
 - PGBouncer - 10.0.0.59:32617
 - Kafka     - localhost:32394
 - Kafka UI  - http://localhost:31202
-- Registry  - 10.0.0.59:5000
+- Registry  - 10.0.0.59:32419
 - Ingres    - 10.0.0.59:443
 - API Docs  - http://localhost:30578/docs
 
@@ -124,13 +150,13 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO ${name};
 with gpu support
 
 ```bash
-sudo docker run -it --ipc=host --gpus all -v ./pics_http:/pics_http ultralytics/ultralytics:latest bash
+sudo docker run -it --ipc=host --gpus all -v ./test_images:/pics_http ultralytics/ultralytics:latest bash
 ```
 
 ## without gpu support
 
 ```bash
-sudo docker run -it --ipc=host -v ./pics_http:/pics_http ultralytics/ultralytics:latest bash
+sudo docker run -it --ipc=host -v ./test_images:/pics_http ultralytics/ultralytics:latest bash
 ```
 
 ## Models
@@ -145,14 +171,17 @@ Here's the information converted into a markdown table:
 | YOLOv8-obb | yolov8n-obb.pt yolov8s-obb.pt yolov8m-obb.pt yolov8l-obb.pt yolov8x-obb.pt | Oriented Detection |
 | YOLOv8-cls | yolov8n-cls.pt yolov8s-cls.pt yolov8m-cls.pt yolov8l-cls.pt yolov8x-cls.pt | Classification |
 
+
+- https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l.pt
+
 ## Tests
 
 ```bash
-yolo segment predict model=yolov8n-seg.pt source='/pics_http/image_20240810_121023.jpg' imgsz=640 save_txt=true
+yolo segment predict model=yolov8n-seg.pt source='/pics_http/*' imgsz=640 save_txt=true
 ```
 
 ```bash
-yolo detect predict model=yolov8l.pt source='/pics_http/image_20240810_13*.jpg' imgsz=640 save_txt=true
+yolo detect predict model=yolov8l.pt source='/pics_http/*' imgsz=960 save_txt=true
 ```
 
 ## Typical output

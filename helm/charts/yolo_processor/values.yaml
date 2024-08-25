@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  registry: "10.0.0.59:5000"
+  registry: "10.0.0.59:32419"
   path: "/securia"
   name: "yolo-processor"
   tag: ":latest"
@@ -13,6 +13,8 @@ image:
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
+runtimeclass: nvidia
 
 postfix: "yoloproc"
 

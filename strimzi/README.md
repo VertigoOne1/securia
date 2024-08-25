@@ -22,12 +22,6 @@ helm repo update
 helm --kubeconfig /etc/rancher/k3s/k3s.yaml -n kafka install kafka-ui kafka-ui/kafka-ui --values kafka-ui-values.yaml
 ```
 
-```bash
-kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml port-forward svc/kafka-ui 8080:80
-```
-
-TODO: make it an ingress
-
 ## Testing/Sample Python
 
 requires some kafka pips, i already have it elsewhere, simple enough
