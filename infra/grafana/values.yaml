@@ -1,0 +1,17 @@
+persistence:
+  accessModes:
+    - ReadWriteOnce
+  enabled: true
+  size: 10Gi
+  type: pvc
+ingress:
+  annotations:
+    cert-manager.io/issuer: le-prod-http
+    cert-manager.io/issuer-kind: ClusterIssuer
+  enabled: true
+  extraPaths: null
+  labels: {}
+  path: /
+  pathType: Prefix
+initChownData:
+  enabled: false

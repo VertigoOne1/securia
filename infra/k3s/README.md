@@ -61,3 +61,21 @@ kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n kubernetes-dashboard port-forw
 
 https://localhost:8443
 
+## redirect to https
+
+Annotation:
+
+traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
+traefik.ingress.kubernetes.io/router.middlewares: default-redirectscheme@kubernetescrd
+
+Middleware:
+
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-http-to-https
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+

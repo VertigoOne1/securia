@@ -139,7 +139,7 @@ see .sops.yaml in the repo
 
 Basically it contains the identities that we need to be able to decrypt files, and the files we want to stay encrypted as a regex match.
 
-I elected to use `*_secret.yaml` (as i will mostly be encrypting yaml values).
+I elected to use `*_secrets.yaml` (as i will mostly be encrypting yaml values for helm or otherwise yaml manifests).
 
 ### Encrypt Process
 

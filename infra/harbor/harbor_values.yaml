@@ -5,6 +5,8 @@ expose:
       ingress.kubernetes.io/ssl-redirect: 'true'
       nginx.ingress.kubernetes.io/proxy-body-size: '0'
       nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+      cert-manager.io/issuer: le-prod-http
+      cert-manager.io/issuer-kind: ClusterIssuer
     className: 'traefik'
     controller: default
   loadBalancer:
