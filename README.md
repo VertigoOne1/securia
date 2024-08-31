@@ -30,7 +30,7 @@ https://github.com/Paperspace
 
 Event driven exception handling with DLQ for CCTV camera scraping, object prediction and cropping.
 
-Review securia/SecurAI.drawio for the big-picture
+Review [Project Diagram](SecurAI.drawio) for the big-picture
 
 Local dev is k3s + strimzi + kdashboard + percona pstgresql + s3ninja
 
@@ -40,18 +40,19 @@ CPU vs GPU
 
 An i7 compared against a laptop T500 with 2Gb RAM, the GPU can process an image is about 60ms, while the CPU takes 1200ms.
 
-Thus, single channel is fine at 2-5s interval, but anything more will fall behind.
+Thus, single channel is fine at 2-5s interval on CPU, but anything more will fall behind. It runs via eventing so it will just start lagging further and further. If you stop the cameras, it will catch up again.
 
 ## TODO
 
-- test yolo helm on gpu server
+- test yolo helm on gpu server - DONE (gpu is a must)
+- helm secrets - done
 - full grafana deployment
 - move nfs provisioner to server
 - redeploy harbor, check if artifactory might not be better, i need pip caching..
 - redeploy keycloak and work on automation
 - Turn gpustat --json into prometheus metrics (will need to watch temps)
 - test crop extraction and population
-- move s3 to nfs provisioner eventually
+- move s3 to nfs provisioner eventually for more storage
 - move main stack to server side with github actions
 
 ## Local Dev Env Links
@@ -67,7 +68,7 @@ Thus, single channel is fine at 2-5s interval, but anything more will fall behin
 
 ## Local dev setup
 
-Review the readmes in [](infra) folder:
+Review the readmes in [infra](infra) folder:
 
 - k3s
 - strimzi
@@ -163,7 +164,7 @@ It is safe to try and decrypt any file, if it does not have the SOPS metadata, i
 
 This extension looks at the path regex in your .sops.yaml and automagically encrypt and decrypts files that match, allowing you to edit files directly, and it seamlessly handles encryption and decryption in the background
 
-`https://marketplace.visualstudio.com/items?itemName=signageos.signageos-vscode-sops`
+[VSCode SOPS](https://marketplace.visualstudio.com/items?itemName=signageos.signageos-vscode-sops)
 
 ### Helm integration
 
@@ -171,7 +172,7 @@ This extension looks at the path regex in your .sops.yaml and automagically encr
 helm plugin install https://github.com/jkroepke/helm-secrets
 ```
 
-Then you can you use protobuff like this to trigger the plugin, which will read the SOPS_AGE_KEY_FILE env var for the identity to use.
+Then you can you use protobuff like this to trigger the plugin, which will read the SOPS_AGE_KEY_FILE env var for the identity to use to decrypt, it will decrypt if the public key was in the .sops.yaml.
 
 `helm upgrade name . -f normal_values.yaml -f secrets://secrets.yaml`
 
@@ -237,7 +238,6 @@ Here's the information converted into a markdown table:
 | YOLOv8-obb | yolov8n-obb.pt yolov8s-obb.pt yolov8m-obb.pt yolov8l-obb.pt yolov8x-obb.pt | Oriented Detection |
 | YOLOv8-cls | yolov8n-cls.pt yolov8s-cls.pt yolov8m-cls.pt yolov8l-cls.pt yolov8x-cls.pt | Classification |
 
-
 - https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l.pt
 
 ## Tests
@@ -250,10 +250,10 @@ yolo segment predict model=yolov8n-seg.pt source='/pics_http/*' imgsz=640 save_t
 yolo detect predict model=yolov8l.pt source='/pics_http/*' imgsz=960 save_txt=true
 ```
 
-## Yolo Performance
+## Yolo performance testing
 
 yolov8l.pt
 
-NVIDIA GeForce GTX 1650, 3889MiB - 95ms
-NVIDIA T500, 1871MiB - 74ms
-Intel Core(TM) i7-1165G7 2.80GHz - 950ms
+NVIDIA GeForce GTX 1650, 3889MiB - 95ms - can possibly fit 2x pods
+NVIDIA T500 2Gb, 1871MiB - 74ms - uses all memory
+Intel Core(TM) i7-1165G7 2.80GHz - 950ms - single channel only (at 2 sec intervals)
