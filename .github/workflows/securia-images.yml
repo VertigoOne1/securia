@@ -3,6 +3,10 @@ name: Securia Docker Image CI
 on:
   push:
     branches: [ "main" ]
+    # paths-ignore:
+    #   - 'docs/**'
+    # paths:
+    #   - '**.js'
   pull_request:
     branches: [ "main" ]
 
@@ -20,7 +24,7 @@ jobs:
     - name: Build the Docker image
       run: |
         cd src
-        docker login -u '${{ vars.REGISTRY_USER }}'' -p '${{ secrets.REGISTRY_SECRET }}' ${{ vars.REGISTRY_HOST }}
+        docker login -u '${{ vars.REGISTRY_USER }}' -p '${{ secrets.REGISTRY_SECRET }}' ${{ vars.REGISTRY_HOST }}
         docker build collector_hikvision/ -t ${{ vars.REGISTRY_HOST }}/securia/collector-hikvision:latest
         docker push ${{ vars.REGISTRY_HOST }}/securia/collector-hikvision:latest
         docker build image_preprocessor/ -t ${{ vars.REGISTRY_HOST }}/securia/image-preprocessor:latest
