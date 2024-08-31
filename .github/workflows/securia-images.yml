@@ -1,8 +1,5 @@
 name: Securia Docker Image CI
 
-env:
-  NAME: 'dev'
-
 on:
   push:
     branches: [ "main" ]
@@ -12,6 +9,8 @@ on:
 jobs:
 
   build:
+
+    environment: dev
 
     runs-on: ${{ vars.RUNNER }}
 
