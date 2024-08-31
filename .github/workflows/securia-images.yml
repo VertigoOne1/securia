@@ -1,0 +1,28 @@
+name: Securia Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ${{ vars.RUNNER }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the Docker image
+      run: |
+        cd src
+        docker login -u ${{ vars.REGISTRY_USER }} -p ${{ secrets.REGISTRY_SECRET }} ${{ vars.REGISTRY_HOST }}
+        docker build collector_hikvision/ -t ${{ vars.REGISTRY_HOST }}/securia/collector-hikvision:latest
+        docker push ${{ vars.REGISTRY_HOST }}/securia/collector-hikvision:latest
+        docker build image_preprocessor/ -t ${{ vars.REGISTRY_HOST }}/securia/image-preprocessor:latest
+        docker push ${{ vars.REGISTRY_HOST }}/securia/image-preprocessor:latest
+        docker build securia_api/ -t ${{ vars.REGISTRY_HOST }}/securia/securia-api:latest
+        docker push ${{ vars.REGISTRY_HOST }}/securia/securia-api:latest
+        docker build yolo_processor/ -t ${{ vars.REGISTRY_HOST }}/securia/yolo-processor:latest
+        docker push ${{ vars.REGISTRY_HOST }}/securia/yolo-processor:latest
