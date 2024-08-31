@@ -13,7 +13,7 @@ jobs:
     environment:
       name: dev
 
-    runs-on: ${{ vars.RUNNER }}
+    runs-on: self-hosted
 
     steps:
     - uses: actions/checkout@v4
