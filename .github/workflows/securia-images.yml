@@ -10,7 +10,8 @@ jobs:
 
   build:
 
-    environment: dev
+    environment:
+      name: dev
 
     runs-on: ${{ vars.RUNNER }}
 
