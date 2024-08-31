@@ -1,5 +1,8 @@
 name: Securia Docker Image CI
 
+env:
+  NAME: 'dev'
+
 on:
   push:
     branches: [ "main" ]
