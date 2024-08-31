@@ -10,7 +10,8 @@ image:
   name: "collector-hikvision"
   tag: ":latest"
 
-imagePullSecrets: []
+imagePullSecrets:
+  - name: testtest
 nameOverride: ""
 fullnameOverride: ""
 
@@ -21,59 +22,7 @@ app:
     app_name: collector-hikvision
     app_debug_level: INFO
 
-appConfig:
-  general:
-    app_name: collector-hikvision
-    default_debug_level: DEBUG
-  collector:
-    enabled: True
-    camera_fqdn: "10.0.0.61"
-    camera_username: view
-    camera_password: "asdf1234"
-    capture_interval: 5
-    write_local_file: False
-    temp_output_folder: /tmp/images
-    channel_delay_time: 0.3
-    collection_timeout: 10
-    time_format: "%Y%m%d_%H%M%S.%f%z"
-    image_filename_prefix: "image"
-    channels:
-      - 101
-      # - 201
-      # - 301
-      # - 401
-      # - 501
-      # - 601
-      # - 701
-      # - 801
-  storage:
-    bucket_name: test
-    endpoint_hostname: 10.0.0.59
-    endpoint_method: http
-    port: 32650
-    access_key: AKIAIOSFODNN7EXAMPLE
-    secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-  kafka:
-    broker_url: ["10.0.0.59:32394"]
-    security_protocol: SASL_PLAINTEXT
-    sasl_mechanism: SCRAM-SHA-512
-    sasl_plain_username: admin
-    sasl_plain_password: Xr4i0hhtlnxsPZ9aMfMgM7DhZraddu3K
-    subscribe_topic_prefix: collector.in.
-    produce_topic_prefix: collector.out.
-    value_serialiser: lambda x:json.dumps(x).encode('utf-8')
-  flask:
-    default_port: 8088
-    debug_level: INFO
-    debug_enabled: False
-  scheduler:
-    enabled: True
-  metrics:
-    enabled: True
-  logging:
-    enable_file_log_handler: False
-    enable_stdout_log_handler: True
-    enable_kafka_log_handler: False
+appConfig: {}
 
 service:
   type: ClusterIP

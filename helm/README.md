@@ -38,3 +38,19 @@ helm --kubeconfig /etc/rancher/k3s/k3s.yaml -n securia upgrade yolo-processor ch
 ```bash
 helm --kubeconfig ~/iot/kubeconfig/legion -n securia upgrade yolo-processor charts/yolo_processor -i -f charts/yolo_processor/values.yaml --create-namespace
 ```
+
+## Push Helm Chart to OCI registry
+
+helm package [CHART_PATH] [...] [flags]
+
+helm registry login -u user -p container-registry.com
+
+helm push harbor-1.7.4.tgz oci://container-registry.com/container-registry
+
+## Pull Helm Chart from OCI registry:
+
+helm pull oci://container-registry.com/container-registry/harbor --version 1.1.1
+
+## Install Helm Chart from OCI registry:
+
+helm install myrelease  oci://container-registry.com/container-registry/harbor --version 1.1.1

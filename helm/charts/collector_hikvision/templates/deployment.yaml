@@ -20,6 +20,10 @@ spec:
         - name: {{ .Values.app.general.app_name }}
           image: "{{ printf "%s%s/%s%s" .Values.image.registry .Values.image.path .Values.image.name .Values.image.tag }}"
           imagePullPolicy: Always
+          {{- if .Values.imagePullSecrets }}
+          imagePullSecrets:
+          {{- .Values.imagePullSecrets | toYaml | nindent 12 }}
+          {{- end}}
           ports:
             - containerPort: {{ .Values.service.port }}
               name: {{ .Values.service.name }}

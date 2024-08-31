@@ -23,6 +23,13 @@ docker build securia_api/ -t ${REGISTRY_HOST}/securia/securia-api:latest
 docker push ${REGISTRY_HOST}/securia/securia-api:latest
 ```
 
+### YOLO Processor
+
+```bash
+docker build yolo_processor/ -t ${REGISTRY_HOST}/securia/yolo-processor:latest
+docker push ${REGISTRY_HOST}/securia/yolo-processor:latest
+```
+
 ## One Shot
 
 ```bash

@@ -1,4 +1,4 @@
-# Default values for preproc.
+# Default values for yoloproc.
 # This is a YAML-formatted file.
 # Declare variables to be passed into the templates.
 
@@ -7,26 +7,56 @@ replicaCount: 1
 image:
   registry: "10.0.0.59:32419"
   path: "/securia"
-  name: "image-preprocessor"
+  name: "yolo-processor"
   tag: ":latest"
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-postfix: "preproc"
+runtimeclass:
+  enabled: True
+  class: nvidia
+
+postfix: "yoloproc"
 
 app:
   general:
-    app_name: image-preprocessor
+    app_name: yolo-processor
     app_debug_level: INFO
 
-appConfig: {}
+appConfig:
+  general:
+    app_name: yolo_processor
+    default_debug_level: DEBUG
+    test_mode: False
+  yolo:
+    enabled: True
+    model: yolov8l.pt
+    augment: False
+    time_format: "%Y%m%d_%H%M%S.%f%z"
+    image_filename_prefix: "predict"
+    write_local_file: False
+    temp_output_folder: yolo_tmp
+    save_predict_output: True
+    save_predict_crops: True
+  flask:
+    default_port: 8089
+    debug_level: INFO
+    debug_enabled: False
+  scheduler:
+    enabled: False
+  metrics:
+    enabled: True
+  logging:
+    enable_file_log_handler: False
+    enable_stdout_log_handler: True
+    enable_kafka_log_handler: False
 
 service:
   type: ClusterIP
   port: 8088
-  name: preproc
+  name: yoloproc
 
 serviceAccount:
   create: true
@@ -34,7 +64,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "preproc-sa"
+  name: "yoloproc-sa"
   bindingPostfix: "-crb"
 
 persistence:
@@ -85,11 +115,11 @@ securityContext: {}
 
 resources:
   limits:
-    cpu: 200m
-    memory: 128Mi
+    cpu: 1200m
+    memory: 1800Mi
   requests:
-    cpu: 100m
-    memory: 64Mi
+    cpu: 700m
+    memory: 1200Mi
 
 nodeSelector: {}
 
