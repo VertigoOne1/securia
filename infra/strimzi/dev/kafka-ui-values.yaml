@@ -1,0 +1,9 @@
+yamlApplicationConfig:
+  management:
+    enabled: true
+    health:
+      ldap:
+        enabled: false
+service:
+  type: NodePort
+  port: 80

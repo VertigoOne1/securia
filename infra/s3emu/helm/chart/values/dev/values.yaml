@@ -19,13 +19,15 @@ postfix: "s3ninja"
 s3emu:
   general:
     app_name: s3-emu
-    app_debug_level: INFO
 
-s3emuConfig: {}
+s3emuConfig:
+  access_key: AKIAIOSFODNN7EXAMPLE    # 20 chars
+  access_secret_key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY    # 40 chars
 
 service:
   type: NodePort
   port: 9000
+  nodePort: 32332
   name: s3emu
 
 serviceAccount:
@@ -48,11 +50,11 @@ persistence:
   # -- provide an existing PersistentVolumeClaim
   existingClaim: ""
   # -- Name of the StorageClass required by the claim.
-  storageClassName: "local-path"
+  storageClassName: nfs-client
   # -- represents the minimum and maximum resources the volume should have.
   resources:
     requests:
-      storage: 16Gi
+      storage: 64Gi
 
 ingress:
   # -- Enable ingress record generation

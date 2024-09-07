@@ -44,16 +44,22 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 ## TODO
 
-- test yolo helm on gpu server - DONE (gpu is a must)
-- helm secrets - done
-- full grafana deployment
-- move nfs provisioner to server
-- redeploy harbor, check if artifactory might not be better, i need pip caching..
-- redeploy keycloak and work on automation
+- strimzi deployment on dev - next
+- configure chart to use the secrets from percona operator via injection
 - Turn gpustat --json into prometheus metrics (will need to watch temps)
 - test crop extraction and population
-- move s3 to nfs provisioner eventually for more storage
-- move main stack to server side with github actions
+- move main stack to server side with github actions - halfway
+- full install the stack into dev (minimum feature set to include xyxy extraction)
+- ui development - streamlit looks promising
+- redeploy keycloak and work on automation
+- test yolo helm on gpu server - DONE (gpu is a must)
+- helm secrets - done
+- full grafana deployment - done
+- move nfs provisioner to server - done, 800Gb space
+- deploy s3 emulation - done
+- redeploy harbor - done
+- deploy postgresql to dev cluster - done
+- move s3 to nfs provisioner eventually for more storage - done
 
 ## Local Dev Env Links
 
@@ -254,6 +260,6 @@ yolo detect predict model=yolov8l.pt source='/pics_http/*' imgsz=960 save_txt=tr
 
 yolov8l.pt
 
-NVIDIA GeForce GTX 1650, 3889MiB - 95ms - can possibly fit 2x pods
-NVIDIA T500 2Gb, 1871MiB - 74ms - uses all memory
-Intel Core(TM) i7-1165G7 2.80GHz - 950ms - single channel only (at 2 sec intervals)
+- NVIDIA GeForce GTX 1650, 3889MiB - 95ms - can possibly fit 2x pods
+- NVIDIA T500 2Gb, 1871MiB - 74ms - uses all memory, single pod only
+- Intel Core(TM) i7-1165G7 2.80GHz - 950ms - single channel only (at 2 sec intervals)

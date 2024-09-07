@@ -25,3 +25,11 @@ helm -n nfs-provisioner install nfs-subdir-external-provisioner nfs-subdir-exter
     --set nfs.path=/k8s-nfs \
     --create-namespace
 ```
+
+## Dev SSD extra storage class
+
+```bash
+helm --kubeconfig /home/marnus/iot/kubeconfigs/legion -n nfs-ssd install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner -f values/dev/values-ssd.yaml --create-namespace
+```
+
+I already had the other nfs provisioner running, so i disabled rbac, and added in the rbac manually as the clusterrole conflicts

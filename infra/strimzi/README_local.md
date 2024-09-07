@@ -11,7 +11,7 @@ helm --kubeconfig /etc/rancher/k3s/k3s.yaml -n kafka --create-namespace install 
 https://github.com/strimzi/strimzi-kafka-operator/tree/0.42.0/examples
 
 ```bash
-kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml apply -f dev_strimzi_cluster.yaml
+kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml apply -f local/strimzi_cluster.yaml
 ```
 
 ## Kafka UI
@@ -19,13 +19,5 @@ kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml apply -f dev_strimzi_cluster.yaml
 ```bash
 helm repo add kafka-ui https://provectus.github.io/kafka-ui-charts
 helm repo update
-helm --kubeconfig /etc/rancher/k3s/k3s.yaml -n kafka install kafka-ui kafka-ui/kafka-ui --values kafka-ui-values.yaml
-```
-
-## Testing/Sample Python
-
-requires some kafka pips, i already have it elsewhere, simple enough
-
-```bash
-./test_connection.py
+helm --kubeconfig /etc/rancher/k3s/k3s.yaml -n kafka install kafka-ui kafka-ui/kafka-ui --values local/kafka-ui-values.yaml
 ```

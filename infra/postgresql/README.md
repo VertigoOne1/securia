@@ -18,7 +18,7 @@ helm --kubeconfig /etc/rancher/k3s/k3s.yaml install pg-operator percona/pg-opera
 helm --kubeconfig /etc/rancher/k3s/k3s.yaml install cluster1 percona/pg-db -n postgresql
 ```
 
-## Testing Cluster (suitable for a local k3s)
+## Local Env
 
 ```bash
 helm --kubeconfig /etc/rancher/k3s/k3s.yaml upgrade my-pg percona/pg-db \
@@ -56,3 +56,37 @@ kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n postgresql run -i --rm --tty p
 ### External connection string
 
 `postgresql://test:fQG%40%281as%28+D%3CZUkK%7BIKlys4g@localhost:32617/mytest`
+
+
+## Dev deployment
+
+### Operator
+
+helm --kubeconfig /home/marnus/iot/kubeconfigs/legion install pg-operator percona/pg-operator --namespace postgresql --create-namespace
+
+
+### Dev Env
+
+
+helm --kubeconfig /home/marnus/iot/kubeconfigs/legion upgrade dev-pg percona/pg-db \
+  --set instances[0].name=dev \
+  --set instances[0].replicas=1 \
+  --set instances[0].dataVolumeClaimSpec.resources.requests.storage=16Gi \
+  --set instances[0].dataVolumeClaimSpec.storageClassName=nfs-client-ssd \
+  --set proxy.pgBouncer.replicas=1 \
+  --set proxy.pgBouncer.expose.type=NodePort \
+  --set finalizers={'percona\.com\/delete-pvc,percona\.com\/delete-ssl'} \
+  --set users[0].name=dev \
+  --set users[0].databases={mydev} \
+  --set users[1].name=preproc \
+  --set users[1].databases={securia} \
+  --set users[2].name=securiaadmin \
+  --set users[2].databases={securia} \
+  --set users[3].name=securiaapi \
+  --set users[3].databases={securia} \
+  --install \
+  --namespace postgresql
+
+
+
+  

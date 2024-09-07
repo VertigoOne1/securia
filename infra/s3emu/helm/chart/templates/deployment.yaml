@@ -32,6 +32,9 @@ spec:
             - name: data
               mountPath: /home/sirius/data
           {{- end }}
+            - name: config
+              mountPath: /home/sirius/app
+              subPath: application.conf
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
@@ -44,6 +47,9 @@ spec:
           persistentVolumeClaim:
             claimName: {{ .Values.s3emu.general.app_name }}-storage
       {{- end }}
+        - name: config
+          configMap:
+            name: s3emu-config-{{ .Values.postfix }}
   strategy:
     type: RollingUpdate
     rollingUpdate:

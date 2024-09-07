@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: s3emu-config-{{ .Values.postfix }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+data:
+  application.conf: |-
+    #
+    # Made with all the love in the world
+    # by scireum in Remshalden, Germany
+    #
+    # Copyright by scireum GmbH
+    # http://www.scireum.de - info@scireum.de
+    #
+
+    product {
+      name = "S3 ninja"
+      version = "${project.version}"
+      build = "${build.number}"
+      date = "${timestamp}"
+      vcs = "${build.vcs.number}"
+      tagLine = "S3 ninja emulates the S3 API for development and testing purposes."
+      claim = "It is however not intended as production system as it neither provides scalability nor replication or proper security."
+      tychoRoot = "/ui"
+    }
+
+    http {
+      port = 9000
+
+      sessionCookie {
+        name = "ocwuhzvdac7q6lbmv78agtivd2o14k"
+      }
+    }
+
+    storage {
+      # Will buckets be auto created on the first request via the S3 API?
+      autocreateBuckets = true
+
+      # Base dir for file storage. By default it's the s3 subdirectory from the projects root folder
+      baseDir = "/home/sirius/data"
+
+      # Base dir for multipart downloads.
+      multipartDir = "/home/sirius/multipart"
+
+      # AWS access key used for authentication checks
+      awsAccessKey = "{{ .Values.s3emuConfig.access_key }}"
+
+      # AWS secret key used for authentication checks
+      awsSecretKey = "{{ .Values.s3emuConfig.access_secret_key }}"
+    }
+
+    # Configures an upstream S3 instance which can be used in case an object is not found locally.
+    upstreamAWS {
+        # The secret key to connect to the upstream S3 instance.
+        secretKey = ""
+
+        # The access key to connect to the upstream S3 instance.
+        accessKey = ""
+        # The endpoint used to connect to the upstream S3 instance.
+        endPoint = ""
+
+        # The signing region used to connect to the upstream S3 instance.
+        # If not given, the value "EU" is used.
+        signingRegion = ""
+
+        # The signer type used to connect to the upstream S3 instance.
+        # This config is optional and will be ignored if missing.
+        signerType = ""
+    }
+
+    cache {
+        public-bucket-access {
+            maxSize = 128
+        }
+    }
