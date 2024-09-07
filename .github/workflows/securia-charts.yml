@@ -1,14 +1,14 @@
 name: Securia Docker Image CI
 
-on:
-  push:
-    branches: [ "main" ]
-    # paths-ignore:
-    #   - 'docs/**'
-    # paths:
-    #   - '**.js'
-  pull_request:
-    branches: [ "main" ]
+on: workflow_dispatch
+  # push:
+  #   branches: [ "main" ]
+  #   # paths-ignore:
+  #   #   - 'docs/**'
+  #   # paths:
+  #   #   - '**.js'
+  # pull_request:
+  #   branches: [ "main" ]
 
 jobs:
 
