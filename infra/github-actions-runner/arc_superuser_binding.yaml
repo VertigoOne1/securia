@@ -35,12 +35,3 @@ metadata:
   namespace: securia
   annotations:
     kubernetes.io/service-account.name: arc-user
----
-# apiVersion: v1
-# kind: Secret
-# metadata:
-#   name: admin-user
-#   namespace: kubernetes-dashboard
-#   annotations:
-#     kubernetes.io/service-account.name: "admin-user"
-# type: kubernetes.io/service-account-token

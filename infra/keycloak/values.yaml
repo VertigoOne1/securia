@@ -1,0 +1,9 @@
+global:
+  storageClass: "	nfs-client-ssd"
+
+postgresql:
+  enabled: false
+
+logging:
+  output: default
+  level: INFO
