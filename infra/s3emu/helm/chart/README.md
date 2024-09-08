@@ -15,5 +15,5 @@ helm --kubeconfig /etc/rancher/k3s/k3s.yaml -n s3emu upgrade s3emu . -i -f value
 ### Dev
 
 ```bash
-helm --kubeconfig legion -n s3emu upgrade s3emu . -i -f values/dev/values.yaml -f secrets://values/dev/values_secrets.yaml --create-namespace
+helm --kubeconfig /home/marnus/iot/kubeconfigs/legion -n s3emu upgrade s3emu . -i -f values/dev/values.yaml -f secrets://values/dev/values_secrets.yaml --create-namespace
 ```

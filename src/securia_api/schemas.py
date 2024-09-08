@@ -37,6 +37,12 @@ class RecorderCreate(RecorderBase):
     class Config:
         from_attributes = True
 
+class Recorder(RecorderBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
 class ChannelBase(BaseModel):
     fid: int
     channel_id: str
@@ -52,6 +58,12 @@ class ChannelCreate(ChannelBase):
 class ChannelSearch(BaseModel):
     fid: int
     channel_id: str
+
+    class Config:
+        from_attributes = True
+
+class Channel(ChannelBase):
+    id: int
 
     class Config:
         from_attributes = True

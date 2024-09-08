@@ -44,12 +44,12 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 ## TODO
 
+- ui development - in progress
 - test crop extraction and population
 - work on the CICD automation for securia deployment to dev (SOPS setup in github actions)
 - migrate any secret information to SOPS - good progress
 - move main stack to server side with github actions - halfway
 - full install the stack into dev (minimum feature set to include xyxy extraction)
-- ui development - streamlit looks promising
 - Turn gpustat --json into prometheus metrics (will need to watch temps)
 - work on OIDC integration
 - test yolo helm on gpu server - done (gpu is a must, some numbers below on performance)

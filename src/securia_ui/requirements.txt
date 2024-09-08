@@ -1,0 +1,8 @@
+envyaml
+requests
+prometheus_client
+boto3
+plotly
+streamlit
+streamlit-extras
+pandas

@@ -89,6 +89,17 @@ async def search_recorder(db: db_dependency, recorder: schemas.RecorderCreate):
         raise HTTPException(status_code=404, detail='Recorder not found')
     raise HTTPException(status_code=509, detail='CRUD issue')
 
+@app.get("/securia/recorder", response_model=list[schemas.Recorder])
+async def get_recorder_by_id(db: db_dependency, skip: int = 0, limit: int = 100):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    recorders = db.query(models.Recorder).offset(skip).limit(limit).all()
+    if recorders is not None:
+        return [schemas.Recorder.from_orm(recorder) for recorder in recorders]
+    if recorders is None:
+        raise HTTPException(status_code=404, detail='Recorders not found')
+    raise HTTPException(status_code=500, detail='CRUD issue')
+
 @app.get("/securia/recorder/{recorder_id}")
 async def get_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0)):
     if config['api']['maintenance_mode']:
@@ -134,6 +145,17 @@ async def get_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0)):
         return channel
     if channel is None:
         raise HTTPException(status_code=404, detail='Channel not found')
+    raise HTTPException(status_code=509, detail='CRUD issue')
+
+@app.get("/securia/channels_by_recorder/{recorder_id}", response_model=list[schemas.Channel])
+async def get_channel_by_id(db: db_dependency, recorder_id: int = Path(gt=0), skip: int = 0, limit: int = 100):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    channels = db.query(models.Channel).filter(models.Channel.fid == recorder_id).offset(skip).limit(limit).all()
+    if channels is not None:
+        return [schemas.Channel.from_orm(channel) for channel in channels]
+    if channels is None:
+        raise HTTPException(status_code=404, detail='Channels not found')
     raise HTTPException(status_code=509, detail='CRUD issue')
 
 @app.get("/securia/channel/name/{channel_name}")
