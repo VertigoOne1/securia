@@ -44,15 +44,17 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 ## TODO
 
-- strimzi deployment on dev - next
-- configure chart to use the secrets from percona operator via injection
-- Turn gpustat --json into prometheus metrics (will need to watch temps)
 - test crop extraction and population
+- work on the CICD automation for securia deployment to dev (SOPS setup in github actions)
+- migrate any secret information to SOPS - good progress
 - move main stack to server side with github actions - halfway
 - full install the stack into dev (minimum feature set to include xyxy extraction)
 - ui development - streamlit looks promising
-- redeploy keycloak and work on automation
-- test yolo helm on gpu server - DONE (gpu is a must)
+- Turn gpustat --json into prometheus metrics (will need to watch temps)
+- work on OIDC integration
+- test yolo helm on gpu server - done (gpu is a must, some numbers below on performance)
+- configure securia charts to use the secrets from percona operator via injection
+- strimzi deployment on dev - done
 - helm secrets - done
 - full grafana deployment - done
 - move nfs provisioner to server - done, 800Gb space
@@ -60,6 +62,7 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 - redeploy harbor - done
 - deploy postgresql to dev cluster - done
 - move s3 to nfs provisioner eventually for more storage - done
+- redeploy keycloak - done
 
 ## Local Dev Env Links
 
@@ -89,12 +92,12 @@ age + sops + helm + vscode
 
 The idea is to create a simple portable way to allow secret decryption to CICD systems regardless of "provider".
 
-- Github Actions -> Secrets
+- Github Actions -> Secrets/EnvSecrets/RepoSecrets
 - Azure DevOps -> Secrets / Keyvaults
 - AWS -> Vaults
 - etc -> etc
 
-You end up customising for each.
+You end up customising for each and they both have slightly different interactions.
 
 A simple "local-dev-managed" way would be to use SOPS and AGE, and setting up an identity each for the provider(s).
 
@@ -263,3 +266,14 @@ yolov8l.pt
 - NVIDIA GeForce GTX 1650, 3889MiB - 95ms - can possibly fit 2x pods
 - NVIDIA T500 2Gb, 1871MiB - 74ms - uses all memory, single pod only
 - Intel Core(TM) i7-1165G7 2.80GHz - 950ms - single channel only (at 2 sec intervals)
+
+## Image Change Detection Methods
+
+- Image differencing: Comparing corresponding pixels between two images and identifying areas where values differ significantly.
+- Background subtraction: Creating a model of the background and detecting changes by comparing new frames against this model.
+- Feature-based methods: Extracting and comparing features (e.g., edges, corners, or SIFT features) between images to identify changes.
+- Deep learning approaches: Using convolutional neural networks (CNNs) or other deep learning architectures to learn and detect changes automatically.
+- Motion detection: Analyzing pixel changes between consecutive frames in video to identify moving objects.
+- Thresholding: Applying a threshold to the difference image to highlight areas of significant change.
+- Change vector analysis: Comparing multi-spectral or multi-temporal images to detect changes in land cover or use.
+- Object-based change detection: Segmenting images into objects and comparing their properties between images.
