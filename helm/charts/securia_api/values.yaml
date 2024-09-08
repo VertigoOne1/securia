@@ -55,6 +55,8 @@ persistence:
       storage: 16Gi
 
 ingress:
+  # -- Enable Traefik ipwhitelisting
+  traefik_ipwhitelist: false
   # -- Enable ingress record generation
   enabled: false
   # -- IngressClass that will be be used to implement the Ingress
@@ -71,6 +73,8 @@ ingress:
       paths:
         - path: /
           pathType: ImplementationSpecific
+          serviceName: securia-api-svc
+          servicePort: 8088
   # -- An array with the tls configuration
   tls: []
   #  - secretName: chart-example-tls

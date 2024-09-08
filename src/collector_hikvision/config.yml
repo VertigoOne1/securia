@@ -24,12 +24,6 @@ collector:
     # - 601
     # - 701
     # - 801
-storage:
-  bucket_name: test
-  endpoint_hostname: localhost
-  port: 32650
-  access_key: AKIAIOSFODNN7EXAMPLE
-  secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 kafka:
   broker_url: ["10.0.0.59:32394"]
   security_protocol: SASL_PLAINTEXT

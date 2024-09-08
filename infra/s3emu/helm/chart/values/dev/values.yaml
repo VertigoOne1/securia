@@ -56,29 +56,6 @@ persistence:
     requests:
       storage: 64Gi
 
-ingress:
-  # -- Enable ingress record generation
-  enabled: false
-  # -- IngressClass that will be be used to implement the Ingress
-  className: ""
-  # -- Additional annotations for the Ingress resource
-  annotations: {}
-    # cert-manager.io/cluster-issuer: cluster-issuer-name
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  # -- An array with hosts and paths
-  # @default -- see [values.yaml](./values.yaml)
-  hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  # -- An array with the tls configuration
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
-
 podAnnotations: {}
 
 podSecurityContext: {}

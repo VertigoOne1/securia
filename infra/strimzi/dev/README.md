@@ -76,5 +76,5 @@ spec:
 ```bash
 helm repo add kafka-ui https://provectus.github.io/kafka-ui-charts
 helm repo update
-helm --kubeconfig --kubeconfig /home/marnus/iot/kubeconfigs/legion -n kafka upgrade -i kafka-ui kafka-ui/kafka-ui --values dev/kafka-ui-values.yaml --values secrets://dev/kafka-ui-values_secrets.yaml
+helm --kubeconfig /home/marnus/iot/kubeconfigs/legion -n kafka upgrade -i kafka-ui kafka-ui/kafka-ui --values dev/kafka-ui-values.yaml --values secrets://dev/kafka-ui-values_secrets.yaml
 ```

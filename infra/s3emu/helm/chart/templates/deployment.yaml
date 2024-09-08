@@ -27,14 +27,14 @@ spec:
           resources: {}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
-          {{- if .Values.persistence.enabled }}
           volumeMounts:
+            - name: config
+              mountPath: /home/sirius/app/application.conf
+              subPath: application.conf
+          {{- if .Values.persistence.enabled }}
             - name: data
               mountPath: /home/sirius/data
           {{- end }}
-            - name: config
-              mountPath: /home/sirius/app
-              subPath: application.conf
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst

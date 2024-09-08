@@ -1,0 +1,62 @@
+# repositories:
+#   - name: collector_hikvision
+#     url: charts/collector_hikvision
+#   - name: securia_api
+#     url: charts/securia_api
+
+helmDefaults:
+  kubeContext: local
+  cleanupOnFail: false
+
+# environments:
+#   dev: {}
+
+# charts:
+#   - name: securia_api
+#     chart: charts/securia_api
+
+releases:
+- name: securia-api
+  namespace: securia
+  createNamespace: true
+  chart: oci://harbor.marnus.com/securia/securia-api
+  version: ~1.0.0
+  recreatePods: true
+  values:
+    - values/dev/securia_api/values.yaml
+  secrets:
+    - values/dev/securia_api/values_secrets.yaml
+  set: []
+- name: image-preprocessor
+  namespace: securia
+  createNamespace: true
+  chart: oci://harbor.marnus.com/securia/image-preprocessor
+  version: ~1.0.0
+  recreatePods: true
+  values:
+    - values/dev/image_preprocessor/values.yaml
+  secrets:
+    - values/dev/image_preprocessor/values_secrets.yaml
+  set: []
+- name: collector-hikvision
+  namespace: securia
+  createNamespace: true
+  chart: oci://harbor.marnus.com/securia/collector-hikvision
+  version: ~1.0.0
+  recreatePods: true
+  values:
+    - values/dev/collector_hikvision/values.yaml
+  secrets:
+    - values/dev/collector_hikvision/values_secrets.yaml
+  set: []
+- name: yolo-processor
+  namespace: securia
+  createNamespace: true
+  chart: oci://harbor.marnus.com/securia/yolo-processor
+  version: ~1.0.0
+  recreatePods: true
+  values:
+    - values/dev/yolo_processor/values.yaml
+  secrets:
+    - values/dev/yolo_processor/values_secrets.yaml
+  set: []

@@ -57,6 +57,7 @@ persistence:
       storage: 64Gi
 
 ingress:
+  traefik_ipwhitelist: false
   # -- Enable ingress record generation
   enabled: false
   # -- IngressClass that will be be used to implement the Ingress

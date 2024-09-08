@@ -1,0 +1,32 @@
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaUser
+metadata:
+  name: securia-preprocessor
+  labels:
+    strimzi.io/cluster: securia-kafka
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  type: allow
+  authentication:
+    type: scram-sha-512
+  authorization:
+    type: simple
+    acls:
+      - resource:
+          type: topic
+          name: '*'
+          patternType: literal
+        operations:
+          - All
+      - resource:
+          type: group
+          name: '*'
+          patternType: literal
+        operations:
+          - All
+      - resource:
+          type: cluster
+          name: '*'
+          patternType: literal
+        operations:
+          - Describe
