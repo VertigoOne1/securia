@@ -1,24 +1,24 @@
 ---
 # It would be a good idea to create a "central config" for this, so colletors can auto-config themselves
 general:
-  app_name: collector_hikvision
+  app_name: collector_simulator
   default_debug_level: DEBUG
 collector:
   enabled: True
-  camera_fqdn: "10.0.0.61"
+  camera_fqdn: "244.0.0.0"
   camera_username: view
   camera_password: "asdf1234"
-  capture_interval: 5
+  capture_interval: 10
   write_local_file: True
   temp_output_folder: /tmp/images
-  channel_delay_time: 0.3
+  channel_delay_time: 5
   collection_timeout: 10
   time_format: "%Y%m%d_%H%M%S.%f%z"
   image_filename_prefix: "image"
   channels:
-    - 101
-    # - 201
-    # - 301
+    - 0
+    - 1
+    - 2
     # - 401
     # - 501
     # - 601
@@ -35,7 +35,7 @@ kafka:
   value_serialiser: lambda x:json.dumps(x).encode('utf-8')
 flask:
   default_port: 8090
-  debug_level: INFO
+  debug_level: DEBUG
   debug_enabled: False
 scheduler:
   enabled: True

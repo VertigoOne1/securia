@@ -13,7 +13,7 @@ yolo:
   write_local_file: False
   temp_output_folder: yolo_tmp
   save_predict_output: True
-  save_predict_crops: True
+  save_predict_crops: False
 storage:
   bucket_name: test
   endpoint_hostname: 10.0.0.59
@@ -39,7 +39,7 @@ flask:
   debug_level: INFO
   debug_enabled: False
 api:
-  uri: http://10.0.0.95:30578/securia
+  uri: http://10.0.0.95:8088/securia
 scheduler:
   enabled: False
 metrics:

@@ -31,9 +31,11 @@ def get_db():
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
+logger.error("Creating schemas")
 models.Base.metadata.create_all(bind=engine)
 
 def start_api_server():
+    models.Base.metadata.create_all(bind=engine)
     uvconfig = uvicorn.Config(app, host="0.0.0.0", port=config['api']['default_port'], log_level=config['api']['debug_level'])
     server = uvicorn.Server(uvconfig)
     server.run()
@@ -56,7 +58,7 @@ async def create_post(db: db_dependency, post: schemas.CreatePost):
     new_post = schemas.CreatePost(title="My New Post", content="This is the content")
     db_post = crud.create_post(db, new_post)
     if db_post is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
+        raise HTTPException(status_code=509, detail='CRUD issue')
     logger.debug(f"Created new post with id: {db_post.id}")
 
     post = crud.get_post(db, db_post.id)
@@ -67,10 +69,10 @@ async def create_post(db: db_dependency, post: schemas.CreatePost):
 @app.post("/securia/recorder")
 async def create_recorder(db: db_dependency, recorder: schemas.RecorderCreate):
     if config['api']['maintenance_mode']:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Maintenance Mode')
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
     db_recorder = crud.create_recorder(db, recorder)
     if db_recorder is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
+        raise HTTPException(status_code=509, detail='CRUD issue')
     logger.debug(f"Created new recorder with id: {db_recorder.id}")
     return db_recorder
 
@@ -83,8 +85,9 @@ async def search_recorder(db: db_dependency, recorder: schemas.RecorderCreate):
         logger.debug(f"Found recorder uri - {recorder.uri} : {recorder.id}")
         return recorder
     if recorder is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Crud issue')
+        logger.debug(f"Recorder not found")
+        raise HTTPException(status_code=404, detail='Recorder not found')
+    raise HTTPException(status_code=509, detail='CRUD issue')
 
 @app.get("/securia/recorder/{recorder_id}")
 async def get_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0)):
@@ -94,8 +97,8 @@ async def get_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0)):
     if recorder is not None:
         return recorder
     if recorder is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Recorder not found')
+        raise HTTPException(status_code=404, detail='Recorder not found')
+    raise HTTPException(status_code=500, detail='CRUD issue')
 
 # Channel APIs
 
@@ -105,7 +108,7 @@ async def create_channel(db: db_dependency, channel: schemas.ChannelCreate):
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     db_channel = crud.create_channel(db, channel)
     if db_channel is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
+        raise HTTPException(status_code=509, detail='CRUD issue')
     logger.debug(f"Created new Channel with id: {db_channel.id}")
     return db_channel
 
@@ -119,8 +122,8 @@ async def search_channel(db: db_dependency, channel: schemas.ChannelSearch):
         logger.debug(f"Found Channel - {channel.channel_id} : {channel.id}")
         return channel
     if channel is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Channel not found')
+        raise HTTPException(status_code=404, detail='Channel not found')
+    raise HTTPException(status_code=500, detail='CRUD issue')
 
 @app.get("/securia/channel/id/{channel_id}")
 async def get_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0)):
@@ -130,8 +133,8 @@ async def get_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0)):
     if channel is not None:
         return channel
     if channel is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Channel not found')
+        raise HTTPException(status_code=404, detail='Channel not found')
+    raise HTTPException(status_code=509, detail='CRUD issue')
 
 @app.get("/securia/channel/name/{channel_name}")
 async def get_channel_by_id(db: db_dependency, channel_name: str = Path(gt=0)):
@@ -141,8 +144,8 @@ async def get_channel_by_id(db: db_dependency, channel_name: str = Path(gt=0)):
     if channel is not None:
         return channel
     if channel is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Channel not found')
+        raise HTTPException(status_code=404, detail='Channel not found')
+    raise HTTPException(status_code=509, detail='CRUD issue')
 
 # Image APIs
 
@@ -153,7 +156,7 @@ async def create_image(db: db_dependency, image: schemas.ImageCreate):
     logger.debug(f"received {image}")
     db_image = crud.create_image(db, image)
     if db_image is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
+        raise HTTPException(status_code=509, detail='CRUD issue')
     logger.debug(f"Created new Image with id: {db_image.id}")
     return db_image
 
@@ -165,8 +168,8 @@ async def get_image_by_id(db: db_dependency, image_id: int = Path(gt=0)):
     if image is not None:
         return image
     if image is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Image not found')
+        raise HTTPException(status_code=509, detail='CRUD issue')
+    raise HTTPException(status_code=404, detail='Image not found')
 
 @app.get("/securia/image_file/{image_id}",
     responses = {
@@ -190,8 +193,8 @@ async def get_image_file_by_id(db: db_dependency, image_id: int = Path(gt=0)):
         return responses.StreamingResponse(img_byte_arr, media_type="image/jpeg")  # or "image/png"
 
     if image is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Image issue')
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Image not found')
+        raise HTTPException(status_code=509, detail='Image issue')
+    raise HTTPException(status_code=404, detail='Image not found')
 
 # Detection APIs
 
@@ -202,7 +205,7 @@ async def create_detection(db: db_dependency, detection: schemas.DetectionCreate
     try:
         db_detection = crud.create_detection(db, detection)
         if db_detection is None:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
+            raise HTTPException(status_code=509, detail='CRUD issue')
     except:
         logger.error("Issue somewhere")
     logger.debug(f"Created new Detections with id: {db_detection.id}")
@@ -216,8 +219,8 @@ async def get_detection_by_id(db: db_dependency, detection_id: int = Path(gt=0))
     if detection is not None:
         return detection
     if detection is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Detection not found')
+        raise HTTPException(status_code=509, detail='CRUD issue')
+    raise HTTPException(status_code=404, detail='Detection not found')
 
 @app.post("/securia/detection_objects")
 async def create_detection(db: db_dependency, detectionobject: schemas.DetectionObjectCreate):
@@ -226,7 +229,7 @@ async def create_detection(db: db_dependency, detectionobject: schemas.Detection
     try:
         db_detectionobj = crud.create_detection_object(db, detectionobject)
         if db_detectionobj is None:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
+            raise HTTPException(status_code=509, detail='CRUD issue')
     except:
         logger.error("Issue somewhere")
     logger.debug(f"Created new Detections with id: {db_detectionobj.id}")
@@ -240,5 +243,5 @@ async def get_detection_by_id(db: db_dependency, detectionobject_id: int = Path(
     if detection is not None:
         return detection
     if detection is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='CRUD issue')
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Detection not found')
+        raise HTTPException(status_code=509, detail='CRUD issue')
+    raise HTTPException(status_code=404, detail='Detection not found')

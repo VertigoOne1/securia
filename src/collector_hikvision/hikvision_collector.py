@@ -19,11 +19,11 @@ def capture_hikvision_image(channel):
         logger.debug(f"Capturing - {snapshot_url}")
         try:
             response = requests.get(snapshot_url, auth=HTTPDigestAuth(config['collector']['camera_username'], config['collector']['camera_password']), timeout=config['collector']['collection_timeout'])
+            timestamp = datetime.now().strftime(config['collector']['time_format'])
             if response.status_code == 200:
                 logger.debug(f"Headers - {response.headers}")
                 logger.debug(f"Cookies - {response.cookies}")
                 logger.debug(f"Encoding - {response.encoding}")
-                timestamp = datetime.now().strftime(config['collector']['time_format'])
                 content_hash = calculate_sha256(response.content)
                 base64_image = base64.b64encode(response.content).decode('utf-8')
                 image_data = {
@@ -54,10 +54,13 @@ def capture_hikvision_image(channel):
                     "uri": f"{snapshot_url}",
                     "content_type": f"{response.headers.get('Content-Type', None)}",
                     "content_length": f"{response.headers.get('Content-Length', None)}",
+                    "hash": f"{None}",
                     "channel": f"{channel}",
                     "recorder_status_code":f"{response.status_code or None}",
+                    "recorder_status_data":f"{response.text or None}",
                     "status":f"recorder_error_response"
                 }
+                logger.debug(f"Returning: {image_data}")
                 return image_data
         except requests.RequestException as e:
             logger.error(f"Request Exception - Error capturing image: {e}")
@@ -68,6 +71,7 @@ def capture_hikvision_image(channel):
                 "content_length": f"{response.headers.get('Content-Length', None)}",
                 "channel": f"{channel}",
                 "recorder_status_code":f"{response.status_code or None}",
+                "recorder_status_data":f"{response.text or None}",
                 "status":f"recorder_request_exception"
             }
             return image_data
@@ -81,6 +85,7 @@ def capture_hikvision_image(channel):
                 "content_length": f"{response.headers.get('Content-Length', None)}",
                 "channel": f"{channel}",
                 "recorder_status_code":f"{response.status_code or None}",
+                "recorder_status_data":f"{response.text or None}",
                 "status":f"general_exception"
             }
             return image_data

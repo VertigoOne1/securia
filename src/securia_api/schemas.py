@@ -63,6 +63,7 @@ class ImageBase(BaseModel):
     content_length: int
     content_type: str
     recorder_status_code: str
+    recorder_status_data: str
     collected_timestamp: datetime = None
     collection_status: str
     ingest_timestamp: datetime = None
@@ -71,7 +72,7 @@ class ImageBase(BaseModel):
     @classmethod
     def parse_datetime(cls, value: Any)-> datetime:
         # Define the format according to your input string
-        time_format = '%Y%m%d_%H%M%S.%f'  # e.g., "%Y%m%d_%H%M%S.%f"
+        time_format = config['api']['time_format']
         return datetime.strptime(value, time_format)
 
     class Config:
@@ -93,7 +94,7 @@ class DetectionBase(BaseModel):
     @classmethod
     def parse_datetime(cls, value: Any)-> datetime:
         # Define the format according to your input string
-        time_format = '%Y%m%d_%H%M%S.%f'  # e.g., "%Y%m%d_%H%M%S.%f"
+        time_format = config['api']['time_format']
         return datetime.strptime(value, time_format)
 
     class Config:
@@ -106,6 +107,7 @@ class DetectionCreate(DetectionBase):
 class DetectionObjectBase(BaseModel):
     fid: int
     detection_class: str
+    detection_name: str
     confidence: float
     xyxy: Json[Any]
     crop_s3_path: str

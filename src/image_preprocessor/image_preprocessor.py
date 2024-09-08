@@ -53,8 +53,7 @@ def recorder_process(image_dict):
         url = f"{config['api']['uri']}/recorder/search"
         request_body = {'uri': image_dict['uri']}
         resp = requests.post(url, json = request_body)
-        data = resp.json()
-        logger.debug(f"Recorder search resp - {data}")
+        logger.debug(f"Recorder search resp - {resp.text}")
         if resp.status_code == 404: ## Create it
             logger.debug("Recorder not found, creating it")
             url = f"{config['api']['uri']}/recorder"
@@ -65,6 +64,7 @@ def recorder_process(image_dict):
             logger.debug(f"Recorder ID is {data['id']}")
             return data['id']
         elif resp.status_code == 200:
+            data = resp.json()
             return data['id']
         else:
             logger.error(f"Respose status: {resp.status_code}")
@@ -114,6 +114,7 @@ def image_process(image_dict, channel_id, object_name):
                             'content_length': image_dict['content_length'],
                             'content_type': image_dict['content_type'],
                             'recorder_status_code': f"{image_dict.get('recorder_status_code') or None}",
+                            'recorder_status_data': f"{image_dict.get('recorder_status_data') or None}",
                             'collected_timestamp': image_dict['collected_timestamp'],
                             'collection_status': f"{image_dict.get('status') or None}",
                             'ingest_timestamp': image_dict['preproc_ingest_time']
@@ -171,31 +172,45 @@ def preprocess_image(image_dict):
                 logger.debug(f"Writing - {output_file}")
                 with open(output_file, "a") as json_file:
                     json.dump(image_dict, json_file)
-            if checkhash(image_dict):
+            logger.debug(f"Status Code : {image_dict['recorder_status_code']}")
+            if image_dict["recorder_status_code"] != "200":
+                logger.debug("Collector failed to retrieve image, skipping S3")
                 linking = {}
-                # Submit to S3
-                object_name = send_s3(image_dict)
-                if object_name is not None:
-                    logger.info(f"Sent to S3 - {config['storage']['bucket_name']}/{object_name}")
-                    # Submit to API
-                    # resolve recorder uri to id -> recorder_id
-                    linking['recorder_id'] = recorder_process(image_dict)
-                    # resolve channel id via recorder id and channel name
-                    linking['channel_id'] = channel_process(image_dict, linking['recorder_id'])
-                    # insert image via channel_id
-                    linking['image_id'] = image_process(image_dict, linking['channel_id'], object_name)
-                    if linking['image_id'] is not None:
-                        logger.debug("Processes completed successfully")
-                        return linking['image_id']
-                    else:
-                        logger.error("Processes did not complete successfully")
-                        return None
+                linking['recorder_id'] = recorder_process(image_dict)
+                linking['channel_id'] = channel_process(image_dict, linking['recorder_id'])
+                linking['image_id'] = image_process(image_dict, linking['channel_id'], "NO_IMAGE")
+                if linking['image_id'] is not None:
+                    logger.debug("Processes completed successfully")
+                    return linking['image_id']
                 else:
-                    logger.error("Object submission to S3 failed")
+                    logger.error("Processes did not complete successfully")
                     return None
             else:
-                logger.error("IMAGE MANIPULATION DETECTED")
-                return None
+                if checkhash(image_dict):
+                    linking = {}
+                    # Submit to S3
+                    object_name = send_s3(image_dict)
+                    if object_name is not None:
+                        logger.info(f"Sent to S3 - {config['storage']['bucket_name']}/{object_name}")
+                        # Submit to API
+                        # resolve recorder uri to id -> recorder_id
+                        linking['recorder_id'] = recorder_process(image_dict)
+                        # resolve channel id via recorder id and channel name
+                        linking['channel_id'] = channel_process(image_dict, linking['recorder_id'])
+                        # insert image via channel_id
+                        linking['image_id'] = image_process(image_dict, linking['channel_id'], object_name)
+                        if linking['image_id'] is not None:
+                            logger.debug("Processes completed successfully")
+                            return linking['image_id']
+                        else:
+                            logger.error("Processes did not complete successfully")
+                            return None
+                    else:
+                        logger.error("Object submission to S3 failed")
+                        return None
+                else:
+                    logger.error("IMAGE MANIPULATION DETECTED")
+                    return None
     except KeyboardInterrupt:
         logger.info("Quitting")
         return None

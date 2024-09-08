@@ -57,44 +57,34 @@ class KafkaClientSingleton:
             logger.error(f"Kafka send exception: {str(e)}")
             logger.error(traceback.format_exc())
             return False
-        except:
-            logger.error(f"Likely configuration error")
-            logger.error(traceback.format_exc())
-            exit(1)
+
     def consume_messages(self, topic_patterm, group_id, auto_offset_reset='earliest'):
         try:
             if self.consumer is None:
                 self.consumer = KafkaConsumer(
+                    "placeholder",
                     **self.params,
                     group_id=group_id,
                     auto_offset_reset=auto_offset_reset,
-                    enable_auto_commit=config["kafka"]["enable_auto_commit"],
+                    enable_auto_commit=False,
                     value_deserializer=lambda x: json.loads(x.decode('utf-8'))
                 )
             self.consumer.subscribe(topics=(),pattern=f"^{topic_patterm}.*")
             logger.debug(f"Consuming from - {self.consumer.subscription()}")
             for message in self.consumer:
                 yield message
-                if not config["kafka"]["enable_auto_commit"]:
-                    logger.debug("Commiting offsets after yield")
-                    self.commit_offset(TopicPartition(message.topic, message.partition), message.offset + 1)
 
         except KafkaError as e:
             logger.error(f"Kafka consume exception: {str(e)}")
             logger.error(traceback.format_exc())
             yield None
-        except:
-            logger.error(f"Likely configuration error")
-            logger.error(traceback.format_exc())
-            exit(1)
 
-    # def commit_offset(self, topic_partition, offset):
-    #     logger.debug(f"Commiting - {topic_partition} - {offset}")
-    #     if self.consumer:
-    #         self.consumer.commit({topic_partition: OffsetAndMetadata(offset, None)})
-    #         logger.debug(f"Committed offset {offset} for partition {topic_partition}")
-    #     else:
-    #         logger.warning("Consumer not initialized. Cannot commit offset.")
+    def commit_offset(self, topic_partition, offset):
+        if self.consumer:
+            self.consumer.commit({topic_partition: offset})
+            logger.debug(f"Committed offset {offset} for partition {topic_partition}")
+        else:
+            logger.warning("Consumer not initialized. Cannot commit offset.")
 
     def close(self):
         logger.debug("Received close signal")

@@ -48,6 +48,10 @@ def fetch_image_key(id):
                 logger.error("Did not receive an s3_path")
                 logger.error(f"Response is {data}")
                 return None
+            elif "NO_IMAGE" in data["s3_path"]:
+                logger.error("Image not available")
+                logger.error(f"Response is {data}")
+                return None
             else:
                 image_key = data['s3_path'].split('/')
                 logger.debug(f'Bucket is {image_key[0]}, key is {image_key[1]}')
@@ -75,16 +79,18 @@ def fetch_image_s3(bucket, key):
     im = Image.open(file_stream)
     return im
 
-# db_detection = models.Detection(fid=detection.fid,
-#                                 detections=detection.detections,
-#                                 processing_time_ms=detection.processing_time_ms,
-#                                 detections_timestamp=detection.detections_timestamp
-def predictions_process(predictions, image_id, processing_time, time_collected):
+# fid: int
+# detections: Json[Any]
+# detections_count: int
+# processing_time_ms: Json[Any]
+# detections_timestamp: datetime = None
+def predictions_process(predictions, image_id, processing_time, time_collected, detections_count):
     if predictions is not None and image_id is not None:
         try:
             url = f"{config['api']['uri']}/detection"
             request_body = {'fid': image_id,
                             'detections': json.dumps(predictions),
+                            'detections_count': detections_count,
                             'processing_time_ms': json.dumps(processing_time),
                             'detections_timestamp': time_collected
                             }
@@ -102,7 +108,45 @@ def predictions_process(predictions, image_id, processing_time, time_collected):
             logger.error(traceback.format_exc())
             return None
     else:
-        logger.error("Did not receive a valid channel_id or uuid")
+        logger.error("Did not receive a valid image_id or predictions")
+        return None
+
+# fid = Column(Integer, ForeignKey('detections.id'))
+# detection_class = Column(String,nullable=False)
+# confidence = Column(Double, nullable=False)
+# xyxy = Column(JSONB)
+# crop_s3_path = Column(String,nullable=True)
+def detections_process(detections_dict, detections_id):
+    if detections_dict is not None and detections_id is not None:
+        detection_ids = []
+        for detection in detections_dict:
+            try:
+                url = f"{config['api']['uri']}/detection_objects"
+                request_body = {'fid': detections_id,
+                                'detection_class': str(detection["class"]),
+                                'detection_name': detection["name"],
+                                'confidence': detection["confidence"],
+                                'xyxy': json.dumps(detection["box"]),
+                                'crop_s3_path': "NOT_IMPLEMENTED_YET"
+                                }
+                logger.debug(f"Sending - {request_body}")
+                resp = requests.post(url, json = request_body)
+                data = resp.json()
+                if resp.status_code == 200:
+                    logger.debug(f"detection objects post resp - {data}")
+                    detection_ids.append(data['id'])
+                else:
+                    logger.error(f"Response: {resp.status_code} - {resp.json()}")
+                    return None
+            except:
+                logger.error("detection objects post request exception")
+                logger.error(traceback.format_exc())
+                return None
+        if detection_ids is not None:
+            logger.debug(f"Processed all detection ids - {detection_ids}")
+            return detection_ids
+    else:
+        logger.error("Did not receive a valid detection_id or detection_dict")
         return None
 
 def process_images():
@@ -122,25 +166,34 @@ def process_images():
                     logger.debug(f"Received message from: {message.topic} partition: {message.partition} at offset: {message.offset}")
                     key = fetch_image_key(message.value)
                     if key is None:
+                        logger.debug("Key is NONE")
                         logger.error("Could not successfully complete message processing, send to DLQ and sleep for 2 seconds")
                         logger.debug(f"Partition - {message.partition}")
                         logger.debug(f"Offset - {message.offset}")
                         topic = f'{config["kafka"]["dlq_topic_prefix"]}collect'
                         send_result = kafka_client.send_message(topic, "NA", message.value)
-                        sleep(2)
                     else:
-                        logger.debug(f"Retrieving image {key}")
+                        logger.debug("Retrievd image info from API")
+                        logger.debug(f"Retrieving image for {key}")
                         image = fetch_image_s3(key[0], key[1])
                         predictions = image_predict.predict_image(image)
-                        predict_id = predictions_process(predictions["image_summary"], message.value['image_id'], predictions["timings"], message_collected_time)
+                        predict_id = predictions_process(predictions["image_summary"], message.value['image_id'], predictions["timings"], message_collected_time, predictions["detections_count"])
                         if predict_id is None:
-                            logger.error("Could not commit predictions")
+                            logger.error("Could not commit predictions summary")
                             logger.error("Send to DLQ")
                             topic = f'{config["kafka"]["dlq_topic_prefix"]}commit'
                             send_result = kafka_client.send_message(topic, "NA", message.value)
                         else:
-                            logger.info("Successfully committed predictions")
-                        logger.info("Processed message, Predictions: {predictions} - notifying upstreams")
+                            detection_id = detections_process(predictions["image_summary"], predict_id)
+                            if detection_id is None:
+                                logger.error("Could not commit prediction objects")
+                                logger.error("Send to DLQ")
+                                topic = f'{config["kafka"]["dlq_topic_prefix"]}commit'
+                                send_result = kafka_client.send_message(topic, "NA", message.value)
+                            else:
+                                logger.info("Successfully committed detection objects")
+                        logger.info(f"Processed message, Predictions Count: {predictions['detections_count']} - notifying upstreams")
+                        # kafka_client.commit_offset(TopicPartition(message.topic, message.partition), message.offset + 1)
                         # topic = f'{config["kafka"]["produce_topic_prefix"]}image'
                         # output = {}
                         # output["image_id"] = status

@@ -1,0 +1,9 @@
+envyaml
+requests
+pyOpenSSL
+json2html
+flask
+prometheus_client
+schedule
+kafka-python-ng
+prometheus-client

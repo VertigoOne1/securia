@@ -31,11 +31,11 @@ kafka:
   enable_auto_commit: True
   value_serialiser: lambda x:json.dumps(x).encode('utf-8')
 flask:
-  default_port: 8089
+  default_port: 8091
   debug_level: INFO
   debug_enabled: False
 api:
-  uri: http://10.0.0.95:30578/securia
+  uri: http://10.0.0.95:8088/securia
 scheduler:
   enabled: False
 metrics:

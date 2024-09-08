@@ -40,6 +40,7 @@ def create_image(db: Session,
                             content_length=image.content_length,
                             content_type=image.content_type,
                             recorder_status_code=image.recorder_status_code,
+                            recorder_status_data=image.recorder_status_data,
                             collection_status=image.collection_status,
                             collected_timestamp=image.collected_timestamp
                             )
@@ -70,6 +71,7 @@ def create_detection_object(db: Session,
                  ):
     db_detectionobj = models.DetectionObjects(fid=detectionobj.fid,
                                                  detection_class=detectionobj.detection_class,
+                                                 detection_name=detectionobj.detection_name,
                                                  confidence=detectionobj.confidence,
                                                  xyxy=detectionobj.xyxy,
                                                  crop_s3_path=detectionobj.crop_s3_path
