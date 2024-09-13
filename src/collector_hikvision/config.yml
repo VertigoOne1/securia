@@ -6,6 +6,7 @@ general:
 collector:
   enabled: True
   camera_fqdn: "10.0.0.61"
+  camera_friendly_name: "Home"
   camera_username: view
   camera_password: "asdf1234"
   capture_interval: 5

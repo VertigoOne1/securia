@@ -57,7 +57,14 @@ def recorder_process(image_dict):
         if resp.status_code == 404: ## Create it
             logger.debug("Recorder not found, creating it")
             url = f"{config['api']['uri']}/recorder"
-            request_body = {'uri': image_dict['uri']}
+            request_body = {
+                'uri': image_dict['uri'],
+                'friendly_name': f"{image_dict.get('friendly_name') or None}",
+                'owner': f"{image_dict.get('owner') or None}",
+                'type': f"{image_dict.get('type') or None}",
+                'location': f"{image_dict.get('location') or None}",
+                'contact': f"{image_dict.get('contact') or None}",
+                }
             resp = requests.post(url, json = request_body)
             data = resp.json()
             logger.debug(f"Create Recorder Response - {data}")
@@ -85,7 +92,11 @@ def channel_process(image_dict, recorder_id):
             if resp.status_code == 404: ## Create it
                 logger.debug("Channel not found, creating it")
                 url = f"{config['api']['uri']}/channel"
-                request_body = {'fid': recorder_id, 'channel_id': image_dict['channel']}
+                request_body = {
+                    'fid': recorder_id, 'channel_id': image_dict['channel'],
+                    'friendly_name': f"{image_dict.get('friendly_name') or None}",
+                    'description': f"{image_dict.get('description') or None}"
+                    }
                 logger.debug(f"Request Body - {request_body}")
                 resp = requests.post(url, json = request_body)
                 data = resp.json()

@@ -10,6 +10,7 @@ class Recorder(Base):
     __tablename__ = 'recorders'
 
     id = Column(Integer,primary_key=True,nullable=False)
+    friendly_name = Column(String,nullable=True)
     owner = Column(String,nullable=True)
     type = Column(String,nullable=True)
     uri = Column(String,nullable=False)
@@ -27,6 +28,7 @@ class Channel(Base):
     id = Column(Integer,primary_key=True,nullable=False)
     fid = Column(Integer, ForeignKey('recorders.id'))
     channel_id = Column(String,nullable=False)
+    friendly_name = Column(String,nullable=True)
     description = Column(String,nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
 

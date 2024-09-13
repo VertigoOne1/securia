@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Json, ValidationError, validator, field_validator
+from pydantic import BaseModel, Json, ValidationError, validator, field_validator, computed_field
 from datetime import date, datetime, time, timedelta
 from typing import Any, List, Optional
 import json
@@ -25,6 +25,7 @@ class CreatePost(PostBase):
 
 class RecorderBase(BaseModel):
     uri: str
+    friendly_name: Optional[str] = None
     owner: Optional[str] = None
     type: Optional[str] = None
     location: Optional[str] = None
@@ -46,6 +47,7 @@ class Recorder(RecorderBase):
 class ChannelBase(BaseModel):
     fid: int
     channel_id: str
+    friendly_name: Optional[str] = None
     description: Optional[str] = None
 
     class Config:
@@ -84,13 +86,26 @@ class ImageBase(BaseModel):
     @classmethod
     def parse_datetime(cls, value: Any)-> datetime:
         # Define the format according to your input string
-        time_format = config['api']['time_format']
-        return datetime.strptime(value, time_format)
+        if isinstance(value, str):
+           time_format = config['api']['time_format']
+           return datetime.strptime(value, time_format)
+        return value
+
+    # @computed_field
+    # @property
+    # def full_s3_path(self) -> str:
+    #     return f"{s3_base_path.rstrip('/')}/{self.s3_path.lstrip('/')}"
 
     class Config:
         from_attributes = True
 
 class ImageCreate(ImageBase):
+
+    class Config:
+        from_attributes = True
+
+class Image(ImageBase):
+    id: int
 
     class Config:
         from_attributes = True

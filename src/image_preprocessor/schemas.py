@@ -14,6 +14,7 @@ class CreatePost(PostBase):
 
 class RecorderBase(BaseModel):
     uri: str
+    friendly_name: Optional[str] = None
     owner: Optional[str] = None
     type: Optional[str] = None
     location: Optional[str] = None
@@ -29,6 +30,7 @@ class RecorderCreate(RecorderBase):
 class ChannelBase(BaseModel):
     fid: int
     channel_id: str
+    friendly_name = Optional[str] = None
     description: Optional[str] = None
 
     class Config:

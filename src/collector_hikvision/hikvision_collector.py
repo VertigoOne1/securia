@@ -29,6 +29,7 @@ def capture_hikvision_image(channel):
                 image_data = {
                     "collected_timestamp": f"{timestamp}",
                     "uri": f"{snapshot_url}",
+                    "friendly_name": f"{config['collector']['camera_friendly_name']}",
                     "content_type": f"{response.headers.get('Content-Type', None)}",
                     "content_length": f"{response.headers.get('Content-Length', None)}",
                     "channel": f"{channel}",
@@ -52,6 +53,7 @@ def capture_hikvision_image(channel):
                 image_data = {
                     "collected_timestamp": f"{timestamp}",
                     "uri": f"{snapshot_url}",
+                    "friendly_name": f"{config['collector']['camera_friendly_name']}",
                     "content_type": f"{response.headers.get('Content-Type', None)}",
                     "content_length": f"{response.headers.get('Content-Length', None)}",
                     "hash": f"{None}",
@@ -67,6 +69,7 @@ def capture_hikvision_image(channel):
             image_data = {
                 "collected_timestamp": f"{timestamp}",
                 "uri": f"{snapshot_url}",
+                "friendly_name": f"{config['collector']['camera_friendly_name']}",
                 "content_type": f"{response.headers.get('Content-Type', None)}",
                 "content_length": f"{response.headers.get('Content-Length', None)}",
                 "channel": f"{channel}",
@@ -81,6 +84,7 @@ def capture_hikvision_image(channel):
             image_data = {
                 "collected_timestamp": f"{timestamp}",
                 "uri": f"{snapshot_url}",
+                "friendly_name": f"{config['collector']['camera_friendly_name']}",
                 "content_type": f"{response.headers.get('Content-Type', None)}",
                 "content_length": f"{response.headers.get('Content-Length', None)}",
                 "channel": f"{channel}",

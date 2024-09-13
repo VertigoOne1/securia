@@ -52,6 +52,7 @@ def capture_simulated_image(channel):
             image_data = {
                 "collected_timestamp": f"{timestamp}",
                 "uri": f"simulator",
+                "friendly_name": f"{config['collector']['camera_friendly_name']}",
                 "content_type": f"image/jpeg",
                 "content_length": f"{len(image['byte_data'])}",
                 "channel": f"{channel}",

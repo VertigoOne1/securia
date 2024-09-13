@@ -6,6 +6,7 @@ general:
 collector:
   enabled: True
   camera_fqdn: "244.0.0.0"
+  camera_friendly_name: "Simulator"
   camera_username: view
   camera_password: "asdf1234"
   capture_interval: 10

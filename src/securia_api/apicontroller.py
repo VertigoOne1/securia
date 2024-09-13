@@ -1,6 +1,8 @@
 import uvicorn
-from fastapi import FastAPI, Depends, HTTPException, Path, responses
+from fastapi import FastAPI, Depends, HTTPException, Path, responses, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
+from enum import Enum
 from typing import Annotated
 from prometheus_client import make_asgi_app
 from envyaml import EnvYAML
@@ -21,6 +23,10 @@ APP_NAME = config['general']['app_name']
 app = FastAPI()
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
+
+class SortOrder(str, Enum):
+    asc = "asc"
+    desc = "desc"
 
 def get_db():
     db = SessionLocal()
@@ -200,6 +206,41 @@ async def get_image_by_id(db: db_dependency, image_id: int = Path(gt=0)):
         }
     }
 )
+
+@app.get("/securia/image/channel/{fid_id}",response_model=list[schemas.Image])
+async def get_image_by_channel_fid(db: db_dependency,
+                                   fid_id: int = Path(gt=0),
+                                   skip: int = 0,
+                                   limit: int = 100,
+                                   sort_by: str = Query("id", description="Field to sort by"),
+                                   sort_order: SortOrder = Query(SortOrder.asc, description="Sort order (asc or desc)")
+                                   ):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    try:
+        query = db.query(models.Image).filter(models.Image.fid == fid_id)
+
+        # Get the attribute to sort by
+        sort_attribute = getattr(models.Image, sort_by, None)
+        if sort_attribute is None:
+            raise HTTPException(status_code=400, detail=f"Invalid sort field: {sort_by}")
+
+        # Apply sorting
+        if sort_order == SortOrder.desc:
+            query = query.order_by(desc(sort_attribute))
+        else:
+            query = query.order_by(sort_attribute)
+
+        # Apply pagination
+        images = query.offset(skip).limit(limit).all()
+
+        if not images:
+            raise HTTPException(status_code=404, detail='Images not found')
+
+        return images
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Server error: {str(e)}')
+
 async def get_image_file_by_id(db: db_dependency, image_id: int = Path(gt=0)):
     import io
     if config['api']['maintenance_mode']:

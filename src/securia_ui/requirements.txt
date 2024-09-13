@@ -6,3 +6,4 @@ plotly
 streamlit
 streamlit-extras
 pandas
+s3fs
