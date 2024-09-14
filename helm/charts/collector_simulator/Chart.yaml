@@ -1,0 +1,9 @@
+apiVersion: v2
+name: collector-simulator
+description: A Helm chart that deploys the Simulator Collector
+
+type: application
+
+version: 0.1.0
+
+appVersion: "1.16.0"

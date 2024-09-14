@@ -1,27 +1,27 @@
-# Default values for hikcol.
+# Default values for simcol.
 # This is a YAML-formatted file.
 # Declare variables to be passed into the templates.
 
 replicaCount: 1
 
 image:
-  name: "collector-hikvision"
+  name: "collector-simulator"
   tag: ":latest"
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-postfix: "hikcol"
+postfix: "simcol"
 
 app:
   general:
-    app_name: collector-hikvision
+    app_name: collector-simulator
     app_debug_level: INFO
 
 appConfig:
   general:
-    app_name: collector-hikvision
+    app_name: collector-simulator
     default_debug_level: DEBUG
   collector:
     enabled: True
@@ -33,14 +33,9 @@ appConfig:
     time_format: "%Y%m%d_%H%M%S.%f%z"
     image_filename_prefix: "image"
     channels:
-      - 101
-      - 201
-      - 301
-      - 401
-      - 501
-      - 601
-      - 701
-      - 801
+      - 1
+      - 2
+      - 3
   flask:
     default_port: 8088
     debug_level: INFO
@@ -57,7 +52,7 @@ appConfig:
 service:
   type: ClusterIP
   port: 8088
-  name: hikcol
+  name: simcol
 
 serviceAccount:
   create: true
@@ -65,7 +60,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "hikcol-sa"
+  name: "simcol-sa"
   bindingPostfix: "-crb"
 
 persistence:

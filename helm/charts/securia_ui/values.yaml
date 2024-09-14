@@ -1,63 +1,32 @@
-# Default values for hikcol.
+# Default values for securia-ui.
 # This is a YAML-formatted file.
 # Declare variables to be passed into the templates.
 
 replicaCount: 1
 
 image:
-  name: "collector-hikvision"
+  registry: "10.0.0.59:32419"
+  path: "/securia"
+  name: "securia-ui"
   tag: ":latest"
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-postfix: "hikcol"
+postfix: "ui"
 
 app:
   general:
-    app_name: collector-hikvision
-    app_debug_level: INFO
+    app_name: securia-ui
+    app_debug_level: DEBUG
 
-appConfig:
-  general:
-    app_name: collector-hikvision
-    default_debug_level: DEBUG
-  collector:
-    enabled: True
-    capture_interval: 5
-    write_local_file: False
-    temp_output_folder: /tmp/images
-    channel_delay_time: 0.3
-    collection_timeout: 10
-    time_format: "%Y%m%d_%H%M%S.%f%z"
-    image_filename_prefix: "image"
-    channels:
-      - 101
-      - 201
-      - 301
-      - 401
-      - 501
-      - 601
-      - 701
-      - 801
-  flask:
-    default_port: 8088
-    debug_level: INFO
-    debug_enabled: False
-  scheduler:
-    enabled: True
-  metrics:
-    enabled: True
-  logging:
-    enable_file_log_handler: False
-    enable_stdout_log_handler: True
-    enable_kafka_log_handler: False
+appConfig: {}
 
 service:
-  type: ClusterIP
+  type: NodePort
   port: 8088
-  name: hikcol
+  name: ui
 
 serviceAccount:
   create: true
@@ -65,7 +34,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "hikcol-sa"
+  name: "securiaui-sa"
   bindingPostfix: "-crb"
 
 persistence:
@@ -86,6 +55,8 @@ persistence:
       storage: 16Gi
 
 ingress:
+  # -- Enable Traefik ipwhitelisting
+  traefik_ipwhitelist: false
   # -- Enable ingress record generation
   enabled: false
   # -- IngressClass that will be be used to implement the Ingress
@@ -102,6 +73,8 @@ ingress:
       paths:
         - path: /
           pathType: ImplementationSpecific
+          serviceName: securia-ui-svc
+          servicePort: 8088
   # -- An array with the tls configuration
   tls: []
   #  - secretName: chart-example-tls
@@ -116,11 +89,11 @@ securityContext: {}
 
 resources:
   limits:
-    cpu: 200m
-    memory: 64Mi
+    cpu: 100m
+    memory: 128Mi
   requests:
     cpu: 50m
-    memory: 32Mi
+    memory: 64Mi
 
 nodeSelector: {}
 

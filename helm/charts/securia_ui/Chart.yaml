@@ -1,0 +1,9 @@
+apiVersion: v2
+name: securia-UI
+description: A Helm chart that deploys the Securia UI
+
+type: application
+
+version: 0.1.0
+
+appVersion: "1.16.0"

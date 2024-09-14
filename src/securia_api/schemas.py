@@ -113,7 +113,7 @@ class Image(ImageBase):
 class DetectionBase(BaseModel):
     fid: int
     detections: Json[Any]
-    detections_count: int
+    detections_count: int = None
     processing_time_ms: Json[Any]
     detections_timestamp: datetime = None
 
@@ -121,8 +121,17 @@ class DetectionBase(BaseModel):
     @classmethod
     def parse_datetime(cls, value: Any)-> datetime:
         # Define the format according to your input string
-        time_format = config['api']['time_format']
-        return datetime.strptime(value, time_format)
+        if isinstance(value, str):
+           time_format = config['api']['time_format']
+           return datetime.strptime(value, time_format)
+        return value
+
+    @field_validator('detections_count', mode="before")
+    @classmethod
+    def parse_detections_count(cls, value: Any)-> str:
+        if value is None:
+            return str(0)
+        return value
 
     class Config:
         from_attributes = True
@@ -130,6 +139,30 @@ class DetectionBase(BaseModel):
 class DetectionCreate(DetectionBase):
     class Config:
         from_attributes = True
+
+class Detection(DetectionBase):
+    id: int
+
+    @field_validator('processing_time_ms', mode="before")
+    @classmethod
+    def parse_processing_time_ms(cls, value: Any)-> str:
+        if value is not None:
+            total = 0.0
+            for key, value in value.items():
+                total = total + float(value)
+            return str(total)
+        return str(0.0)
+
+    @field_validator('detections', mode="before")
+    @classmethod
+    def parse_detections(cls, value: Any)-> str:
+        if value is not None:
+            return "{}"
+        return "{}"
+
+    class Config:
+        from_attributes = True
+
 
 class DetectionObjectBase(BaseModel):
     fid: int

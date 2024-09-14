@@ -241,6 +241,48 @@ async def get_image_by_channel_fid(db: db_dependency,
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Server error: {str(e)}')
 
+@app.get("/securia/detection/channel/{fid_id}",response_model=list[schemas.Detection])
+async def get_detection_by_channel_fid(db: db_dependency,
+
+                                   fid_id: int = Path(gt=0),
+                                   skip: int = 0,
+                                   limit: int = 100,
+                                   sort_by: str = Query("id", description="Field to sort by"),
+                                   sort_order: SortOrder = Query(SortOrder.asc, description="Sort order (asc or desc)")
+                                   ):
+    from sqlalchemy import select, join
+    from sqlalchemy.orm import aliased
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    try:
+        d = aliased(models.Detection)
+        i = aliased(models.Image)
+        c = aliased(models.Channel)
+
+        query = db.query(d).select_from(d).join(i).join(c).filter(c.id == fid_id)
+
+        # Get the attribute to sort by
+        sort_attribute = getattr(d, sort_by, None)
+        if sort_attribute is None:
+            raise HTTPException(status_code=400, detail=f"Invalid sort field: {sort_by}")
+
+        # Apply sorting
+        if sort_order == SortOrder.desc:
+            query = query.order_by(desc(sort_attribute))
+        else:
+            query = query.order_by(sort_attribute)
+
+        # Apply pagination
+        detections = query.offset(skip).limit(limit).all()
+
+        if not detections:
+            raise HTTPException(status_code=404, detail='Detections not found')
+
+        return detections
+    except Exception as e:
+        logger.debug(f"{e}")
+        raise HTTPException(status_code=500, detail=f'Server error: {str(e)}')
+
 async def get_image_file_by_id(db: db_dependency, image_id: int = Path(gt=0)):
     import io
     if config['api']['maintenance_mode']:

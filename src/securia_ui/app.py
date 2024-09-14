@@ -40,7 +40,7 @@ def fetch_channels(recorder_id):
         st.error(f"Failed to fetch details: {response.status_code}")
         return None
 
-def fetch_images_by_channel(channel_id,limit,sort):
+def fetch_images_by_channel(channel_id, limit, sort):
     from urllib.parse import urlencode
     params = {
             "sort_by": 'id',
@@ -50,6 +50,22 @@ def fetch_images_by_channel(channel_id,limit,sort):
         }
 
     response = requests.get(f"{API_BASE}/image/channel/{channel_id}?{urlencode(params)}")
+    if response.status_code == 200:
+        return response.json()
+    else:
+        st.error(f"Failed to fetch details: {response.status_code}")
+        return None
+
+def fetch_detections_by_channel(channel_id, limit, sort):
+    from urllib.parse import urlencode
+    params = {
+            "sort_by": 'id',
+            "sort_order": sort,
+            "limit": limit,
+            "skip": 0
+        }
+
+    response = requests.get(f"{API_BASE}/detection/channel/{channel_id}?{urlencode(params)}")
     if response.status_code == 200:
         return response.json()
     else:
@@ -83,7 +99,18 @@ def get_images_by_channel_dataset(channel_id, limit, sort) -> pd.DataFrame:
     else:
         return pd.DataFrame()
 
+@st.cache_data
+def get_detections_by_channel_dataset(channel_id, limit, sort) -> pd.DataFrame:
+    image_data = fetch_detections_by_channel(channel_id,limit,sort)
+    if image_data:
+        df = pd.DataFrame(image_data)
+        return df
+    else:
+        return pd.DataFrame()
+
 def main():
+
+    st.set_page_config(page_title="Securia", layout="wide")
 
     left, middle = st.columns(2)
     with left:
@@ -117,15 +144,30 @@ def main():
             )
         except:
             st.write("No recorder selected")
+
+        selected_channel = channels_event.selection.rows
+        channels_filtered_df = channels.iloc[selected_channel]
+        channel_selected_id = channels_filtered_df['id'].values[0]
+
+        st.header("Detections")
+        detections = get_detections_by_channel_dataset(channel_selected_id, 10, "desc")
+
+        detections_display_columns = ['friendly_name', 'channel_id']
+        detections_event = st.dataframe(
+            detections,
+            # column_config=column_configuration,
+            use_container_width=True,
+            hide_index=True,
+            on_select="rerun",
+            selection_mode="single-row",
+        )
+
     with middle:
         try:
             tab1, tab2 = st.tabs(["Latest", "Detections"])
             with tab1:
                 # st.header("Latest Captures")
 
-                selected_channel = channels_event.selection.rows
-                channels_filtered_df = channels.iloc[selected_channel]
-                channel_selected_id = channels_filtered_df['id'].values[0]
                 images = get_images_by_channel_dataset(channel_selected_id, 10, "desc")
                 # images_display_columns = ['collected_timestamp']
                 # images_event = st.dataframe(

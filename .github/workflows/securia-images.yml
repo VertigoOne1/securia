@@ -27,9 +27,13 @@ jobs:
         docker login -u '${{ vars.REGISTRY_USER }}' -p '${{ secrets.REGISTRY_SECRET }}' ${{ vars.REGISTRY_HOST }}
         docker build collector_hikvision/ -t ${{ vars.REGISTRY_HOST }}/securia/collector-hikvision:latest
         docker push ${{ vars.REGISTRY_HOST }}/securia/collector-hikvision:latest
+        docker build collector_simulator/ -t ${{ vars.REGISTRY_HOST }}/securia/collector-simulator:latest
+        docker push ${{ vars.REGISTRY_HOST }}/securia/collector-simulator:latest
         docker build image_preprocessor/ -t ${{ vars.REGISTRY_HOST }}/securia/image-preprocessor:latest
         docker push ${{ vars.REGISTRY_HOST }}/securia/image-preprocessor:latest
         docker build securia_api/ -t ${{ vars.REGISTRY_HOST }}/securia/securia-api:latest
         docker push ${{ vars.REGISTRY_HOST }}/securia/securia-api:latest
+        docker build securia_ui/ -t ${{ vars.REGISTRY_HOST }}/securia/securia-ui:latest
+        docker push ${{ vars.REGISTRY_HOST }}/securia/securia-ui:latest
         docker build yolo_processor/ -t ${{ vars.REGISTRY_HOST }}/securia/yolo-processor:latest
         docker push ${{ vars.REGISTRY_HOST }}/securia/yolo-processor:latest
