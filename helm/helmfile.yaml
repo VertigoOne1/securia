@@ -5,7 +5,7 @@
 #     url: charts/securia_api
 
 helmDefaults:
-  kubeContext: local
+  kubeContext: legion
   cleanupOnFail: false
 
 # environments:
@@ -26,7 +26,22 @@ releases:
     - values/dev/securia_api/values.yaml
   secrets:
     - values/dev/securia_api/values_secrets.yaml
-  set: []
+  set:
+    - name: imagePullSecrets
+      value: registrypullsecret
+- name: securia-ui
+  namespace: securia
+  createNamespace: true
+  chart: oci://harbor.marnus.com/securia/securia-ui
+  version: ~1.0.0
+  recreatePods: true
+  values:
+    - values/dev/securia_ui/values.yaml
+  secrets:
+    - values/dev/securia_ui/values_secrets.yaml
+  set:
+    - name: imagePullSecrets
+      value: registrypullsecret
 - name: image-preprocessor
   namespace: securia
   createNamespace: true
@@ -37,7 +52,9 @@ releases:
     - values/dev/image_preprocessor/values.yaml
   secrets:
     - values/dev/image_preprocessor/values_secrets.yaml
-  set: []
+  set:
+    - name: imagePullSecrets
+      value: registrypullsecret
 - name: collector-hikvision
   namespace: securia
   createNamespace: true
@@ -48,7 +65,9 @@ releases:
     - values/dev/collector_hikvision/values.yaml
   secrets:
     - values/dev/collector_hikvision/values_secrets.yaml
-  set: []
+  set:
+    - name: imagePullSecrets
+      value: registrypullsecret
 - name: yolo-processor
   namespace: securia
   createNamespace: true
@@ -59,4 +78,6 @@ releases:
     - values/dev/yolo_processor/values.yaml
   secrets:
     - values/dev/yolo_processor/values_secrets.yaml
-  set: []
+  set:
+    - name: imagePullSecrets
+      value: registrypullsecret

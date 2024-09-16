@@ -26,11 +26,16 @@ def checkhash(image_dict):
 
 def send_s3(image_dict):
     logger.debug("Send to S3")
-    s3_context = s3.create_s3_context(config['storage']['endpoint_hostname'],
-                                      config['storage']['endpoint_method'],
-                                      config['storage']['port'],
-                                      config['storage']['access_key'],
-                                      config['storage']['secret_access_key'])
+    try:
+        s3_context = s3.create_s3_context(config['storage']['endpoint_hostname'],
+                                        config['storage']['endpoint_method'],
+                                        config['storage']['port'],
+                                        config['storage']['access_key'],
+                                        config['storage']['secret_access_key'])
+    except:
+        logger.error("Issue creating s3 context")
+        logger.error(traceback.format_exc())
+        return None
     import uuid
     object_name = uuid.uuid4()
     logger.debug(f"Image key: {object_name}")

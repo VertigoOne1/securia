@@ -68,7 +68,6 @@ def collect_raw_images():
                             logger.debug(f"Notify success - {output}")
                         else:
                             logger.error(f"Could not send notice of successful processing to my topic {topic}")
-                        time.sleep(2)
                 else:
                     logger.debug("Message was None, closing channel")
                     kafka_client.close()

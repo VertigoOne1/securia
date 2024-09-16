@@ -4,7 +4,6 @@
 
 import logging, sys, os
 from envyaml import EnvYAML
-from fastapi.logger import logger
 
 if "CONFIG_FILE" in os.environ:
     logging.info("Loading Production Config")

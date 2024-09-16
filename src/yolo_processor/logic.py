@@ -167,7 +167,7 @@ def process_images():
                     key = fetch_image_key(message.value)
                     if key is None:
                         logger.debug("Key is NONE")
-                        logger.error("Could not successfully complete message processing, send to DLQ and sleep for 2 seconds")
+                        logger.error("Could not successfully complete message processing, send to DLQ")
                         logger.debug(f"Partition - {message.partition}")
                         logger.debug(f"Offset - {message.offset}")
                         topic = f'{config["kafka"]["dlq_topic_prefix"]}collect'

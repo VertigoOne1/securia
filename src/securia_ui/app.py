@@ -116,7 +116,7 @@ def main():
     with left:
         st.title("Recorders")
         recorders = get_recorders_dataset()
-        recorders_display_columns = ['friendly_name']
+        recorders_display_columns = ['friendly_name', 'uri']
         recorders_event = st.dataframe(
             recorders[recorders_display_columns],
             # column_config=column_configuration,

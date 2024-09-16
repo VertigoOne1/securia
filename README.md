@@ -44,16 +44,19 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 ## TODO
 
+- bug - kafka services don't scan for topic changes over time, so new topics don't find the prefixes
+- bug - recorders by uri not right, need to look at url, not uri, even then.. hmm
 - ui development - in progress
+- ui dev - detections and filters
 - test crop extraction and population
 - work on the CICD automation for securia deployment to dev (SOPS setup in github actions)
-- migrate any secret information to SOPS - good progress
-- move main stack to server side with github actions - halfway
-- full install the stack into dev (minimum feature set to include xyxy extraction)
+- configure securia charts to use the secrets from percona operator via injection
+- migrate any secret information to SOPS - DONE
+- move main stack to server side with github actions - in testing
+- full install the stack into dev (minimum feature set to include xyxy extraction) - done
 - Turn gpustat --json into prometheus metrics (will need to watch temps)
 - work on OIDC integration
 - test yolo helm on gpu server - done (gpu is a must, some numbers below on performance)
-- configure securia charts to use the secrets from percona operator via injection
 - strimzi deployment on dev - done
 - helm secrets - done
 - full grafana deployment - done

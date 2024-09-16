@@ -1,5 +1,5 @@
 apiVersion: v2
-name: securia-UI
+name: securia-ui
 description: A Helm chart that deploys the Securia UI
 
 type: application

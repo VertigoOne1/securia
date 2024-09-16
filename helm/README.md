@@ -53,4 +53,12 @@ helm pull oci://container-registry.com/container-registry/harbor --version 1.1.1
 
 ## Install Helm Chart from OCI registry:
 
+```bash
 helm install myrelease  oci://container-registry.com/container-registry/harbor --version 1.1.1
+```
+
+## Registry pull secret
+
+```bash
+kubectl -n securia create secret docker-registry registrypullsecret --docker-username=${LOCAL_REGISTRY_USER} --docker-password=${LOCAL_REGISTRY_PASS} --docker-email="user@email.com" --docker-server=harbor.marnus.com:443
+```
