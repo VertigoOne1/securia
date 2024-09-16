@@ -46,6 +46,7 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 - bug - kafka services don't scan for topic changes over time, so new topics don't find the prefixes
 - bug - recorders by uri not right, need to look at url, not uri, even then.. hmm
+- check if transaction-id is not misused.
 - ui development - in progress
 - ui dev - detections and filters
 - test crop extraction and population
