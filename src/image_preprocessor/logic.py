@@ -35,7 +35,7 @@ class BearerAuth(requests.auth.AuthBase):
 
 kafka_client = KafkaClientSingleton.get_instance()
 
-def collect_raw_images():
+def collect_raw_images(token):
     if config['preprocessor']['write_local_file']:
         os.makedirs(config['preprocessor']['temp_output_folder'], exist_ok=True)
     while True:
@@ -50,7 +50,7 @@ def collect_raw_images():
                 if message is not None:
                     logger.debug(f"Received message from: {message.topic} partition: {message.partition} at offset: {message.offset}")
                     logger.debug(f"Message: {message}")
-                    status = image_preprocessor.preprocess_image(message.value)
+                    status = image_preprocessor.preprocess_image(token, message.value)
                     if status is None:
                         logger.error("Could not successfully complete message processing, send to DLQ and sleep for 2 seconds")
                         logger.debug(f"Partition - {message.partition}")

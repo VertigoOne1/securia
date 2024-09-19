@@ -36,11 +36,14 @@ class BearerAuth(requests.auth.AuthBase):
 
 kafka_client = KafkaClientSingleton.get_instance()
 
-def fetch_image_key(id):
+def fetch_image_key(token, id):
     logger.debug(f"Fetching key for {id}")
     try:
         url = f"{config['api']['uri']}/image/{id['image_id']}"
-        resp = requests.get(url)
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
+        resp = requests.get(url, headers=headers)
         data = resp.json()
         logger.debug(f"{data}")
         if resp.status_code == 200:
@@ -84,7 +87,7 @@ def fetch_image_s3(bucket, key):
 # detections_count: int
 # processing_time_ms: Json[Any]
 # detections_timestamp: datetime = None
-def predictions_process(predictions, image_id, processing_time, time_collected, detections_count):
+def predictions_process(token, predictions, image_id, processing_time, time_collected, detections_count):
     if predictions is not None and image_id is not None:
         try:
             url = f"{config['api']['uri']}/detection"
@@ -94,8 +97,11 @@ def predictions_process(predictions, image_id, processing_time, time_collected, 
                             'processing_time_ms': json.dumps(processing_time),
                             'detections_timestamp': time_collected
                             }
+            headers = {
+                "Authorization": f"Bearer {token}"
+            }
             logger.debug(f"Sending - {request_body}")
-            resp = requests.post(url, json = request_body)
+            resp = requests.post(url, json = request_body, headers=headers)
             data = resp.json()
             if resp.status_code == 200:
                 logger.debug(f"detection post resp - {data}")
@@ -116,7 +122,7 @@ def predictions_process(predictions, image_id, processing_time, time_collected, 
 # confidence = Column(Double, nullable=False)
 # xyxy = Column(JSONB)
 # crop_s3_path = Column(String,nullable=True)
-def detections_process(detections_dict, detections_id):
+def detections_process(token, detections_dict, detections_id):
     if detections_dict is not None and detections_id is not None:
         detection_ids = []
         for detection in detections_dict:
@@ -129,8 +135,11 @@ def detections_process(detections_dict, detections_id):
                                 'xyxy': json.dumps(detection["box"]),
                                 'crop_s3_path': "NOT_IMPLEMENTED_YET"
                                 }
+                headers = {
+                    "Authorization": f"Bearer {token}"
+                }
                 logger.debug(f"Sending - {request_body}")
-                resp = requests.post(url, json = request_body)
+                resp = requests.post(url, json = request_body, headers=headers)
                 data = resp.json()
                 if resp.status_code == 200:
                     logger.debug(f"detection objects post resp - {data}")
@@ -149,7 +158,7 @@ def detections_process(detections_dict, detections_id):
         logger.error("Did not receive a valid detection_id or detection_dict")
         return None
 
-def process_images():
+def process_images(token):
     if config['yolo']['write_local_file']:
         os.makedirs(config['yolo']['temp_output_folder'], exist_ok=True)
     while True:
@@ -164,7 +173,7 @@ def process_images():
                     continue
                 if message is not None:
                     logger.debug(f"Received message from: {message.topic} partition: {message.partition} at offset: {message.offset}")
-                    key = fetch_image_key(message.value)
+                    key = fetch_image_key(token, message.value)
                     if key is None:
                         logger.debug("Key is NONE")
                         logger.error("Could not successfully complete message processing, send to DLQ")
@@ -173,18 +182,18 @@ def process_images():
                         topic = f'{config["kafka"]["dlq_topic_prefix"]}collect'
                         send_result = kafka_client.send_message(topic, "NA", message.value)
                     else:
-                        logger.debug("Retrievd image info from API")
+                        logger.debug("Retrieved image info from API")
                         logger.debug(f"Retrieving image for {key}")
                         image = fetch_image_s3(key[0], key[1])
                         predictions = image_predict.predict_image(image)
-                        predict_id = predictions_process(predictions["image_summary"], message.value['image_id'], predictions["timings"], message_collected_time, predictions["detections_count"])
+                        predict_id = predictions_process(token, predictions["image_summary"], message.value['image_id'], predictions["timings"], message_collected_time, predictions["detections_count"])
                         if predict_id is None:
                             logger.error("Could not commit predictions summary")
                             logger.error("Send to DLQ")
                             topic = f'{config["kafka"]["dlq_topic_prefix"]}commit'
                             send_result = kafka_client.send_message(topic, "NA", message.value)
                         else:
-                            detection_id = detections_process(predictions["image_summary"], predict_id)
+                            detection_id = detections_process(token, predictions["image_summary"], predict_id)
                             if detection_id is None:
                                 logger.error("Could not commit prediction objects")
                                 logger.error("Send to DLQ")

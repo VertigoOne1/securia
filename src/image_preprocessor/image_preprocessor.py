@@ -53,11 +53,14 @@ def send_s3(image_dict):
         logger.error(traceback.format_exc())
         return None
 
-def recorder_process(image_dict):
+def recorder_process(token, image_dict):
     try:
         url = f"{config['api']['uri']}/recorder/search"
         request_body = {'uri': image_dict['uri']}
-        resp = requests.post(url, json = request_body)
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
+        resp = requests.post(url, json = request_body, headers=headers)
         logger.debug(f"Recorder search resp - {resp.text}")
         if resp.status_code == 404: ## Create it
             logger.debug("Recorder not found, creating it")
@@ -86,12 +89,15 @@ def recorder_process(image_dict):
         logger.error(traceback.format_exc())
         return None
 
-def channel_process(image_dict, recorder_id):
+def channel_process(token, image_dict, recorder_id):
     if recorder_id is not None:
         try:
             url = f"{config['api']['uri']}/channel/search"
             request_body = {'fid': recorder_id, 'channel_id': image_dict['channel']}
-            resp = requests.post(url, json = request_body)
+            headers = {
+                "Authorization": f"Bearer {token}"
+            }
+            resp = requests.post(url, json = request_body, headers=headers)
             data = resp.json()
             logger.debug(f"Channel search resp - {data}")
             if resp.status_code == 404: ## Create it
@@ -120,7 +126,7 @@ def channel_process(image_dict, recorder_id):
         logger.error("Did not receive a valid recorder_id")
         return None
 
-def image_process(image_dict, channel_id, object_name):
+def image_process(token, image_dict, channel_id, object_name):
     if channel_id is not None and object_name is not None:
         try:
             url = f"{config['api']['uri']}/image"
@@ -135,8 +141,11 @@ def image_process(image_dict, channel_id, object_name):
                             'collection_status': f"{image_dict.get('status') or None}",
                             'ingest_timestamp': image_dict['preproc_ingest_time']
                             }
+            headers = {
+                "Authorization": f"Bearer {token}"
+            }
             logger.debug(f"Sending - {request_body}")
-            resp = requests.post(url, json = request_body)
+            resp = requests.post(url, json = request_body, headers=headers)
             data = resp.json()
             if resp.status_code == 200:
                 logger.debug(f"Image post resp - {data}")
@@ -174,7 +183,7 @@ def image_process(image_dict, channel_id, object_name):
 #         logger.error("API is in a mode that is not 'up', retry")
 #         return False
 
-def preprocess_image(image_dict):
+def preprocess_image(token, image_dict):
     try:
         logger.debug(f"Received data from {image_dict['uri']} | Channel: {image_dict['channel']} | Status: {image_dict['status'] or 'None'}")
         image_dict["preproc_ingest_time"] = datetime.now().strftime(config['preprocessor']['time_format'])
@@ -192,9 +201,9 @@ def preprocess_image(image_dict):
             if image_dict["recorder_status_code"] != "200":
                 logger.debug("Collector failed to retrieve image, skipping S3")
                 linking = {}
-                linking['recorder_id'] = recorder_process(image_dict)
-                linking['channel_id'] = channel_process(image_dict, linking['recorder_id'])
-                linking['image_id'] = image_process(image_dict, linking['channel_id'], "NO_IMAGE")
+                linking['recorder_id'] = recorder_process(token, image_dict)
+                linking['channel_id'] = channel_process(token, image_dict, linking['recorder_id'])
+                linking['image_id'] = image_process(token, image_dict, linking['channel_id'], "NO_IMAGE")
                 if linking['image_id'] is not None:
                     logger.debug("Processes completed successfully")
                     return linking['image_id']
@@ -210,11 +219,11 @@ def preprocess_image(image_dict):
                         logger.info(f"Sent to S3 - {config['storage']['bucket_name']}/{object_name}")
                         # Submit to API
                         # resolve recorder uri to id -> recorder_id
-                        linking['recorder_id'] = recorder_process(image_dict)
+                        linking['recorder_id'] = recorder_process(token, image_dict)
                         # resolve channel id via recorder id and channel name
-                        linking['channel_id'] = channel_process(image_dict, linking['recorder_id'])
+                        linking['channel_id'] = channel_process(token, image_dict, linking['recorder_id'])
                         # insert image via channel_id
-                        linking['image_id'] = image_process(image_dict, linking['channel_id'], object_name)
+                        linking['image_id'] = image_process(token, image_dict, linking['channel_id'], object_name)
                         if linking['image_id'] is not None:
                             logger.debug("Processes completed successfully")
                             return linking['image_id']

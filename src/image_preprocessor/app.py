@@ -21,8 +21,36 @@ def startApiServer():
     server.daemon = True
     server.start()
 
+def get_token():
+
+    data = {
+        "grant_type": "password",
+        "username": f"{config['api']['username']}",
+        "password": f"{config['api']['password']}",
+        "scope": "api",
+        "client_id": "client_id",
+        "client_secret": "client_secret"
+    }
+
+    try:
+        response = requests.post(f"{config['api']['uri']}/token", data=data)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        return response.json()
+    except requests.RequestException as e:
+        print(f"An error occurred: {e}")
+        return None
+
 if __name__ == '__main__':
     apiserver = startApiServer()
     logger.info(f"Start - {config['general']['app_name']}")
     # scheduling = start_schedules()
-    logic.collect_raw_images()
+    token = None
+    token_response = get_token()
+    token = token_response["access_token"]
+    if token is not None:
+        logger.debug(f"Token received: {token_response}")
+        logger.info(f"API Auth OK")
+        logic.collect_raw_images(token)
+    else:
+        logger.error(f"API Auth ERR")
+        exit(1)

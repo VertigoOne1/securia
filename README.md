@@ -2,25 +2,32 @@
 
 Currently securia because i spelled like an idiot.. i was thinking actually SECURAI.
 
+## Summary
+
+Securia is a highly scalable, containerised image classifier and object detector based on YOLO. Every image capture is split by recorder-channel to kafka, which is consumed by
+any number of preprocessors, shipped to s3 and then processed by any number of YOLO processors. Output is then processed to PostgreSQL, fronted
+by FastAPI driven streamlit dashboard for data driven analytics around
+your CCTV camera metadata extracted from the above processes.
+
 ## Review
 
-https://medium.com/@MrBam44/yolo-object-detection-using-opencv-with-python-b6386c3d6fc1
+<https://medium.com/@MrBam44/yolo-object-detection-using-opencv-with-python-b6386c3d6fc1>
 
-https://github.com/roboflow/supervision?tab=readme-ov-file
+<https://github.com/roboflow/supervision?tab=readme-ov-file>
 
-https://github.com/WongKinYiu/yolov7?tab=readme-ov-file
+<https://github.com/WongKinYiu/yolov7?tab=readme-ov-file>
 
-https://github.com/ultralytics/ultralytics
+<https://github.com/ultralytics/ultralytics>
 
-https://github.com/AlexanderMelde/SPHAR-Dataset/releases
+<https://github.com/AlexanderMelde/SPHAR-Dataset/releases>
 
-https://github.com/openlit/openlit
+<https://github.com/openlit/openlit>
 
-https://huggingface.co/keras-io/low-light-image-enhancement
+<https://huggingface.co/keras-io/low-light-image-enhancement>
 
 UI for YoloV8
 
-https://github.com/Paperspace
+<https://github.com/Paperspace>
 
 ## Project Diagram
 
@@ -34,6 +41,8 @@ Review [Project Diagram](SecurAI.drawio) for the big-picture
 
 Local dev is k3s + strimzi + kdashboard + percona pstgresql + s3ninja
 
+Dev is k3s + strimzi + rancher + harbor + percona + s3ninja + github actions
+
 ## Some lessons
 
 CPU vs GPU
@@ -44,15 +53,21 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 ## TODO
 
-- bug - kafka services don't scan for topic changes over time, so new topics don't find the prefixes
-- bug - recorders by uri not right, need to look at url, not uri, even then.. hmm
-- check if transaction-id is not misused.
-- ui development - in progress
+- bug - kafka services don't scan for topic changes over time, so new topics don't find the prefixes - likely fixed, to test, should pick up new cameras every 30 seconds.
+- bug - recorders by uri not right, need to look at url, not uri, even then, the topics.. currently every uri is a recorder+channel, do we want that?
+- bug increase partition counts to at least 5 per topic to allow better balancing to processors
+- implemented a basic good enough for now api authentication system using JWT - done (to test widely)
+- check if transaction-id is not mis-used in our case, there was a future purpose to it, but it might need to to be re-engineered already.
+- ui development - in progress (FOCUS HERE)
 - ui dev - detections and filters
 - test crop extraction and population
+- test crop storage and repopulation (to reduce storage/transfer costs by only storing the crops and no event backgrounds by overlaying the crops)
 - work on the CICD automation for securia deployment to dev (SOPS setup in github actions)
-- configure securia charts to use the secrets from percona operator via injection
-- migrate any secret information to SOPS - DONE
+- configure securia charts to use the secrets from percona operator via secret injection, then database user management is automated
+- expand api auth to keycloak, and user interface.
+- long term, were going to be multi-tenant.. that requires federated auth
+  and social auth.
+- migrate any secret information to SOPS - done
 - move main stack to server side with github actions - in testing
 - full install the stack into dev (minimum feature set to include xyxy extraction) - done
 - Turn gpustat --json into prometheus metrics (will need to watch temps)
@@ -70,14 +85,14 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 ## Local Dev Env Links
 
-- Dashboard - https://localhost:32281
-- S3 Ninja  - http://localhost:32650/ui
+- Dashboard - <https://localhost:32281>
+- S3 Ninja  - <http://localhost:32650/ui>
 - PGBouncer - 10.0.0.59:32617
 - Kafka     - localhost:32394
-- Kafka UI  - http://localhost:31202
+- Kafka UI  - <http://localhost:31202>
 - Registry  - 10.0.0.59:32419
 - Ingres    - 10.0.0.59:443
-- API Docs  - http://localhost:30578/docs
+- API Docs  - <http://localhost:30578/docs>
 
 ## Local dev setup
 
@@ -94,20 +109,27 @@ Review the readmes in [infra](infra) folder:
 
 age + sops + helm + vscode
 
-The idea is to create a simple portable way to allow secret decryption to CICD systems regardless of "provider".
+The idea is to create a simple portable way to allow secret decryption to any CICD systems regardless of "provider".
+
+Typically
 
 - Github Actions -> Secrets/EnvSecrets/RepoSecrets
 - Azure DevOps -> Secrets / Keyvaults
 - AWS -> Vaults
-- etc -> etc
+- GCP KMS -> secrets
 
-You end up customising for each and they both have slightly different interactions.
+You end up customising CICD for each and they both have slightly different interactions and requirements and flows.
 
 A simple "local-dev-managed" way would be to use SOPS and AGE, and setting up an identity each for the provider(s).
 
-You then only need to provide that identity to the provider as a secret, instead of the secrets for the applications.
+Set up the right way, this extends to any pipeline provider and system
+as the same process applies.
+
+You then only need to provide the AGE identity to the provider as a secret, instead of the secrets for the applications.
 
 They can then decrypt any secrets using SOPS/helm rather than you managing the secrets at the provider.
+
+In future, this can be swapped easily to use a cloud key providers to encrypt and decrypt, thus allowing much bigger teams of people to contribute while still being CICD agnostic and define access via provider/arn role based security.
 
 ## AGE + SOPS
 
@@ -251,7 +273,7 @@ Here's the information converted into a markdown table:
 | YOLOv8-obb | yolov8n-obb.pt yolov8s-obb.pt yolov8m-obb.pt yolov8l-obb.pt yolov8x-obb.pt | Oriented Detection |
 | YOLOv8-cls | yolov8n-cls.pt yolov8s-cls.pt yolov8m-cls.pt yolov8l-cls.pt yolov8x-cls.pt | Classification |
 
-- https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l.pt
+- <https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l.pt>
 
 ## Tests
 

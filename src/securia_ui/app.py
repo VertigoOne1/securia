@@ -24,23 +24,29 @@ config = EnvYAML('config.yml')
 
 API_BASE = config["api"]["uri"]
 
-def fetch_recorders():
-    response = requests.get(f"{API_BASE}/recorder")
+def fetch_recorders(token):
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+    response = requests.get(f"{API_BASE}/recorder", headers=headers)
     if response.status_code == 200:
         return response.json()
     else:
         st.error(f"Failed to fetch data: {response.status_code}")
         return None
 
-def fetch_channels(recorder_id):
-    response = requests.get(f"{API_BASE}/channels_by_recorder/{recorder_id}")
+def fetch_channels(token, recorder_id):
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+    response = requests.get(f"{API_BASE}/channels_by_recorder/{recorder_id}", headers=headers)
     if response.status_code == 200:
         return response.json()
     else:
         st.error(f"Failed to fetch details: {response.status_code}")
         return None
 
-def fetch_images_by_channel(channel_id, limit, sort):
+def fetch_images_by_channel(token, channel_id, limit, sort):
     from urllib.parse import urlencode
     params = {
             "sort_by": 'id',
@@ -48,15 +54,17 @@ def fetch_images_by_channel(channel_id, limit, sort):
             "limit": limit,
             "skip": 0
         }
-
-    response = requests.get(f"{API_BASE}/image/channel/{channel_id}?{urlencode(params)}")
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+    response = requests.get(f"{API_BASE}/image/channel/{channel_id}?{urlencode(params)}", headers=headers)
     if response.status_code == 200:
         return response.json()
     else:
         st.error(f"Failed to fetch details: {response.status_code}")
         return None
 
-def fetch_detections_by_channel(channel_id, limit, sort):
+def fetch_detections_by_channel(token, channel_id, limit, sort):
     from urllib.parse import urlencode
     params = {
             "sort_by": 'id',
@@ -64,8 +72,10 @@ def fetch_detections_by_channel(channel_id, limit, sort):
             "limit": limit,
             "skip": 0
         }
-
-    response = requests.get(f"{API_BASE}/detection/channel/{channel_id}?{urlencode(params)}")
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+    response = requests.get(f"{API_BASE}/detection/channel/{channel_id}?{urlencode(params)}", headers=headers)
     if response.status_code == 200:
         return response.json()
     else:
@@ -73,8 +83,8 @@ def fetch_detections_by_channel(channel_id, limit, sort):
         return None
 
 @st.cache_data
-def get_recorders_dataset() -> pd.DataFrame:
-    recorders_data = fetch_recorders()
+def get_recorders_dataset(token) -> pd.DataFrame:
+    recorders_data = fetch_recorders(token)
     if recorders_data:
         df = pd.DataFrame(recorders_data)
         return df
@@ -108,14 +118,44 @@ def get_detections_by_channel_dataset(channel_id, limit, sort) -> pd.DataFrame:
     else:
         return pd.DataFrame()
 
-def main():
+def get_token():
 
+    data = {
+        "grant_type": "password",
+        "username": f"{config['api']['username']}",
+        "password": f"{config['api']['password']}",
+        "scope": "api",
+        "client_id": "client_id",
+        "client_secret": "client_secret"
+    }
+
+    try:
+        response = requests.post(f"{API_BASE}/token", data=data)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        return response.json()
+    except requests.RequestException as e:
+        print(f"An error occurred: {e}")
+        return None
+
+def main():
     st.set_page_config(page_title="Securia", layout="wide")
 
     left, middle = st.columns(2)
     with left:
+
+        token = None
+        token_response = get_token()
+        token = token_response["access_token"]
+        if token is not None:
+            with st.sidebar:
+                st.write(f"Token received: {token_response}")
+                st.write(f"API Auth OK")
+        else:
+            with st.sidebar:
+                    st.write(f"API Auth ERR")
+
         st.title("Recorders")
-        recorders = get_recorders_dataset()
+        recorders = get_recorders_dataset(token)
         recorders_display_columns = ['friendly_name', 'uri']
         recorders_event = st.dataframe(
             recorders[recorders_display_columns],
@@ -132,7 +172,7 @@ def main():
         try:
             recorder_selected_id = recorders_filtered_df['id'].values[0]
 
-            channels = get_channels_dataset(recorder_selected_id)
+            channels = get_channels_dataset(token, recorder_selected_id)
             channels_display_columns = ['friendly_name', 'channel_id']
             channels_event = st.dataframe(
                 channels[channels_display_columns],
@@ -150,7 +190,7 @@ def main():
         channel_selected_id = channels_filtered_df['id'].values[0]
 
         st.header("Detections")
-        detections = get_detections_by_channel_dataset(channel_selected_id, 10, "desc")
+        detections = get_detections_by_channel_dataset(token, channel_selected_id, 10, "desc")
 
         detections_display_columns = ['friendly_name', 'channel_id']
         detections_event = st.dataframe(
@@ -168,7 +208,7 @@ def main():
             with tab1:
                 # st.header("Latest Captures")
 
-                images = get_images_by_channel_dataset(channel_selected_id, 10, "desc")
+                images = get_images_by_channel_dataset(token, channel_selected_id, 10, "desc")
                 # images_display_columns = ['collected_timestamp']
                 # images_event = st.dataframe(
                 #     images[images_display_columns],
@@ -188,5 +228,9 @@ def main():
 
             # st.image(fs.open('test/56b9c7d4-155e-4903-8b44-2066907a01e8', mode='rb').read())
             # # st.image("https://static.streamlit.io/examples/cat.jpg", width=200)
+
+    with st.sidebar:
+        st.write("Last Line")
+
 if __name__ == "__main__":
     main()

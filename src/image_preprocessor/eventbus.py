@@ -38,13 +38,38 @@ class KafkaClientSingleton:
                 'sasl_mechanism': config['kafka']['sasl_mechanism'],
                 'sasl_plain_username': config['kafka']['sasl_plain_username'],
                 'sasl_plain_password': config['kafka']['sasl_plain_password'],
-                'reconnect_backoff_ms': 1000
+                'reconnect_backoff_ms': 1000,
+                'metadata.max.age.ms': 30000 # detect new topics faster
             }
 
             self.producer = KafkaProducer(**self.params, value_serializer=lambda v: json.dumps(v).encode('utf-8'))
             self.consumer = None  # Will be initialized when needed
 
             KafkaClientSingleton._instance = self
+
+    def consume_messages(self, topic_pattern, group_id, auto_offset_reset='earliest'):
+        try:
+            if self.consumer is None:
+                self.consumer = KafkaConsumer(
+                    **self.params,
+                    group_id=group_id,
+                    auto_offset_reset=auto_offset_reset,
+                    enable_auto_commit=config["kafka"]["enable_auto_commit"],
+                    value_deserializer=lambda x: json.loads(x.decode('utf-8'))
+                )
+            self.consumer.subscribe(topics=(),pattern=f"^{topic_pattern}.*")
+            logger.debug(f"Consuming from - {self.consumer.subscription()}")
+            for message in self.consumer:
+                yield message
+
+        except KafkaError as e:
+            logger.error(f"Kafka consume exception: {str(e)}")
+            logger.error(traceback.format_exc())
+            yield None
+        except:
+            logger.error(f"Likely configuration error")
+            logger.error(traceback.format_exc())
+            exit(1)
 
     def send_message(self, topic, key, message):
         try:
@@ -57,29 +82,6 @@ class KafkaClientSingleton:
             logger.error(f"Kafka send exception: {str(e)}")
             logger.error(traceback.format_exc())
             return False
-        except:
-            logger.error(f"Likely configuration error")
-            logger.error(traceback.format_exc())
-            exit(1)
-    def consume_messages(self, topic_patterm, group_id, auto_offset_reset='earliest'):
-        try:
-            if self.consumer is None:
-                self.consumer = KafkaConsumer(
-                    **self.params,
-                    group_id=group_id,
-                    auto_offset_reset=auto_offset_reset,
-                    enable_auto_commit=config["kafka"]["enable_auto_commit"],
-                    value_deserializer=lambda x: json.loads(x.decode('utf-8'))
-                )
-            self.consumer.subscribe(topics=(),pattern=f"^{topic_patterm}.*")
-            logger.debug(f"Consuming from - {self.consumer.subscription()}")
-            for message in self.consumer:
-                yield message
-
-        except KafkaError as e:
-            logger.error(f"Kafka consume exception: {str(e)}")
-            logger.error(traceback.format_exc())
-            yield None
         except:
             logger.error(f"Likely configuration error")
             logger.error(traceback.format_exc())

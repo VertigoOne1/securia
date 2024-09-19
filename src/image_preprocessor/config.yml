@@ -36,6 +36,8 @@ flask:
   debug_enabled: False
 api:
   uri: http://10.0.0.95:8088/securia
+  username: apiuser
+  password: handed-renovate-silencer-starry
 scheduler:
   enabled: False
 metrics:

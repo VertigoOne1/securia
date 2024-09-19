@@ -6,6 +6,12 @@ from sqlalchemy.dialects.postgresql import JSONB
 from envyaml import EnvYAML
 config = EnvYAML('config.yml')
 
+class User(Base):
+    id = Column(Integer,primary_key=True,nullable=False)
+    __tablename__ = 'api_users'
+    username = Column(String,nullable=True)
+    password = Column(String,nullable=True)
+
 class Recorder(Base):
     __tablename__ = 'recorders'
 

@@ -13,3 +13,6 @@ pydantic
 psycopg2
 starlette
 boto3
+pyjwt
+passlib
+python-multipart

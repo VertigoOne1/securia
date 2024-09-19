@@ -1,5 +1,8 @@
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, Path, responses, Query
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+import jwt
+from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from enum import Enum
@@ -23,6 +26,51 @@ APP_NAME = config['general']['app_name']
 app = FastAPI()
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
+
+
+# Secret key for signing JWT tokens
+SECRET_KEY = config["api"]["secret_key"]
+
+# Algorithm used for JWT token encoding
+ALGORITHM = "HS256"
+
+# Password hashing context
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# OAuth2 password bearer flow for token retrieval
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+# API users ( to be moved to psql)
+api_users_db = {
+    f"{config['api']['username']}": {
+        "username": f"{config['api']['username']}",
+        "password": f"{config['api']['password']}",
+    }
+}
+
+# Authentication function
+def authenticate_user(username: str, password: str):
+    user = api_users_db.get(username)
+    if not user or not pwd_context.verify(password, user["password"]):
+        return False
+    return user
+
+# Token generation function
+def create_access_token(data: dict):
+    encoded_jwt = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+# Dependency for extracting and verifying JWT token
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+        token_data = {"username": username}
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    return token_data
 
 class SortOrder(str, Enum):
     asc = "asc"
@@ -48,7 +96,22 @@ def start_api_server():
 
 @app.get("/")
 def root():
-    return {"message": "Hello, World!"}
+    return {"message": "SecurIA"}
+
+# Implement the token endpoint for token generation
+@app.post("/securia/token")
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    token_data = {"sub": user["username"]}
+    access_token = create_access_token(token_data)
+    return {"access_token": access_token, "token_type": "bearer"}
+
+# Implement a protected endpoint that requires authentication using JWT tokens
+@app.get("/securia/token_test")
+async def protected_route(current_user: dict = Depends(get_current_user)):
+    return {"message": f"{current_user['username']} authenticated."}
 
 @app.get("/securia/status")
 def status():
@@ -73,7 +136,7 @@ async def create_post(db: db_dependency, post: schemas.CreatePost):
 # Recorder APIs
 
 @app.post("/securia/recorder")
-async def create_recorder(db: db_dependency, recorder: schemas.RecorderCreate):
+async def create_recorder(db: db_dependency, recorder: schemas.RecorderCreate, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     db_recorder = crud.create_recorder(db, recorder)
@@ -83,7 +146,7 @@ async def create_recorder(db: db_dependency, recorder: schemas.RecorderCreate):
     return db_recorder
 
 @app.post("/securia/recorder/search")
-async def search_recorder(db: db_dependency, recorder: schemas.RecorderCreate):
+async def search_recorder(db: db_dependency, recorder: schemas.RecorderCreate, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     recorder = db.query(models.Recorder).filter(models.Recorder.uri == recorder.uri).first()
@@ -96,7 +159,7 @@ async def search_recorder(db: db_dependency, recorder: schemas.RecorderCreate):
     raise HTTPException(status_code=509, detail='CRUD issue')
 
 @app.get("/securia/recorder", response_model=list[schemas.Recorder])
-async def get_recorder_by_id(db: db_dependency, skip: int = 0, limit: int = 100):
+async def get_recorder_by_id(db: db_dependency, skip: int = 0, limit: int = 100, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     recorders = db.query(models.Recorder).offset(skip).limit(limit).all()
@@ -107,7 +170,7 @@ async def get_recorder_by_id(db: db_dependency, skip: int = 0, limit: int = 100)
     raise HTTPException(status_code=500, detail='CRUD issue')
 
 @app.get("/securia/recorder/{recorder_id}")
-async def get_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0)):
+async def get_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     recorder = db.query(models.Recorder).filter(models.Recorder.id == recorder_id).first()
@@ -120,7 +183,7 @@ async def get_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0)):
 # Channel APIs
 
 @app.post("/securia/channel")
-async def create_channel(db: db_dependency, channel: schemas.ChannelCreate):
+async def create_channel(db: db_dependency, channel: schemas.ChannelCreate, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     db_channel = crud.create_channel(db, channel)
@@ -130,7 +193,7 @@ async def create_channel(db: db_dependency, channel: schemas.ChannelCreate):
     return db_channel
 
 @app.post("/securia/channel/search")
-async def search_channel(db: db_dependency, channel: schemas.ChannelSearch):
+async def search_channel(db: db_dependency, channel: schemas.ChannelSearch, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     channel = db.query(models.Channel).filter(models.Channel.fid == channel.fid,
@@ -143,7 +206,7 @@ async def search_channel(db: db_dependency, channel: schemas.ChannelSearch):
     raise HTTPException(status_code=500, detail='CRUD issue')
 
 @app.get("/securia/channel/id/{channel_id}")
-async def get_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0)):
+async def get_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     channel = db.query(models.Channel).filter(models.Channel.id == channel_id).first()
@@ -154,7 +217,7 @@ async def get_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0)):
     raise HTTPException(status_code=509, detail='CRUD issue')
 
 @app.get("/securia/channels_by_recorder/{recorder_id}", response_model=list[schemas.Channel])
-async def get_channel_by_id(db: db_dependency, recorder_id: int = Path(gt=0), skip: int = 0, limit: int = 100):
+async def get_channel_by_id(db: db_dependency, recorder_id: int = Path(gt=0), skip: int = 0, limit: int = 100, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     channels = db.query(models.Channel).filter(models.Channel.fid == recorder_id).offset(skip).limit(limit).all()
@@ -165,7 +228,7 @@ async def get_channel_by_id(db: db_dependency, recorder_id: int = Path(gt=0), sk
     raise HTTPException(status_code=509, detail='CRUD issue')
 
 @app.get("/securia/channel/name/{channel_name}")
-async def get_channel_by_id(db: db_dependency, channel_name: str = Path(gt=0)):
+async def get_channel_by_id(db: db_dependency, channel_name: str = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     channel = db.query(models.Channel).filter(models.Channel.channel_id == channel_name).first()
@@ -178,7 +241,7 @@ async def get_channel_by_id(db: db_dependency, channel_name: str = Path(gt=0)):
 # Image APIs
 
 @app.post("/securia/image")
-async def create_image(db: db_dependency, image: schemas.ImageCreate):
+async def create_image(db: db_dependency, image: schemas.ImageCreate, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     logger.debug(f"received {image}")
@@ -189,7 +252,7 @@ async def create_image(db: db_dependency, image: schemas.ImageCreate):
     return db_image
 
 @app.get("/securia/image/{image_id}")
-async def get_image_by_id(db: db_dependency, image_id: int = Path(gt=0)):
+async def get_image_by_id(db: db_dependency, image_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     image = db.query(models.Image).filter(models.Image.id == image_id).first()
@@ -213,7 +276,8 @@ async def get_image_by_channel_fid(db: db_dependency,
                                    skip: int = 0,
                                    limit: int = 100,
                                    sort_by: str = Query("id", description="Field to sort by"),
-                                   sort_order: SortOrder = Query(SortOrder.asc, description="Sort order (asc or desc)")
+                                   sort_order: SortOrder = Query(SortOrder.asc, description="Sort order (asc or desc)"),
+                                   current_user: dict = Depends(get_current_user)
                                    ):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
@@ -243,12 +307,12 @@ async def get_image_by_channel_fid(db: db_dependency,
 
 @app.get("/securia/detection/channel/{fid_id}",response_model=list[schemas.Detection])
 async def get_detection_by_channel_fid(db: db_dependency,
-
                                    fid_id: int = Path(gt=0),
                                    skip: int = 0,
                                    limit: int = 100,
                                    sort_by: str = Query("id", description="Field to sort by"),
-                                   sort_order: SortOrder = Query(SortOrder.asc, description="Sort order (asc or desc)")
+                                   sort_order: SortOrder = Query(SortOrder.asc, description="Sort order (asc or desc)"),
+                                   current_user: dict = Depends(get_current_user)
                                    ):
     from sqlalchemy import select, join
     from sqlalchemy.orm import aliased
@@ -283,7 +347,7 @@ async def get_detection_by_channel_fid(db: db_dependency,
         logger.debug(f"{e}")
         raise HTTPException(status_code=500, detail=f'Server error: {str(e)}')
 
-async def get_image_file_by_id(db: db_dependency, image_id: int = Path(gt=0)):
+async def get_image_file_by_id(db: db_dependency, image_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     import io
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
@@ -304,7 +368,7 @@ async def get_image_file_by_id(db: db_dependency, image_id: int = Path(gt=0)):
 # Detection APIs
 
 @app.post("/securia/detection")
-async def create_detection(db: db_dependency, detection: schemas.DetectionCreate):
+async def create_detection(db: db_dependency, detection: schemas.DetectionCreate, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     try:
@@ -317,7 +381,7 @@ async def create_detection(db: db_dependency, detection: schemas.DetectionCreate
     return db_detection
 
 @app.get("/securia/detection/{detection_id}")
-async def get_detection_by_id(db: db_dependency, detection_id: int = Path(gt=0)):
+async def get_detection_by_id(db: db_dependency, detection_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     detection = db.query(models.Detection).filter(models.Detection.id == detection_id).first()
@@ -328,7 +392,7 @@ async def get_detection_by_id(db: db_dependency, detection_id: int = Path(gt=0))
     raise HTTPException(status_code=404, detail='Detection not found')
 
 @app.post("/securia/detection_objects")
-async def create_detection(db: db_dependency, detectionobject: schemas.DetectionObjectCreate):
+async def create_detection(db: db_dependency, detectionobject: schemas.DetectionObjectCreate, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     try:
@@ -341,7 +405,7 @@ async def create_detection(db: db_dependency, detectionobject: schemas.Detection
     return db_detectionobj
 
 @app.get("/securia/detection_objects/{detectionobject_id}")
-async def get_detection_by_id(db: db_dependency, detectionobject_id: int = Path(gt=0)):
+async def get_detection_by_id(db: db_dependency, detectionobject_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     detection = db.query(models.DetectionObjects).filter(models.DetectionObjects.id == detectionobject_id).first()
