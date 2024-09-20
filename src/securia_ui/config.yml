@@ -1,8 +1,10 @@
 ---
 # It would be a good idea to create a "central config" for this, so colletors can auto-config themselves
 general:
-  app_name: securia_yu
+  app_name: securia_ui
   default_debug_level: DEBUG
+  auto_refresh_miliseconds: 5000
+  dataframe_cache_expire_seconds: 30
 storage:
   bucket_name: test
   endpoint_hostname: 10.0.0.59

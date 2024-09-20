@@ -1,12 +1,12 @@
 import uvicorn
-from fastapi import FastAPI, Depends, HTTPException, Path, responses, Query
+from fastapi import FastAPI, Depends, HTTPException, Path, responses, Query, WebSocket
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, Optional
 from prometheus_client import make_asgi_app
 from envyaml import EnvYAML
 from logger import setup_custom_logger
@@ -85,7 +85,7 @@ def get_db():
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
-logger.error("Creating schemas")
+logger.info("Creating schemas")
 models.Base.metadata.create_all(bind=engine)
 
 def start_api_server():
@@ -97,6 +97,26 @@ def start_api_server():
 @app.get("/")
 def root():
     return {"message": "SecurIA"}
+
+@app.get("/securia/status")
+def status():
+    if config['api']['maintenance_mode']:
+        return {"status": "maintenance"}
+    else:
+        return {"status": "up"}
+
+@app.websocket('/securia/ws')
+async def websocket_endpoint(websocket: WebSocket, value: Optional[int] = Query(1)):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            print(f"prefix: {value} - data - {data}")
+            response = f"prefix: {value} - data - {data}"
+            await websocket.send_text(f"{response}")
+    except:
+        pass
+
 
 # Implement the token endpoint for token generation
 @app.post("/securia/token")
@@ -113,12 +133,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 async def protected_route(current_user: dict = Depends(get_current_user)):
     return {"message": f"{current_user['username']} authenticated."}
 
-@app.get("/securia/status")
-def status():
-    if config['api']['maintenance_mode']:
-        return {"status": "maintenance"}
-    else:
-        return {"status": "up"}
+
 
 @app.post("/post")
 async def create_post(db: db_dependency, post: schemas.CreatePost):

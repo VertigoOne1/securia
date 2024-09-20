@@ -5,5 +5,6 @@ boto3
 plotly
 streamlit
 streamlit-extras
+streamlit-autorefresh
 pandas
 s3fs

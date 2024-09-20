@@ -18,4 +18,4 @@ COPY . .
 
 # CMD [ "python", "-m", "streamlit, "run", "app.py" ]
 
-CMD ["streamlit", "run", "app.py"]
+CMD ["streamlit", "run", "entry_page.py"]

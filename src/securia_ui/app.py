@@ -8,155 +8,57 @@ import streamlit as st
 import requests
 import pandas as pd
 import s3fs
+from streamlit_autorefresh import st_autorefresh
+import logic
 
 import logger
 
 logger = logger.setup_custom_logger(__name__)
 config = EnvYAML('config.yml')
 
-# if __name__ == '__main__':
-#     logger.info(f"Start - {config['general']['app_name']}")
-#     # scheduling = start_schedules()
-#     # apiserver = start_api_server()
-
-#     st.write("Hello world 5")
-
-
-API_BASE = config["api"]["uri"]
-
-def fetch_recorders(token):
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
-    response = requests.get(f"{API_BASE}/recorder", headers=headers)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error(f"Failed to fetch data: {response.status_code}")
-        return None
-
-def fetch_channels(token, recorder_id):
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
-    response = requests.get(f"{API_BASE}/channels_by_recorder/{recorder_id}", headers=headers)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error(f"Failed to fetch details: {response.status_code}")
-        return None
-
-def fetch_images_by_channel(token, channel_id, limit, sort):
-    from urllib.parse import urlencode
-    params = {
-            "sort_by": 'id',
-            "sort_order": sort,
-            "limit": limit,
-            "skip": 0
-        }
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
-    response = requests.get(f"{API_BASE}/image/channel/{channel_id}?{urlencode(params)}", headers=headers)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error(f"Failed to fetch details: {response.status_code}")
-        return None
-
-def fetch_detections_by_channel(token, channel_id, limit, sort):
-    from urllib.parse import urlencode
-    params = {
-            "sort_by": 'id',
-            "sort_order": sort,
-            "limit": limit,
-            "skip": 0
-        }
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
-    response = requests.get(f"{API_BASE}/detection/channel/{channel_id}?{urlencode(params)}", headers=headers)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error(f"Failed to fetch details: {response.status_code}")
-        return None
-
-@st.cache_data
-def get_recorders_dataset(token) -> pd.DataFrame:
-    recorders_data = fetch_recorders(token)
+@st.cache_data(ttl=config['general']['dataframe_cache_expire_seconds'])
+def get_recorders_dataset() -> pd.DataFrame:
+    recorders_data = logic.fetch_recorders()
     if recorders_data:
         df = pd.DataFrame(recorders_data)
         return df
     else:
         return pd.DataFrame()
 
-@st.cache_data
+@st.cache_data(ttl=config['general']['dataframe_cache_expire_seconds'])
 def get_channels_dataset(recorder_id) -> pd.DataFrame:
-    channel_data = fetch_channels(recorder_id)
+    channel_data = logic.fetch_channels(recorder_id)
     if channel_data:
         df = pd.DataFrame(channel_data)
         return df
     else:
         return pd.DataFrame()
 
-@st.cache_data
+@st.cache_data(ttl=10)
 def get_images_by_channel_dataset(channel_id, limit, sort) -> pd.DataFrame:
-    image_data = fetch_images_by_channel(channel_id,limit,sort)
+    image_data = logic.fetch_images_by_channel(channel_id,limit,sort)
     if image_data:
         df = pd.DataFrame(image_data)
         return df
     else:
         return pd.DataFrame()
 
-@st.cache_data
+@st.cache_data(ttl=5)
 def get_detections_by_channel_dataset(channel_id, limit, sort) -> pd.DataFrame:
-    image_data = fetch_detections_by_channel(channel_id,limit,sort)
+    image_data = logic.fetch_detections_by_channel(channel_id,limit,sort)
     if image_data:
         df = pd.DataFrame(image_data)
         return df
     else:
         return pd.DataFrame()
-
-def get_token():
-
-    data = {
-        "grant_type": "password",
-        "username": f"{config['api']['username']}",
-        "password": f"{config['api']['password']}",
-        "scope": "api",
-        "client_id": "client_id",
-        "client_secret": "client_secret"
-    }
-
-    try:
-        response = requests.post(f"{API_BASE}/token", data=data)
-        response.raise_for_status()  # Raises an HTTPError for bad responses
-        return response.json()
-    except requests.RequestException as e:
-        print(f"An error occurred: {e}")
-        return None
 
 def main():
     st.set_page_config(page_title="Securia", layout="wide")
-
-    left, middle = st.columns(2)
-    with left:
-
-        token = None
-        token_response = get_token()
-        token = token_response["access_token"]
-        if token is not None:
-            with st.sidebar:
-                st.write(f"Token received: {token_response}")
-                st.write(f"API Auth OK")
-        else:
-            with st.sidebar:
-                    st.write(f"API Auth ERR")
-
+    # count = st_autorefresh(interval=config['general']['auto_refresh_miliseconds'], limit=0, key="imagerefresh")
+    with st.sidebar:
         st.title("Recorders")
-        recorders = get_recorders_dataset(token)
-        recorders_display_columns = ['friendly_name', 'uri']
+        recorders = get_recorders_dataset()
+        recorders_display_columns = ['friendly_name']
         recorders_event = st.dataframe(
             recorders[recorders_display_columns],
             # column_config=column_configuration,
@@ -165,14 +67,14 @@ def main():
             on_select="rerun",
             selection_mode="single-row",
         )
-
-        st.header("Channels")
-        selected_recorder = recorders_event.selection.rows
-        recorders_filtered_df = recorders.iloc[selected_recorder]
-        try:
+        if len(recorders_event.selection.rows) > 0:
+            selected_recorder = recorders_event.selection.rows
+            recorders_filtered_df = recorders.iloc[selected_recorder]
             recorder_selected_id = recorders_filtered_df['id'].values[0]
-
-            channels = get_channels_dataset(token, recorder_selected_id)
+        channels_event = None
+        if len(recorders_event.selection.rows) > 0:
+            st.header("Channels")
+            channels = get_channels_dataset(recorder_selected_id)
             channels_display_columns = ['friendly_name', 'channel_id']
             channels_event = st.dataframe(
                 channels[channels_display_columns],
@@ -182,55 +84,50 @@ def main():
                 on_select="rerun",
                 selection_mode="single-row",
             )
-        except:
-            st.write("No recorder selected")
+    left, middle = st.columns(2)
+    with left:
+        if channels_event is not None:
+            if len(channels_event.selection.rows) > 0:
+                selected_channel = channels_event.selection.rows
+                channels_filtered_df = channels.iloc[selected_channel]
+                channel_selected_id = channels_filtered_df['id'].values[0]
 
-        selected_channel = channels_event.selection.rows
-        channels_filtered_df = channels.iloc[selected_channel]
-        channel_selected_id = channels_filtered_df['id'].values[0]
+                st.header("Detections")
+                detections = get_detections_by_channel_dataset(channel_selected_id, 10, "desc")
 
-        st.header("Detections")
-        detections = get_detections_by_channel_dataset(token, channel_selected_id, 10, "desc")
-
-        detections_display_columns = ['friendly_name', 'channel_id']
-        detections_event = st.dataframe(
-            detections,
-            # column_config=column_configuration,
-            use_container_width=True,
-            hide_index=True,
-            on_select="rerun",
-            selection_mode="single-row",
-        )
-
+                detections_display_columns = ['friendly_name', 'channel_id']
+                detections_event = st.dataframe(
+                    detections,
+                    # column_config=column_configuration,
+                    use_container_width=True,
+                    hide_index=True,
+                    on_select="rerun",
+                    selection_mode="single-row",
+                )
     with middle:
-        try:
-            tab1, tab2 = st.tabs(["Latest", "Detections"])
-            with tab1:
-                # st.header("Latest Captures")
-
-                images = get_images_by_channel_dataset(token, channel_selected_id, 10, "desc")
-                # images_display_columns = ['collected_timestamp']
-                # images_event = st.dataframe(
-                #     images[images_display_columns],
-                #     # column_config=column_configuration,
-                #     use_container_width=True,
-                #     hide_index=True,
-                #     on_select="rerun",
-                #     selection_mode="single-row",
-                # )
-                fs = s3fs.S3FileSystem(anon=False, key=config['storage']['access_key'], secret=config['storage']['secret_access_key'], endpoint_url='http://10.0.0.59:32650')
-                for index, row in images.iterrows():
-                    st.write(row['collected_timestamp'])
-                    st.image(fs.open(row['s3_path'], mode='rb').read())
-
-        except:
-            st.write("No Channel selected")
-
-            # st.image(fs.open('test/56b9c7d4-155e-4903-8b44-2066907a01e8', mode='rb').read())
-            # # st.image("https://static.streamlit.io/examples/cat.jpg", width=200)
-
-    with st.sidebar:
-        st.write("Last Line")
-
+        if channels_event is not None:
+            if len(channels_event.selection.rows) > 0:
+                tab1, tab2 = st.tabs(["All Images", "Only Detections"])
+                with tab1:
+                    # st.header("Latest Captures")
+                    if True:
+                        images = get_images_by_channel_dataset(channel_selected_id, 5, "desc")
+                        # images_display_columns = ['collected_timestamp']
+                        # images_event = st.dataframe(
+                        #     images[images_display_columns],
+                        #     # column_config=column_configuration,
+                        #     use_container_width=True,
+                        #     hide_index=True,
+                        #     on_select="rerun",
+                        #     selection_mode="single-row",
+                        # )
+                        endpoint_url = f"{config['storage']['endpoint_method']}://{config['storage']['endpoint_hostname']}:{config['storage']['port']}"
+                        fs = s3fs.S3FileSystem(anon=False, key=config['storage']['access_key'], secret=config['storage']['secret_access_key'], endpoint_url=endpoint_url)
+                        for index, row in images.iterrows():
+                            st.write(f"{row['s3_path']} - {row['collected_timestamp']}")
+                            if "NO_IMAGE" in row['s3_path']:
+                                st.image('http://localhost:8501/app/static/no_image.png')
+                            else:
+                                st.image(fs.open(row['s3_path'], mode='rb').read())
 if __name__ == "__main__":
     main()
