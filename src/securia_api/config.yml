@@ -26,8 +26,7 @@ api:
   time_format: "%Y%m%d_%H%M%S.%f"
   maintenance_mode: False
   secret_key: 7a61f307a3c2040fd6923cb0357a546f1bf436607f5dd5fad0ceb0c0844c6f64
-  username: apiuser
-  password: $$2a$$10$$WNTO4jg11Y0FnHBpeYyK4OJLi.q32I6T6xKl/zRcXI8S2tmeaBkR6
+  token_expiry_seconds: 86400 # 1 day
 scheduler:
   enabled: False
 metrics:

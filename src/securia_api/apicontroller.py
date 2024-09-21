@@ -16,7 +16,6 @@ import s3, tempfile
 import logger, logic, models, schemas, crud
 from database import engine, SessionLocal
 
-
 logger = setup_custom_logger(__name__)
 
 config = EnvYAML('config.yml')
@@ -40,35 +39,40 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # OAuth2 password bearer flow for token retrieval
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# API users ( to be moved to psql)
-api_users_db = {
-    f"{config['api']['username']}": {
-        "username": f"{config['api']['username']}",
-        "password": f"{config['api']['password']}",
-    }
-}
-
-# Authentication function
-def authenticate_user(username: str, password: str):
-    user = api_users_db.get(username)
-    if not user or not pwd_context.verify(password, user["password"]):
-        return False
-    return user
-
 # Token generation function
 def create_access_token(data: dict):
     encoded_jwt = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+def calc_expiry():
+    import datetime
+    date_and_time = datetime.datetime.now()
+    logger.debug(f"Original time: {date_and_time}")
+    time_change = datetime.timedelta(seconds=config['api']['token_expiry_seconds'])
+    new_time = date_and_time + time_change
+    logger.debug(f"New Time: {new_time}")
+    return int(new_time.timestamp()) #strip miliseconds
+
 # Dependency for extracting and verifying JWT token
 def get_current_user(token: str = Depends(oauth2_scheme)):
+    import datetime
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        logger.debug(f"Token Payload: {payload}")
         username: str = payload.get("sub")
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-        token_data = {"username": username}
-    except jwt.JWTError:
+        exp: datetime = datetime.datetime.fromtimestamp(payload.get("exp"))
+        # if exp >= datetime.datetime.now():
+        #     raise HTTPException(status_code=401, detail="Token expired")
+        token_data = {"sub": payload.get("sub"),
+                      "role": payload.get("role"),
+                      "email": payload.get("email"),
+                      "id": payload.get("id"),
+                      "exp": payload.get("exp")
+                    }
+    except Exception as e:
+        logger.error(e)
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     return token_data
 
@@ -85,11 +89,23 @@ def get_db():
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
+def authenticate_user(db: db_dependency, username: str, password: str):
+    logger.debug("Create initial admin user if necessary")
+    admin_user = crud.create_initial_user(db)
+    logger.debug("Check if username exists")
+    user = crud.get_user_by_username(db, username)
+    # logger.debug(f"{user}")
+    if user is None:
+        logger.info("User does not exist")
+        return None
+    elif not user or not pwd_context.verify(password, user.password):
+        return False
+    return user
+
 logger.info("Creating schemas")
 models.Base.metadata.create_all(bind=engine)
 
 def start_api_server():
-    models.Base.metadata.create_all(bind=engine)
     uvconfig = uvicorn.Config(app, host="0.0.0.0", port=config['api']['default_port'], log_level=config['api']['debug_level'])
     server = uvicorn.Server(uvconfig)
     server.run()
@@ -117,28 +133,37 @@ async def websocket_endpoint(websocket: WebSocket, value: Optional[int] = Query(
     except:
         pass
 
-
-# Implement the token endpoint for token generation
-@app.post("/securia/token")
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(form_data.username, form_data.password)
+@app.post("/token")
+async def login_for_access_token(db: db_dependency, form_data: OAuth2PasswordRequestForm = Depends()):
+    logger.debug(f"Authenticating - {form_data.username}")
+    user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
-    token_data = {"sub": user["username"]}
+    token_expires = calc_expiry()
+    logger.debug(f"Expiry epoch: {token_expires}")
+    token_data = {"sub": user.username, "role": user.role, "email": user.email, "id": user.id, "exp": token_expires}
     access_token = create_access_token(token_data)
     return {"access_token": access_token, "token_type": "bearer"}
 
-# Implement a protected endpoint that requires authentication using JWT tokens
+@app.post("/securia/token")
+async def login_for_access_token(db: db_dependency, form_data: OAuth2PasswordRequestForm = Depends()):
+    logger.debug(f"Authenticating - {form_data.username}")
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    token_expires = calc_expiry()
+    logger.debug(f"Expiry epoch: {token_expires}")
+    token_data = {"sub": user.username, "role": user.role, "email": user.email, "id": user.id, "exp": token_expires}
+    access_token = create_access_token(token_data)
+    return {"access_token": access_token, "token_type": "bearer"}
+
 @app.get("/securia/token_test")
 async def protected_route(current_user: dict = Depends(get_current_user)):
-    return {"message": f"{current_user['username']} authenticated."}
-
-
+    return {"message": f"Successfully Authenticated. Details: {current_user}"}
 
 @app.post("/post")
 async def create_post(db: db_dependency, post: schemas.CreatePost):
     logger.debug(f"{post.content}")
-    # logger.debug(f"{dump}")
     new_post = schemas.CreatePost(title="My New Post", content="This is the content")
     db_post = crud.create_post(db, new_post)
     if db_post is None:
@@ -159,6 +184,17 @@ async def create_recorder(db: db_dependency, recorder: schemas.RecorderCreate, c
         raise HTTPException(status_code=509, detail='CRUD issue')
     logger.debug(f"Created new recorder with id: {db_recorder.id}")
     return db_recorder
+
+@app.post("/securia/recorder/id/{channel_id}")
+async def update_channel_by_id(db: db_dependency, recorder: schemas.RecorderUpdate, recorder_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    updated_recorder = crud.update_recorder(db, id=recorder_id, channel=recorder)
+    if updated_recorder is not None:
+        return updated_recorder
+    if updated_recorder is None:
+        raise HTTPException(status_code=404, detail='Recorder not found')
+    raise HTTPException(status_code=509, detail='CRUD issue')
 
 @app.post("/securia/recorder/search")
 async def search_recorder(db: db_dependency, recorder: schemas.RecorderCreate, current_user: dict = Depends(get_current_user)):
@@ -207,6 +243,17 @@ async def create_channel(db: db_dependency, channel: schemas.ChannelCreate, curr
     logger.debug(f"Created new Channel with id: {db_channel.id}")
     return db_channel
 
+@app.post("/securia/channel/id/{channel_id}")
+async def update_channel_by_id(db: db_dependency, channel: schemas.ChannelUpdate, channel_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    updated_channel = crud.update_channel(db, id=channel_id, channel=channel)
+    if updated_channel is not None:
+        return updated_channel
+    if updated_channel is None:
+        raise HTTPException(status_code=404, detail='Channel not found')
+    raise HTTPException(status_code=509, detail='CRUD issue')
+
 @app.post("/securia/channel/search")
 async def search_channel(db: db_dependency, channel: schemas.ChannelSearch, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
@@ -232,7 +279,7 @@ async def get_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0), cur
     raise HTTPException(status_code=509, detail='CRUD issue')
 
 @app.get("/securia/channels_by_recorder/{recorder_id}", response_model=list[schemas.Channel])
-async def get_channel_by_id(db: db_dependency, recorder_id: int = Path(gt=0), skip: int = 0, limit: int = 100, current_user: dict = Depends(get_current_user)):
+async def get_channels_by_recorder(db: db_dependency, recorder_id: int = Path(gt=0), skip: int = 0, limit: int = 100, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     channels = db.query(models.Channel).filter(models.Channel.fid == recorder_id).offset(skip).limit(limit).all()
@@ -243,7 +290,7 @@ async def get_channel_by_id(db: db_dependency, recorder_id: int = Path(gt=0), sk
     raise HTTPException(status_code=509, detail='CRUD issue')
 
 @app.get("/securia/channel/name/{channel_name}")
-async def get_channel_by_id(db: db_dependency, channel_name: str = Path(gt=0), current_user: dict = Depends(get_current_user)):
+async def get_channels_by_name(db: db_dependency, channel_name: str = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     channel = db.query(models.Channel).filter(models.Channel.channel_id == channel_name).first()

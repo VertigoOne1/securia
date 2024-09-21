@@ -18,7 +18,7 @@ config = EnvYAML('config.yml')
 
 @st.cache_data(ttl=config['general']['dataframe_cache_expire_seconds'])
 def get_recorders_dataset() -> pd.DataFrame:
-    recorders_data = logic.fetch_recorders()
+    recorders_data = logic.fetch_recorders(token=st.session_state.token)
     if recorders_data:
         df = pd.DataFrame(recorders_data)
         return df
@@ -27,7 +27,7 @@ def get_recorders_dataset() -> pd.DataFrame:
 
 @st.cache_data(ttl=config['general']['dataframe_cache_expire_seconds'])
 def get_channels_dataset(recorder_id) -> pd.DataFrame:
-    channel_data = logic.fetch_channels(recorder_id)
+    channel_data = logic.fetch_channels(recorder_id, token=st.session_state.token)
     if channel_data:
         df = pd.DataFrame(channel_data)
         return df
@@ -36,7 +36,7 @@ def get_channels_dataset(recorder_id) -> pd.DataFrame:
 
 @st.cache_data(ttl=10)
 def get_images_by_channel_dataset(channel_id, limit, sort) -> pd.DataFrame:
-    image_data = logic.fetch_images_by_channel(channel_id,limit,sort)
+    image_data = logic.fetch_images_by_channel(channel_id,limit,sort, token=st.session_state.token)
     if image_data:
         df = pd.DataFrame(image_data)
         return df
@@ -45,7 +45,7 @@ def get_images_by_channel_dataset(channel_id, limit, sort) -> pd.DataFrame:
 
 @st.cache_data(ttl=5)
 def get_detections_by_channel_dataset(channel_id, limit, sort) -> pd.DataFrame:
-    image_data = logic.fetch_detections_by_channel(channel_id,limit,sort)
+    image_data = logic.fetch_detections_by_channel(channel_id,limit,sort, token=st.session_state.token)
     if image_data:
         df = pd.DataFrame(image_data)
         return df

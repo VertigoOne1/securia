@@ -23,8 +23,43 @@ class CreatePost(PostBase):
     class Config:
         from_attributes = True
 
+class UserBase(BaseModel):
+    username: str
+    password: str
+    email: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    company: Optional[str] = None
+    role: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class UserCreate(UserBase):
+    class Config:
+        from_attributes = True
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    password: Optional[str] = None
+    email: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    company: Optional[str] = None
+    role: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class User(UserBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
 class RecorderBase(BaseModel):
     uri: str
+    owner_user_id: Optional[int] = None
     friendly_name: Optional[str] = None
     owner: Optional[str] = None
     type: Optional[str] = None
@@ -35,6 +70,18 @@ class RecorderBase(BaseModel):
         from_attributes = True
 
 class RecorderCreate(RecorderBase):
+    class Config:
+        from_attributes = True
+
+class RecorderUpdate(BaseModel):
+    uri: Optional[str] = None
+    owner_user_id: Optional[int] = None
+    friendly_name: Optional[str] = None
+    owner: Optional[str] = None
+    type: Optional[str] = None
+    location: Optional[str] = None
+    contact: Optional[str] = None
+
     class Config:
         from_attributes = True
 
@@ -54,6 +101,15 @@ class ChannelBase(BaseModel):
         from_attributes = True
 
 class ChannelCreate(ChannelBase):
+    class Config:
+        from_attributes = True
+
+class ChannelUpdate(BaseModel):
+    fid: Optional[int] = None
+    channel_id: Optional[str] = None
+    friendly_name: Optional[str] = None
+    description: Optional[str] = None
+
     class Config:
         from_attributes = True
 

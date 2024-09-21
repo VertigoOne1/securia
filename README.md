@@ -53,25 +53,33 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 ## TODO
 
-- bug - kafka services don't scan for topic changes over time, so new topics don't find the prefixes - likely fixed, to test, should pick up new cameras every 30 seconds.
-- bug - recorders by uri not right, need to look at url, not uri, even then, the topics.. currently every uri is a recorder+channel, do we want that?
-- bug increase partition counts to at least 5 per topic to allow better balancing to processors
-- implemented a basic good enough for now api authentication system using JWT - done (to test widely)
-- check if transaction-id is not mis-used in our case, there was a future purpose to it, but it might need to to be re-engineered already.
+- create the rest of the crud for system admin and management
+- develop pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
 - ui development - in progress (FOCUS HERE)
 - ui dev - detections and filters
+- ui dev - multipage navigator, build out pages
+- bug - kafka services don't scan for topic changes over time, so new topics don't find the prefixes - likely fixed, to test, should pick up new cameras every 30 seconds.
+- bug - recorders by uri not right, need to look at url, not uri, even then, the topics.. currently every uri is a recorder+channel, do we want that?
+- bug - increase partition counts to at least 5 per topic to allow better balancing to processors
+- check if transaction-id is not mis-used in our case, there was a future purpose to it, but it might need to to be re-engineered already.
 - test crop extraction and population
 - test crop storage and repopulation (to reduce storage/transfer costs by only storing the crops and no event backgrounds by overlaying the crops)
 - work on the CICD automation for securia deployment to dev (SOPS setup in github actions)
 - configure securia charts to use the secrets from percona operator via secret injection, then database user management is automated
-- expand api auth to keycloak, and user interface.
+- expand api auth to keycloak and social auth
 - long term, were going to be multi-tenant.. that requires federated auth
   and social auth.
+- Turn gpustat --json into prometheus metrics (will need to watch temps)
+
+## DONE
+
+- implemented a startup admin user creation routine, the password is printed in console logs once, if you lose it, you will need to delete the user in the db - done
+- implemented a user login system with ability to link users(owners) to recorders, and set the basics for role based access to the system too - done
+- implemented user datatables and ownership linking fields - done
+- implemented a basic good enough for now api authentication system using JWT - done (to test widely) - done
 - migrate any secret information to SOPS - done
 - move main stack to server side with github actions - in testing
 - full install the stack into dev (minimum feature set to include xyxy extraction) - done
-- Turn gpustat --json into prometheus metrics (will need to watch temps)
-- work on OIDC integration
 - test yolo helm on gpu server - done (gpu is a must, some numbers below on performance)
 - strimzi deployment on dev - done
 - helm secrets - done

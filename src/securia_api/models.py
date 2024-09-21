@@ -7,10 +7,18 @@ from envyaml import EnvYAML
 config = EnvYAML('config.yml')
 
 class User(Base):
+    __tablename__ = 'securia_users'
     id = Column(Integer,primary_key=True,nullable=False)
-    __tablename__ = 'api_users'
-    username = Column(String,nullable=True)
-    password = Column(String,nullable=True)
+    username = Column(String,nullable=False)
+    password = Column(String,nullable=False)
+    first_name = Column(String,nullable=True)
+    last_name = Column(String,nullable=True)
+    company = Column(String,nullable=True)
+    email = Column(String,nullable=False)
+    role = Column(String,nullable=False)
+
+Index("idx_users_email", User.id, User.email)
+Index("idx_users_username", User.id, User.username)
 
 class Recorder(Base):
     __tablename__ = 'recorders'
@@ -23,6 +31,7 @@ class Recorder(Base):
     location = Column(String,nullable=True)
     contact = Column(String,nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
+    owner_user_id = Column(Integer,nullable=True)
 
     channels = relationship("Channel", back_populates="recorder")
 
