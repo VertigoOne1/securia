@@ -10,7 +10,6 @@ releases:
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/securia-api
   version: {{ requiredEnv "CHART_VERSION" | default "1.1.0" }}
-  recreatePods: true
   values:
     - values/dev/securia_api/values.yaml
   secrets:
@@ -23,7 +22,6 @@ releases:
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/securia-ui
   version: {{ requiredEnv "CHART_VERSION" | default "1.1.0" }}
-  recreatePods: true
   values:
     - values/dev/securia_ui/values.yaml
   secrets:
@@ -36,7 +34,6 @@ releases:
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/image-preprocessor
   version: {{ requiredEnv "CHART_VERSION" | default "1.1.0" }}
-  recreatePods: true
   values:
     - values/dev/image_preprocessor/values.yaml
   secrets:
@@ -49,7 +46,6 @@ releases:
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/collector-hikvision
   version: {{ requiredEnv "CHART_VERSION" | default "1.1.0" }}
-  recreatePods: true
   values:
     - values/dev/collector_hikvision/values.yaml
   secrets:
@@ -62,7 +58,6 @@ releases:
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/yolo-processor
   version: {{ requiredEnv "CHART_VERSION" | default "1.1.0" }}
-  recreatePods: true
   values:
     - values/dev/yolo_processor/values.yaml
   secrets:

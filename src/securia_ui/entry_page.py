@@ -8,34 +8,39 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 def login():
-    st.title("Login")
+    st.set_page_config(page_title="Securia Login", layout="wide")
+    st.title("Securia Login")
+    left, right = st.columns(2)
+    with left:
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        if st.button("Log in", use_container_width=True):
+            try:
+                data = {
+                    "grant_type": "password",
+                    "username": username,
+                    "password": password,
+                    "scope": "api",
+                    "client_id": "client_id",
+                    "client_secret": "client_secret"
+                }
+                response = requests.post(f"{config['api']['uri']}/token", data=data)
 
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-
-    if st.button("Log in"):
-        try:
-            data = {
-                "grant_type": "password",
-                "username": username,
-                "password": password,
-                "scope": "api",
-                "client_id": "client_id",
-                "client_secret": "client_secret"
-            }
-            response = requests.post(f"{config['api']['uri']}/token", data=data)
-
-            if response.status_code == 200:
-                # Successful login
-                token = response.json().get("access_token")
-                st.session_state.token = token
-                st.session_state.logged_in = True
-                st.success("Login successful!")
-                st.rerun()
-            else:
-                st.error("Invalid username or password. Please try again.")
-        except requests.exceptions.RequestException as e:
-            st.error(f"An error occurred: {e}")
+                if response.status_code == 200:
+                    # Successful login
+                    token = response.json().get("access_token")
+                    st.session_state.token = token
+                    st.session_state.logged_in = True
+                    st.success("Login successful!")
+                    st.rerun()
+                else:
+                    st.error("Invalid username or password. Please try again.")
+            except requests.exceptions.RequestException as e:
+                st.error(f"An error occurred: {e}")
+        if st.button("Register"):
+            pass
+    with right:
+        st.image('http://localhost:8501/app/static/login_logo.png')
 
 def logout():
     if st.button("Log out"):

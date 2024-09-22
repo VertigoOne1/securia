@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: azure/setup-helm@v4.2.0
       id: install
-    - name: Build the Docker image
+    - name: Build docker images
       run: |
         export $(grep -v '^#' src/.env | xargs -d '\n')
         export
