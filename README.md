@@ -53,11 +53,13 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 ## TODO
 
-- metric system
+- move arc runners to homelab
 - develop pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
 - switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)
-- user driven recorder creation, attachment
+- user driven recorder creation, attachment to collectors
+- collector registration system, which allows linking recorders to collectors
 - video stream server for live dash?
+- metric system development, start getting that together
 - kafkaadmin routine to create topics with the correct partition count based on channel and recorder creation
 - ui development - in progress (FOCUS HERE)
 - ui dev - detections and filters
@@ -66,15 +68,14 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 - check if transaction-id is not mis-used in our case, there was a future purpose to it, but it might need to to be re-engineered already.
 - test crop extraction and population
 - test crop storage and repopulation (to reduce storage/transfer costs by only storing the crops and no event backgrounds by overlaying the crops)
-- work on the CICD automation for securia deployment to dev (SOPS setup in github actions)
 - configure securia charts to use the secrets from percona operator via secret injection, then database user management is automated
 - expand api auth to keycloak and social auth
-- long term, were going to be multi-tenant.. that requires federated auth
-  and social auth.
+- long term, were going to be multi-tenant.. that requires federated auth and social auth.
 - Turn gpustat --json into prometheus metrics (will need to watch temps)
 
 ## DONE
 
+- work on the CICD automation for securia deployment to dev (SOPS setup in github actions) - done
 - bug - recorders by uri not right - switched to UUID
 - bug - kafka services don't scan for topic changes over time, so new topics don't find the prefixes - Refreshes every 30 seconds now
 - refactored authentication for microservices to the db driven version, standardised to authbearer class

@@ -4,7 +4,7 @@ on: workflow_dispatch
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: homelab
     steps:
       - name: print vars
         run: env

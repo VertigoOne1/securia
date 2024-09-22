@@ -17,7 +17,7 @@ jobs:
     environment:
       name: dev
 
-    runs-on: self-hosted
+    runs-on: homelab
 
     steps:
     - name: Checkout code

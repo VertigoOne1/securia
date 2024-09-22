@@ -12,5 +12,5 @@ spec:
       serviceAccountName: arc-user
       serviceAccount: arc-user
       labels:
-        - "local-laptop"
+        - "homelab"
         - "self-hosted"
