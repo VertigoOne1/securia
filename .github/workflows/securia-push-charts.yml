@@ -33,8 +33,9 @@ jobs:
           if [ -d "$dir" ]; then
             chart_name=$(basename "$dir")
             echo "Packaging chart: $chart_name"
+            package_name=$(echo "${chart_name}" | tr '_' '-')
             helm package "$dir" --version ${SECURIA_VERSION}
-            helm push $dir-${SECURIA_VERSION}.tgz oci://${REGISTRY_HOST}/securia
+            helm push $package_name-${SECURIA_VERSION}.tgz oci://${REGISTRY_HOST}/securia
           fi
         done
         # helm package charts/collector_hikvision --version ${SECURIA_VERSION}
