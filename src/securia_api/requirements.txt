@@ -16,3 +16,4 @@ boto3
 pyjwt
 passlib
 python-multipart
+bcrypt
