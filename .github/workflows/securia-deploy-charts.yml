@@ -54,7 +54,7 @@ jobs:
       run: |
         # echo "CHART_VERSION=1.1.${{ github.run_number }}" >> $GITHUB_ENV
         echo "CHART_VERSION=1.1.0" >> $GITHUB_ENV
-    - uses: helmfile/helmfile-action@v1.0.0
+    - uses: helmfile/helmfile-action@v1.9.1
       with:
         helmfile-args: apply
         helmfile-workdirectory: helm
