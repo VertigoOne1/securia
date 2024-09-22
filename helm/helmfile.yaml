@@ -1,25 +1,15 @@
-# repositories:
-#   - name: collector_hikvision
-#     url: charts/collector_hikvision
-#   - name: securia_api
-#     url: charts/securia_api
-
 helmDefaults:
   cleanupOnFail: false
 
 # environments:
 #   dev: {}
 
-# charts:
-#   - name: securia_api
-#     chart: charts/securia_api
-
 releases:
 - name: securia-api
   namespace: securia
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/securia-api
-  version: ~1.0.0
+  version: {{ requiredEnv "CHART_VERSION" }}
   recreatePods: true
   values:
     - values/dev/securia_api/values.yaml
@@ -32,7 +22,7 @@ releases:
   namespace: securia
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/securia-ui
-  version: ~1.0.0
+  version: {{ requiredEnv "CHART_VERSION" }}
   recreatePods: true
   values:
     - values/dev/securia_ui/values.yaml
@@ -45,7 +35,7 @@ releases:
   namespace: securia
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/image-preprocessor
-  version: ~1.0.0
+  version: {{ requiredEnv "CHART_VERSION" }}
   recreatePods: true
   values:
     - values/dev/image_preprocessor/values.yaml
@@ -58,7 +48,7 @@ releases:
   namespace: securia
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/collector-hikvision
-  version: ~1.0.0
+  version: {{ requiredEnv "CHART_VERSION" }}
   recreatePods: true
   values:
     - values/dev/collector_hikvision/values.yaml
@@ -71,7 +61,7 @@ releases:
   namespace: securia
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/yolo-processor
-  version: ~1.0.0
+  version: {{ requiredEnv "CHART_VERSION" }}
   recreatePods: true
   values:
     - values/dev/yolo_processor/values.yaml

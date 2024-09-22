@@ -38,6 +38,7 @@ jobs:
             helm push $package_name-${SECURIA_VERSION}.tgz oci://${REGISTRY_HOST}/securia
           fi
         done
+
         # helm package charts/collector_hikvision --version ${SECURIA_VERSION}
         # helm package charts/image_preprocessor --version ${SECURIA_VERSION}
         # helm package charts/securia_api --version ${SECURIA_VERSION}

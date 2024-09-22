@@ -49,6 +49,11 @@ jobs:
     - name: Define AGE decryption secret
       run: |
         export SOPS_AGE_KEY='${{ secrets.SOPS_AGE_KEY }}'
+        export $(grep -v '^#' src/.env | xargs -d '\n')
+    - name: Set Chart Version
+      run: |
+        # echo "CHART_VERSION=1.1.${{ github.run_number }}" >> $GITHUB_ENV
+        echo "CHART_VERSION=1.1.0" >> $GITHUB_ENV
     - uses: helmfile/helmfile-action@v1.0.0
       with:
         helmfile-args: apply
@@ -57,3 +62,5 @@ jobs:
           https://github.com/databus23/helm-diff,
           https://github.com/jkroepke/helm-secrets
         helmfile-auto-init: "true"
+      env:
+        CHART_VERSION: ${{ env.CHART_VERSION }}
