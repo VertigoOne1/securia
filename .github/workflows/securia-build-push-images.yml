@@ -32,7 +32,7 @@ jobs:
     - name: Build and push images
       uses: docker/bake-action@v5
       with:
-        source: ./src/docker-compose.yaml
+        source: docker-compose.yaml
         workdir: ./src
         push: true
       # env:
