@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Json, ValidationError, validator, field_validator, computed_field
+from pydantic import BaseModel, Field, Json, ValidationError, validator, field_validator, computed_field
 from datetime import date, datetime, time, timedelta
 from typing import Any, List, Optional
 import json
+from uuid import UUID
 
 from envyaml import EnvYAML
 config = EnvYAML('config.yml')
@@ -41,7 +42,7 @@ class User(UserBase):
         from_attributes = True
 
 class RecorderBase(BaseModel):
-    recorder_uuid: str
+    recorder_uuid: UUID
     uri: str
     owner_user_id: Optional[int] = None
     friendly_name: Optional[str] = None
@@ -58,7 +59,20 @@ class RecorderCreate(RecorderBase):
         from_attributes = True
 
 class RecorderUpdate(BaseModel):
-    recorder_uuid: Optional[str] = None
+    recorder_uuid: Optional[UUID] = None
+    uri: Optional[str] = None
+    owner_user_id: Optional[int] = None
+    friendly_name: Optional[str] = None
+    owner: Optional[str] = None
+    type: Optional[str] = None
+    location: Optional[str] = None
+    contact: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class RecorderSearch(BaseModel):
+    recorder_uuid: Optional[UUID] = None
     uri: Optional[str] = None
     owner_user_id: Optional[int] = None
     friendly_name: Optional[str] = None

@@ -1,7 +1,8 @@
 from database import Base
 from sqlalchemy import Column, Integer, String, TIMESTAMP, Boolean, String, text, ForeignKey, Index, Double
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+import uuid
 
 from envyaml import EnvYAML
 config = EnvYAML('config.yml')
@@ -24,7 +25,7 @@ class Recorder(Base):
     __tablename__ = 'recorders'
 
     id = Column(Integer,primary_key=True,nullable=False)
-    recorder_uuid = Column(String,nullable=True) 
+    recorder_uuid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
     friendly_name = Column(String,nullable=True)
     owner = Column(String,nullable=True)
     type = Column(String,nullable=True)

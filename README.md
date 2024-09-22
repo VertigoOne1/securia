@@ -53,13 +53,16 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 ## TODO
 
+- metric system
 - develop pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
+- switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)
+- user driven recorder creation, attachment
+- video stream server for live dash?
+- kafkaadmin routine to create topics with the correct partition count based on channel and recorder creation
 - ui development - in progress (FOCUS HERE)
 - ui dev - detections and filters
 - ui dev - multipage navigator, build out pages
-- bug - kafka services don't scan for topic changes over time, so new topics don't find the prefixes - likely fixed, to test, should pick up new cameras every 30 seconds.
-- bug - recorders by uri not right, need to look at url, not uri, even then, the topics.. currently every uri is a recorder+channel, do we want that?
-- bug - increase partition counts to at least 5 per topic to allow better balancing to processors
+- bug - increase partition counts to at least 5 per topic to allow better balancing to processors - will be rolled into kafkadmin routines
 - check if transaction-id is not mis-used in our case, there was a future purpose to it, but it might need to to be re-engineered already.
 - test crop extraction and population
 - test crop storage and repopulation (to reduce storage/transfer costs by only storing the crops and no event backgrounds by overlaying the crops)
@@ -72,6 +75,8 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 ## DONE
 
+- bug - recorders by uri not right - switched to UUID
+- bug - kafka services don't scan for topic changes over time, so new topics don't find the prefixes - Refreshes every 30 seconds now
 - refactored authentication for microservices to the db driven version, standardised to authbearer class
 - introduced uuid for recorders to avoid conflicts and the bug
 - create access control and hierarchy of who can edit what - done

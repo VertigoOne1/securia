@@ -12,6 +12,7 @@ from envyaml import EnvYAML
 from logger import setup_custom_logger
 from starlette import status
 import s3, tempfile
+from uuid import UUID
 
 import logger, logic, models, schemas, crud
 from database import engine, SessionLocal
@@ -321,6 +322,17 @@ async def get_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0), c
         raise HTTPException(status_code=404, detail='Recorder not found')
     raise HTTPException(status_code=500, detail='CRUD issue')
 
+@app.get("/securia/recorder/uuid/{recorder_uuid}")
+async def get_recorder_by_uuid(db: db_dependency, recorder_uuid: UUID = Path(..., description="The recorder's UUID4"), skip: int = 0, limit: int = 1, current_user: dict = Depends(get_current_user)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    recorder = db.query(models.Recorder).filter(models.Recorder.recorder_uuid == recorder_uuid).first()
+    if recorder is not None:
+        return recorder
+    if recorder is None:
+        raise HTTPException(status_code=404, detail='Recorder not found')
+    raise HTTPException(status_code=500, detail='CRUD issue')
+
 @app.post("/securia/recorder/{recorder_id}")
 async def update_recorder_by_id(db: db_dependency, recorder: schemas.RecorderUpdate, recorder_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
@@ -354,7 +366,7 @@ async def delete_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0)
     )
 
 @app.post("/securia/recorder/search")
-async def search_recorder(db: db_dependency, recorder: schemas.RecorderCreate, current_user: dict = Depends(get_current_user)):
+async def search_recorder(db: db_dependency, recorder: schemas.RecorderSearch, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     if AccessHierarchy.can_create_update(current_user['role']):
@@ -440,7 +452,7 @@ async def delete_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0), 
         content={"message": f"Channel with id {channel_id} deleted"}
     )
 
-@app.post("/securia/channel/search")
+@app.post("/securia/channel/search/")
 async def search_channel(db: db_dependency, channel: schemas.ChannelSearch, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')

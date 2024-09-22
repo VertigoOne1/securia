@@ -60,16 +60,15 @@ def send_s3(image_dict):
         logger.error(traceback.format_exc())
         return None
 
-def fetch_recorders_by_uuid(uuid, limit=1, token=None):
+def fetch_recorder_by_uuid(uuid, limit=1, token=None):
     from urllib.parse import urlencode
     params = {
-            "sort_by": 'id',
             "limit": limit,
             "skip": 0
         }
-    response = requests.get(f"{config['api']['uri']}/recorders/uuid/{uuid}?{urlencode(params)}", auth=BearerAuth(token))
-    if response.status_code == 200:
-        return response.json()
+    response = requests.get(f"{config['api']['uri']}/recorder/uuid/{uuid}?{urlencode(params)}", auth=BearerAuth(token))
+    if response:
+        return response
     else:
         logger.error(f"Failed to fetch details: {response.status_code}")
         return None
@@ -83,29 +82,34 @@ def recorder_process(token, image_dict):
         # }
         # resp = requests.post(url, json = request_body, headers=headers)
         # logger.debug(f"Recorder search resp - {resp.text}")
-        fetch_recorders_by_uuid(image_dict['recorder_uuid'],token=token)
-        if resp.status_code == 404: ## Create it
-            logger.debug("Recorder not found, creating it")
-            url = f"{config['api']['uri']}/recorder"
-            request_body = {
-                'uri': image_dict['uri'],
-                'uuid': image_dict['recorder_uuid'],
-                'friendly_name': f"{image_dict.get('friendly_name') or None}",
-                'owner': f"{image_dict.get('owner') or None}",
-                'type': f"{image_dict.get('type') or None}",
-                'location': f"{image_dict.get('location') or None}",
-                'contact': f"{image_dict.get('contact') or None}",
-                }
-            resp = requests.post(url, json = request_body)
-            data = resp.json()
-            logger.debug(f"Create Recorder Response - {data}")
-            logger.debug(f"Recorder ID is {data['id']}")
-            return data['id']
-        elif resp.status_code == 200:
-            data = resp.json()
-            return data['id']
+        resp = fetch_recorder_by_uuid(image_dict['recorder_uuid'],token=token)
+        if resp is not None:
+            if resp.status_code == 404: ## Create it
+                logger.debug("Recorder not found, creating it")
+                url = f"{config['api']['uri']}/recorder"
+                request_body = {
+                    'uri': image_dict['uri'],
+                    'uuid': image_dict['recorder_uuid'],
+                    'friendly_name': f"{image_dict.get('friendly_name') or None}",
+                    'owner': f"{image_dict.get('owner') or None}",
+                    'type': f"{image_dict.get('type') or None}",
+                    'location': f"{image_dict.get('location') or None}",
+                    'contact': f"{image_dict.get('contact') or None}",
+                    }
+                resp = requests.post(url, json = request_body)
+                data = resp.json()
+                logger.debug(f"Create Recorder Response - {data}")
+                logger.debug(f"Recorder ID is {data['id']}")
+                return data['id']
+            elif resp.status_code == 200:
+                data = resp.json()
+                logger.debug(f"Recorder ID is {data['id']}")
+                return data['id']
+            else:
+                logger.error(f"Response status: {resp.status_code} - {resp.json()}")
+                return None
         else:
-            logger.error(f"Respose status: {resp.status_code}")
+            logger.error(f"No response status (None)")
             return None
     except:
         logger.error("recorder search/insert request exception")
@@ -115,8 +119,9 @@ def recorder_process(token, image_dict):
 def channel_process(token, image_dict, recorder_id):
     if recorder_id is not None:
         try:
-            url = f"{config['api']['uri']}/channel/search"
+            url = f"{config['api']['uri']}/channel/search/"
             request_body = {'fid': recorder_id, 'channel_id': image_dict['channel']}
+            logger.debug(f"Finding channel and recorder - {request_body}")
             resp = requests.post(url, json = request_body, auth=BearerAuth(token))
             data = resp.json()
             logger.debug(f"Channel search resp - {data}")
@@ -124,7 +129,8 @@ def channel_process(token, image_dict, recorder_id):
                 logger.debug("Channel not found, creating it")
                 url = f"{config['api']['uri']}/channel"
                 request_body = {
-                    'fid': recorder_id, 'channel_id': image_dict['channel'],
+                    'fid': recorder_id,
+                    'channel_id': image_dict['channel'],
                     'friendly_name': f"{image_dict.get('friendly_name') or None}",
                     'description': f"{image_dict.get('description') or None}"
                     }

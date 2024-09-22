@@ -5,7 +5,6 @@
 #     url: charts/securia_api
 
 helmDefaults:
-  kubeContext: legion
   cleanupOnFail: false
 
 # environments:

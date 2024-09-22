@@ -39,7 +39,7 @@ class KafkaClientSingleton:
                 'sasl_plain_username': config['kafka']['sasl_plain_username'],
                 'sasl_plain_password': config['kafka']['sasl_plain_password'],
                 'reconnect_backoff_ms': 1000,
-                'metadata.max.age.ms': 30000 # detect new topics faster
+                'metadata_max_age_ms': 30000 # detect new topics faster
             }
 
             self.producer = KafkaProducer(**self.params, value_serializer=lambda v: json.dumps(v).encode('utf-8'))

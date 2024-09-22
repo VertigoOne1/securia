@@ -1,0 +1,42 @@
+name: Securia Docker Image CI
+
+on: workflow_dispatch
+  # push:
+  #   branches: [ "main" ]
+  #   # paths-ignore:
+  #   #   - 'docs/**'
+  #   # paths:
+  #   #   - '**.js'
+  # pull_request:
+  #   branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    environment:
+      name: dev
+
+    runs-on: self-hosted
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup AGE
+      uses: alessiodionisi/setup-age-action@v1.3.0
+    - run: age --version
+    - name: Setup SOPS
+      uses: nhedger/setup-sops@v2
+    - run: sops --version
+    - uses: azure/setup-helm@v4.2.0
+      id: install
+    - name: Define AGE decryption secret
+      run: |
+        export SOPS_AGE_KEY='${{ secrets.SOPS_AGE_KEY }}'
+    - uses: helmfile/helmfile-action@v1.0.0
+      with:
+        helmfile-args: apply
+        helmfile-workdirectory: helm
+        helm-plugins: >
+          https://github.com/databus23/helm-diff,
+          https://github.com/jkroepke/helm-secrets
+        helmfile-auto-init: "true"
