@@ -21,12 +21,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: azure/setup-helm@v4.2.0
-      id: install
-    - name: Build docker images
+    - name: Setup Helm
+      uses: azure/setup-helm@v4.2.0
+    - name: Package and push charts
       run: |
         export $(grep -v '^#' src/.env | xargs -d '\n')
-        export
         cd helm
         helm registry login -u '${{ vars.REGISTRY_USER }}' -p '${{ secrets.REGISTRY_SECRET }}' ${REGISTRY_HOST}
         for dir in charts/*/; do
@@ -38,17 +37,4 @@ jobs:
             helm push $package_name-${SECURIA_VERSION}.tgz oci://${REGISTRY_HOST}/securia
           fi
         done
-
-        # helm package charts/collector_hikvision --version ${SECURIA_VERSION}
-        # helm package charts/image_preprocessor --version ${SECURIA_VERSION}
-        # helm package charts/securia_api --version ${SECURIA_VERSION}
-        # helm package charts/securia_ui --version ${SECURIA_VERSION}
-        # helm package charts/yolo_processor --version ${SECURIA_VERSION}
-
-        # helm push collector-hikvision-${SECURIA_VERSION}.tgz oci://${REGISTRY_HOST}/securia
-        # helm push image-preprocessor-${SECURIA_VERSION}.tgz oci://${REGISTRY_HOST}/securia
-        # helm push securia-api-${SECURIA_VERSION}.tgz oci://${REGISTRY_HOST}/securia
-        # helm push securia-ui-${SECURIA_VERSION}.tgz oci://${REGISTRY_HOST}/securia
-        # helm push yolo-processor-${SECURIA_VERSION}.tgz oci://${REGISTRY_HOST}/securia
-
         rm *tgz

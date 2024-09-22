@@ -8,7 +8,5 @@ jobs:
     steps:
       - name: print vars
         run: env
-      - name: Checkout repo
-        uses: actions/checkout@v1
       - uses: azure/setup-kubectl@v1
       - run: kubectl get pods -A
