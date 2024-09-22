@@ -32,7 +32,7 @@ jobs:
     - name: Build and push
       uses: docker/bake-action@v5
       with:
-        source: "{{defaultContext}}:src"
+        source: ./src
         push: true
       # env:
       #   SECURIA_TAG: ${{ env.SECURIA_TAG }}
