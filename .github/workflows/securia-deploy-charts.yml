@@ -24,7 +24,8 @@ jobs:
       uses: actions/checkout@v4
     - name: Apply registry secret
       uses: azure/setup-kubectl@v1
-    - run: |
+    - name: Setup registry pull secret
+      run: |
         export $(grep -v '^#' src/.env | xargs -d '\n')
         export
         if ! kubectl -n ${SECURIA_NAMESPACE} get secret registrypullsecret &> /dev/null; then
@@ -40,21 +41,29 @@ jobs:
         fi
     - name: Setup AGE
       uses: alessiodionisi/setup-age-action@v1.3.0
-    - run: age --version
+    - name: Check AGE version
+      run: age --version
     - name: Setup SOPS
       uses: nhedger/setup-sops@v2
-    - run: sops --version
-    - uses: azure/setup-helm@v4.2.0
-      id: install
-    - name: Define AGE decryption secret
+    - name: Check SOPS version
+      run: sops --version
+    - name: Install Helm
+      uses: azure/setup-helm@v4.2.0
+    - name: Define AGE decryption secret and other env secrets
       run: |
-        export SOPS_AGE_KEY='${{ secrets.SOPS_AGE_KEY }}'
-        export $(grep -v '^#' src/.env | xargs -d '\n')
-    - name: Set Chart Version
+        echo "SOPS_AGE_KEY='${{ secrets.SOPS_AGE_KEY }}'" >> $GITHUB_ENV
+        while IFS='=' read -r key value; do
+          if [[ ! $key =~ ^# && -n $key ]]; then
+            echo "$key=$value" >> $GITHUB_ENV
+            echo "Set $key"
+          fi
+        done < src/.env
+    - name: Set Chart version
       run: |
         # echo "CHART_VERSION=1.1.${{ github.run_number }}" >> $GITHUB_ENV
         echo "CHART_VERSION=1.1.0" >> $GITHUB_ENV
-    - uses: helmfile/helmfile-action@v1.9.1
+    - name: Deploy application
+      uses: helmfile/helmfile-action@v1.9.1
       with:
         helmfile-args: apply
         helmfile-workdirectory: helm
@@ -64,3 +73,4 @@ jobs:
         helmfile-auto-init: "true"
       env:
         CHART_VERSION: ${{ env.CHART_VERSION }}
+        SOPS_AGE_KEY: ${{ env.SOPS_AGE_KEY }}
