@@ -9,59 +9,54 @@ releases:
   namespace: securia
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/securia-api
-  version: {{ requiredEnv "CHART_VERSION" | default "1.1.0" }}
+  version: {{ env "CHART_VERSION" | default "1.1.0" }}
   values:
     - values/dev/securia_api/values.yaml
+    - imagePullSecrets:
+      - name: registrypullsecret
   secrets:
     - values/dev/securia_api/values_secrets.yaml
-  set:
-    - name: imagePullSecrets
-      value: registrypullsecret
 - name: securia-ui
   namespace: securia
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/securia-ui
-  version: {{ requiredEnv "CHART_VERSION" | default "1.1.0" }}
+  version: {{ env "CHART_VERSION" | default "1.1.0" }}
   values:
     - values/dev/securia_ui/values.yaml
+    - imagePullSecrets:
+      - name: registrypullsecret
   secrets:
     - values/dev/securia_ui/values_secrets.yaml
-  set:
-    - name: imagePullSecrets
-      value: registrypullsecret
 - name: image-preprocessor
   namespace: securia
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/image-preprocessor
-  version: {{ requiredEnv "CHART_VERSION" | default "1.1.0" }}
+  version: {{ env "CHART_VERSION" | default "1.1.0" }}
   values:
     - values/dev/image_preprocessor/values.yaml
+    - imagePullSecrets:
+      - name: registrypullsecret
   secrets:
     - values/dev/image_preprocessor/values_secrets.yaml
-  set:
-    - name: imagePullSecrets
-      value: registrypullsecret
 - name: collector-hikvision
   namespace: securia
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/collector-hikvision
-  version: {{ requiredEnv "CHART_VERSION" | default "1.1.0" }}
+  version: {{ env "CHART_VERSION" | default "1.1.0" }}
   values:
     - values/dev/collector_hikvision/values.yaml
+    - imagePullSecrets:
+      - name: registrypullsecret
   secrets:
     - values/dev/collector_hikvision/values_secrets.yaml
-  set:
-    - name: imagePullSecrets
-      value: registrypullsecret
 - name: yolo-processor
   namespace: securia
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/yolo-processor
-  version: {{ requiredEnv "CHART_VERSION" | default "1.1.0" }}
+  version: {{ env "CHART_VERSION" | default "1.1.0" }}
   values:
     - values/dev/yolo_processor/values.yaml
+    - imagePullSecrets:
+      - name: registrypullsecret
   secrets:
     - values/dev/yolo_processor/values_secrets.yaml
-  set:
-    - name: imagePullSecrets
-      value: registrypullsecret

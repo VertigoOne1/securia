@@ -36,11 +36,29 @@ Create a clusterrolebinding with cluster-admin so the action running can run hel
 
 `kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml apply -f arc_superuser_binding.yaml`
 
+### Local laptop
+
 ```bash
 helm upgrade \
   actions-runner-controller \
   actions-runner-controller/actions-runner-controller \
   --kubeconfig /etc/rancher/k3s/k3s.yaml \
+  --install \
+  --namespace actions-runner-system \
+  --create-namespace \
+  --set serviceAccount.name=arc-user \
+  --set githubWebhookServer.serviceAccount.name=arc-user \
+  --set authSecret.create=True \
+  --set authSecret.github_token=${GITHUB_PRIVATE_PAT} \
+  --wait
+```
+
+### Homelab
+
+```bash
+helm upgrade \
+  actions-runner-controller \
+  actions-runner-controller/actions-runner-controller \
   --install \
   --namespace actions-runner-system \
   --create-namespace \
