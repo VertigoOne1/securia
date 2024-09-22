@@ -24,6 +24,7 @@ class Recorder(Base):
     __tablename__ = 'recorders'
 
     id = Column(Integer,primary_key=True,nullable=False)
+    recorder_uuid = Column(String,nullable=True) 
     friendly_name = Column(String,nullable=True)
     owner = Column(String,nullable=True)
     type = Column(String,nullable=True)

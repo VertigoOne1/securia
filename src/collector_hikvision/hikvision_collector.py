@@ -15,10 +15,10 @@ def calculate_sha256(content):
     return sha256_hash.hexdigest()
 
 def capture_hikvision_image(channel):
-        snapshot_url = f"http://{config['collector']['camera_fqdn']}/ISAPI/Streaming/channels/{channel}/picture"
+        snapshot_url = f"http://{config['collector']['recorder_fqdn']}/ISAPI/Streaming/channels/{channel}/picture"
         logger.debug(f"Capturing - {snapshot_url}")
         try:
-            response = requests.get(snapshot_url, auth=HTTPDigestAuth(config['collector']['camera_username'], config['collector']['camera_password']), timeout=config['collector']['collection_timeout'])
+            response = requests.get(snapshot_url, auth=HTTPDigestAuth(config['collector']['recorder_username'], config['collector']['recorder_username']), timeout=config['collector']['collection_timeout'])
             timestamp = datetime.now().strftime(config['collector']['time_format'])
             if response.status_code == 200:
                 logger.debug(f"Headers - {response.headers}")
@@ -28,8 +28,9 @@ def capture_hikvision_image(channel):
                 base64_image = base64.b64encode(response.content).decode('utf-8')
                 image_data = {
                     "collected_timestamp": f"{timestamp}",
-                    "uri": f"{snapshot_url}",
-                    "friendly_name": f"{config['collector']['camera_friendly_name']}",
+                    "recorder_uuid": f"{config['collector']['recorder_uuid']}",
+                    "uri": f"{config['collector']['recorder_fqdn']}",
+                    "friendly_name": f"{config['collector']['recorder_friendly_name']}",
                     "content_type": f"{response.headers.get('Content-Type', None)}",
                     "content_length": f"{response.headers.get('Content-Length', None)}",
                     "channel": f"{channel}",
@@ -52,8 +53,9 @@ def capture_hikvision_image(channel):
                 logger.error(f"Failed to capture image. Status code: {response.status_code}")
                 image_data = {
                     "collected_timestamp": f"{timestamp}",
-                    "uri": f"{snapshot_url}",
-                    "friendly_name": f"{config['collector']['camera_friendly_name']}",
+                    "recorder_uuid": f"{config['collector']['recorder_uuid']}",
+                    "uri": f"{config['collector']['recorder_fqdn']}",
+                    "friendly_name": f"{config['collector']['recorder_friendly_name']}",
                     "content_type": f"{response.headers.get('Content-Type', None)}",
                     "content_length": f"{response.headers.get('Content-Length', None)}",
                     "hash": f"{None}",
@@ -68,8 +70,9 @@ def capture_hikvision_image(channel):
             logger.error(f"Request Exception - Error capturing image: {e}")
             image_data = {
                 "collected_timestamp": f"{timestamp}",
-                "uri": f"{snapshot_url}",
-                "friendly_name": f"{config['collector']['camera_friendly_name']}",
+                "recorder_uuid": f"{config['collector']['recorder_uuid']}",
+                "uri": f"{config['collector']['recorder_fqdn']}",
+                "friendly_name": f"{config['collector']['recorder_friendly_name']}",
                 "content_type": f"{response.headers.get('Content-Type', None)}",
                 "content_length": f"{response.headers.get('Content-Length', None)}",
                 "channel": f"{channel}",
@@ -83,8 +86,9 @@ def capture_hikvision_image(channel):
             logger.error(traceback.format_exc())
             image_data = {
                 "collected_timestamp": f"{timestamp}",
-                "uri": f"{snapshot_url}",
-                "friendly_name": f"{config['collector']['camera_friendly_name']}",
+                "recorder_uuid": f"{config['collector']['recorder_uuid']}",
+                "uri": f"{config['collector']['recorder_fqdn']}",
+                "friendly_name": f"{config['collector']['recorder_friendly_name']}",
                 "content_type": f"{response.headers.get('Content-Type', None)}",
                 "content_length": f"{response.headers.get('Content-Length', None)}",
                 "channel": f"{channel}",

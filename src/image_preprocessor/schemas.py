@@ -14,6 +14,7 @@ class CreatePost(PostBase):
 
 class RecorderBase(BaseModel):
     uri: str
+    recorder_uuid: str
     friendly_name: Optional[str] = None
     owner: Optional[str] = None
     type: Optional[str] = None

@@ -34,16 +34,36 @@ class BearerAuth(requests.auth.AuthBase):
         r.headers["authorization"] = "Bearer " + self.token
         return r
 
+def login():
+    username = config['api']['username']
+    password = config['api']['password']
+    data = {
+        "grant_type": "password",
+        "username": username,
+        "password": password,
+        "scope": "api",
+        "client_id": "client_id",
+        "client_secret": "client_secret"
+    }
+    try:
+        response = requests.post(f"{config['api']['uri']}/token", data=data)
+
+        if response.status_code == 200:
+            # Successful login
+            token = response.json().get("access_token")
+            return token
+        else:
+            logger.error("Invalid username or password. Please try again.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"requests - An error occurred: {e}")
+
 kafka_client = KafkaClientSingleton.get_instance()
 
 def fetch_image_key(token, id):
     logger.debug(f"Fetching key for {id}")
     try:
         url = f"{config['api']['uri']}/image/{id['image_id']}"
-        headers = {
-            "Authorization": f"Bearer {token}"
-        }
-        resp = requests.get(url, headers=headers)
+        resp = requests.get(url, auth=BearerAuth(token))
         data = resp.json()
         logger.debug(f"{data}")
         if resp.status_code == 200:
@@ -82,11 +102,6 @@ def fetch_image_s3(bucket, key):
     im = Image.open(file_stream)
     return im
 
-# fid: int
-# detections: Json[Any]
-# detections_count: int
-# processing_time_ms: Json[Any]
-# detections_timestamp: datetime = None
 def predictions_process(token, predictions, image_id, processing_time, time_collected, detections_count):
     if predictions is not None and image_id is not None:
         try:
@@ -97,11 +112,8 @@ def predictions_process(token, predictions, image_id, processing_time, time_coll
                             'processing_time_ms': json.dumps(processing_time),
                             'detections_timestamp': time_collected
                             }
-            headers = {
-                "Authorization": f"Bearer {token}"
-            }
             logger.debug(f"Sending - {request_body}")
-            resp = requests.post(url, json = request_body, headers=headers)
+            resp = requests.post(url, json = request_body, auth=BearerAuth(token))
             data = resp.json()
             if resp.status_code == 200:
                 logger.debug(f"detection post resp - {data}")
@@ -135,11 +147,8 @@ def detections_process(token, detections_dict, detections_id):
                                 'xyxy': json.dumps(detection["box"]),
                                 'crop_s3_path': "NOT_IMPLEMENTED_YET"
                                 }
-                headers = {
-                    "Authorization": f"Bearer {token}"
-                }
                 logger.debug(f"Sending - {request_body}")
-                resp = requests.post(url, json = request_body, headers=headers)
+                resp = requests.post(url, json = request_body, auth=BearerAuth(token))
                 data = resp.json()
                 if resp.status_code == 200:
                     logger.debug(f"detection objects post resp - {data}")

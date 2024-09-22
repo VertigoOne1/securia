@@ -41,6 +41,7 @@ class User(UserBase):
         from_attributes = True
 
 class RecorderBase(BaseModel):
+    recorder_uuid: str
     uri: str
     owner_user_id: Optional[int] = None
     friendly_name: Optional[str] = None
@@ -57,6 +58,7 @@ class RecorderCreate(RecorderBase):
         from_attributes = True
 
 class RecorderUpdate(BaseModel):
+    recorder_uuid: Optional[str] = None
     uri: Optional[str] = None
     owner_user_id: Optional[int] = None
     friendly_name: Optional[str] = None

@@ -121,6 +121,8 @@ def delete_user(db: Session, id: int):
         db.rollback()  # Rollback the transaction in case of error
         return None
 
+# Recorders
+
 def create_recorder(db: Session,
                  recorder: schemas.RecorderCreate,
                  ):
@@ -134,8 +136,6 @@ def create_recorder(db: Session,
         return db_recorder
     except:
         return None
-
-# Recorders
 
 def update_recorder(db: Session, id: int, recorder: schemas.RecorderUpdate):
     db_recorder = db.query(models.Recorder).filter(models.Recorder.id == id).first()

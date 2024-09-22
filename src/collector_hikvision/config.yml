@@ -5,10 +5,16 @@ general:
   default_debug_level: DEBUG
 collector:
   enabled: True
-  camera_fqdn: "10.0.0.61"
-  camera_friendly_name: "Home"
-  camera_username: view
-  camera_password: "asdf1234"
+  recorder_uuid: 8899051a-b0bb-4f05-a53a-31ef10588f4d
+  recorder_fqdn: "10.0.0.61"
+  recorder_friendly_name: "Home"
+  recorder_username: view
+  recorder_password: "asdf1234"
+  recorder_owner: "Home"
+  recorder_type: "HikVision Turbo"
+  recorder_location: "House"
+  recorder_contact: "12345"
+  recorder_owner_user_id: "1"
   capture_interval: 5
   write_local_file: True
   temp_output_folder: /tmp/images

@@ -9,6 +9,13 @@ import s3, tempfile
 logger = logger.setup_custom_logger(__name__)
 config = EnvYAML('config.yml')
 
+class BearerAuth(requests.auth.AuthBase):
+    def __init__(self, token):
+        self.token = token
+    def __call__(self, r):
+        r.headers["authorization"] = "Bearer " + self.token
+        return r
+
 def calculate_sha256(content):
     sha256_hash = hashlib.sha256()
     sha256_hash.update(content)
@@ -53,20 +60,36 @@ def send_s3(image_dict):
         logger.error(traceback.format_exc())
         return None
 
+def fetch_recorders_by_uuid(uuid, limit=1, token=None):
+    from urllib.parse import urlencode
+    params = {
+            "sort_by": 'id',
+            "limit": limit,
+            "skip": 0
+        }
+    response = requests.get(f"{config['api']['uri']}/recorders/uuid/{uuid}?{urlencode(params)}", auth=BearerAuth(token))
+    if response.status_code == 200:
+        return response.json()
+    else:
+        logger.error(f"Failed to fetch details: {response.status_code}")
+        return None
+
 def recorder_process(token, image_dict):
     try:
-        url = f"{config['api']['uri']}/recorder/search"
-        request_body = {'uri': image_dict['uri']}
-        headers = {
-            "Authorization": f"Bearer {token}"
-        }
-        resp = requests.post(url, json = request_body, headers=headers)
-        logger.debug(f"Recorder search resp - {resp.text}")
+        # url = f"{config['api']['uri']}/recorder/uuid/search"
+        # request_body = {'recorder_uuid': image_dict['recorder_uuid']}
+        # headers = {
+        #     "Authorization": f"Bearer {token}"
+        # }
+        # resp = requests.post(url, json = request_body, headers=headers)
+        # logger.debug(f"Recorder search resp - {resp.text}")
+        fetch_recorders_by_uuid(image_dict['recorder_uuid'],token=token)
         if resp.status_code == 404: ## Create it
             logger.debug("Recorder not found, creating it")
             url = f"{config['api']['uri']}/recorder"
             request_body = {
                 'uri': image_dict['uri'],
+                'uuid': image_dict['recorder_uuid'],
                 'friendly_name': f"{image_dict.get('friendly_name') or None}",
                 'owner': f"{image_dict.get('owner') or None}",
                 'type': f"{image_dict.get('type') or None}",
@@ -94,10 +117,7 @@ def channel_process(token, image_dict, recorder_id):
         try:
             url = f"{config['api']['uri']}/channel/search"
             request_body = {'fid': recorder_id, 'channel_id': image_dict['channel']}
-            headers = {
-                "Authorization": f"Bearer {token}"
-            }
-            resp = requests.post(url, json = request_body, headers=headers)
+            resp = requests.post(url, json = request_body, auth=BearerAuth(token))
             data = resp.json()
             logger.debug(f"Channel search resp - {data}")
             if resp.status_code == 404: ## Create it
@@ -141,11 +161,8 @@ def image_process(token, image_dict, channel_id, object_name):
                             'collection_status': f"{image_dict.get('status') or None}",
                             'ingest_timestamp': image_dict['preproc_ingest_time']
                             }
-            headers = {
-                "Authorization": f"Bearer {token}"
-            }
             logger.debug(f"Sending - {request_body}")
-            resp = requests.post(url, json = request_body, headers=headers)
+            resp = requests.post(url, json = request_body, auth=BearerAuth(token))
             data = resp.json()
             if resp.status_code == 200:
                 logger.debug(f"Image post resp - {data}")
@@ -160,28 +177,6 @@ def image_process(token, image_dict, channel_id, object_name):
     else:
         logger.error("Did not receive a valid channel_id or uuid")
         return None
-
-# def check_api_available(): # Stupid Idea
-#     logger.info("Check if API service is available")
-#     try:
-#         url = f"{config['api']['uri']}/status"
-#         resp = requests.get(url)
-#         data = resp.json()
-#         if resp.status_code == 200:
-#             logger.debug("200 OK at least")
-#             if data["status"] != "up":
-#                 logger.error("API is in a mode that is not 'up', retry")
-#                 logger.error(f"Response is {data}")
-#                 return False
-#             else:
-#                 logger.debug("API available - continuing in 2 seconds")
-#                 return True
-#         else:
-#             logger.error("status_code is not 200, retry")
-#             return False
-#     except:
-#         logger.error("API is in a mode that is not 'up', retry")
-#         return False
 
 def preprocess_image(token, image_dict):
     try:

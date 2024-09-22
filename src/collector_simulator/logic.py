@@ -44,19 +44,19 @@ def simulated_collection():
             if image_dict is not None:
                 logger.debug(f"Received - Channel - {image_dict['channel'] or None} | Size - {image_dict['content_length'] or None} | StatusCode - {image_dict['recorder_status_code'] or None}")
                 if image_dict['content_length'] == "ok":
-                    metrics.p_image_collect_success.labels(config['collector']['camera_fqdn'],channel).inc()
+                    metrics.p_image_collect_success.labels(config['collector']['recorder_fqdn'],channel).inc()
                 else:
-                    metrics.p_image_collect_fail.labels(config['collector']['camera_fqdn'],channel).inc()
-                partition_key=f"{config['collector']['camera_fqdn']}.{channel}"
+                    metrics.p_image_collect_fail.labels(config['collector']['recorder_fqdn'],channel).inc()
+                partition_key=f"{config['collector']['recorder_fqdn']}.{channel}"
                 topic = f'{config["kafka"]["produce_topic_prefix"]}{partition_key}'
                 send_result = kafka_client.send_message(topic, partition_key, image_dict)
                 if send_result:
                     logger.debug(f"send success - {topic} - {partition_key}")
-                    metrics.p_image_transmit_success.labels(config['collector']['camera_fqdn'],channel).inc()
+                    metrics.p_image_transmit_success.labels(config['collector']['recorder_fqdn'],channel).inc()
                 else:
                     logger.debug(f"send failure - {topic} - {partition_key}")
-                    metrics.p_image_transmit_fail.labels(config['collector']['camera_fqdn'],channel).inc()
+                    metrics.p_image_transmit_fail.labels(config['collector']['recorder_fqdn'],channel).inc()
             else:
-                metrics.p_image_collect_fail.labels(config['collector']['camera_fqdn'],channel).inc()
+                metrics.p_image_collect_fail.labels(config['collector']['recorder_fqdn'],channel).inc()
                 logger.error(f"No image received, this is functionally impossible")
         time.sleep(config['collector']['capture_interval'])

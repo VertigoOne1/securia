@@ -53,7 +53,6 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 ## TODO
 
-- create the rest of the crud for system admin and management
 - develop pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
 - ui development - in progress (FOCUS HERE)
 - ui dev - detections and filters
@@ -73,6 +72,11 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 ## DONE
 
+- refactored authentication for microservices to the db driven version, standardised to authbearer class
+- introduced uuid for recorders to avoid conflicts and the bug
+- create access control and hierarchy of who can edit what - done
+- create role based access sytem - super, admin, user, guest. user and up can CRUD, guest can R - done
+- create the rest of the crud for system admin and management - done
 - implemented a startup admin user creation routine, the password is printed in console logs once, if you lose it, you will need to delete the user in the db - done
 - implemented a user login system with ability to link users(owners) to recorders, and set the basics for role based access to the system too - done
 - implemented user datatables and ownership linking fields - done

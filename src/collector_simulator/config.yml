@@ -5,10 +5,16 @@ general:
   default_debug_level: DEBUG
 collector:
   enabled: True
-  camera_fqdn: "244.0.0.0"
-  camera_friendly_name: "Simulator"
-  camera_username: view
-  camera_password: "asdf1234"
+  recorder_uuid: 79481d14-7719-49b2-b6b5-f7996b73ba04
+  recorder_fqdn: "244.0.0.0"
+  recorder_friendly_name: "Simulator"
+  recorder_username: view
+  recorder_password: "asdf1234"
+  recorder_owner: "Demo"
+  recorder_type: "simulator"
+  recorder_location: "container"
+  recorder_contact: "10111"
+  recorder_owner_user_id: "1"
   capture_interval: 10
   write_local_file: True
   temp_output_folder: /tmp/images

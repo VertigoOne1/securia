@@ -41,7 +41,7 @@ def load_images_as_bytes(directory):
 def capture_simulated_image(channel):
         directory_path = 'images'
         loaded_images = load_images_as_bytes(directory_path)
-        snapshot_url = f"http://{config['collector']['camera_fqdn']}/image_directory/{channel}/picture"
+        snapshot_url = f"http://{config['collector']['recorder_fqdn']}/image_directory/{channel}/picture"
         logger.debug(f"Capturing - {snapshot_url}")
         try:
             timestamp = datetime.now().strftime(config['collector']['time_format'])
@@ -51,8 +51,9 @@ def capture_simulated_image(channel):
             base64_image = base64.b64encode(image['byte_data']).decode('utf-8')
             image_data = {
                 "collected_timestamp": f"{timestamp}",
-                "uri": f"simulator",
-                "friendly_name": f"{config['collector']['camera_friendly_name']}",
+                "recorder_uuid": f"{config['collector']['recorder_uuid']}",
+                "uri": f"config['collector']['recorder_fqdn']",
+                "friendly_name": f"{config['collector']['recorder_friendly_name']}",
                 "content_type": f"image/jpeg",
                 "content_length": f"{len(image['byte_data'])}",
                 "channel": f"{channel}",
