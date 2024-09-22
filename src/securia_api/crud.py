@@ -8,7 +8,9 @@ logger = logger.setup_custom_logger(__name__)
 
 config = EnvYAML('config.yml')
 
-def create_initial_user(db: Session):
+# Users
+
+def create_initial_super_user(db: Session):
     import string, random
     try:
         # Check if we already have an admin user
@@ -19,7 +21,7 @@ def create_initial_user(db: Session):
         else:
             # Need an initial user, generate a salt and hash the password
             salt = bcrypt.gensalt()
-            initial_password = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(18))
+            initial_password = ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(18))
             hashed_password = bcrypt.hashpw(initial_password.encode('utf-8'), salt)
 
             db_user = models.User(
@@ -28,14 +30,14 @@ def create_initial_user(db: Session):
                 role="super",
                 password=hashed_password.decode('utf-8')  # Store the hash as a string
             )
-
-            logger.debug(f"{db_user}")
-
             db.add(db_user)
             db.commit()
             db.refresh(db_user)
+            logger.info(f"----- RECORD THE BELOW INFORMATION -----")
+            logger.info(f"Created initial super user account")
+            logger.info(f"Initial Superuser is: {db_user}")
             logger.info(f"Initial Password is : {initial_password}")
-            logger.debug("Created initial admin account")
+            logger.info(f"----- RECORD THE ABOVE INFORMATION -----")
             return db_user
     except Exception as e:
         logger.error(f"Error creating user: {str(e)}")
@@ -86,6 +88,39 @@ def get_user_by_email(db: Session, email):
 def verify_user_password(plain_password, hashed_password):
     return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
+def update_user(db: Session, id: int, user: schemas.UserUpdate):
+    db_user = db.query(models.User).filter(models.User.id == id).first()
+
+    if db_user is None:
+        logger.debug(f"User - {id} not found")
+        return None  # or raise an exception if you prefer
+
+    # Update the attributes
+    user_data = user.dict(exclude_unset=True)
+    for key, value in user_data.items():
+        setattr(db_user, key, value)
+
+    # Commit the changes
+    db.commit()
+
+    # Refresh the object
+    db.refresh(db_user)
+
+    return db_user
+
+def delete_user(db: Session, id: int):
+    db_user = db.query(models.User).filter(models.User.id == id).first()
+    if db_user is None:
+        return None
+    try:
+        db.delete(db_user)
+        db.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Error deleting User: {str(e)}")
+        db.rollback()  # Rollback the transaction in case of error
+        return None
+
 def create_recorder(db: Session,
                  recorder: schemas.RecorderCreate,
                  ):
@@ -100,12 +135,14 @@ def create_recorder(db: Session,
     except:
         return None
 
+# Recorders
+
 def update_recorder(db: Session, id: int, recorder: schemas.RecorderUpdate):
-    # Query the existing channel by id
     db_recorder = db.query(models.Recorder).filter(models.Recorder.id == id).first()
 
     if db_recorder is None:
-        return None  # or raise an exception if you prefer
+        logger.debug(f"Recorder - {id} not found")
+        return None
 
     # Update the attributes
     recorder_data = recorder.dict(exclude_unset=True)
@@ -120,6 +157,21 @@ def update_recorder(db: Session, id: int, recorder: schemas.RecorderUpdate):
 
     return db_recorder
 
+def delete_recorder(db: Session, id: int):
+    db_recorder = db.query(models.Recorder).filter(models.Recorder.id == id).first()
+    if db_recorder is None:
+        return None
+    try:
+        db.delete(db_recorder)
+        db.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Error deleting Recorder: {str(e)}")
+        db.rollback()  # Rollback the transaction in case of error
+        return None
+
+# Channels
+
 def create_channel(db: Session,
                  channel: schemas.ChannelCreate,
                  ):
@@ -131,11 +183,11 @@ def create_channel(db: Session,
     return db_channel
 
 def update_channel(db: Session, id: int, channel: schemas.ChannelUpdate):
-    # Query the existing channel by id
     db_channel = db.query(models.Channel).filter(models.Channel.id == id).first()
 
     if db_channel is None:
-        return None  # or raise an exception if you prefer
+        logger.debug(f"Channel - {id} not found")
+        return None
 
     # Update the attributes
     channel_data = channel.dict(exclude_unset=True)
@@ -149,6 +201,21 @@ def update_channel(db: Session, id: int, channel: schemas.ChannelUpdate):
     db.refresh(db_channel)
 
     return db_channel
+
+def delete_channel(db: Session, id: int):
+    db_channel = db.query(models.Channel).filter(models.Channel.id == id).first()
+    if db_channel is None:
+        return None
+    try:
+        db.delete(db_channel)
+        db.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Error deleting channel: {str(e)}")
+        db.rollback()  # Rollback the transaction in case of error
+        return None
+
+# Images
 
 def create_image(db: Session,
                  image: schemas.ImageCreate,
@@ -168,6 +235,42 @@ def create_image(db: Session,
     db.refresh(db_image)
     return db_image
 
+def update_image(db: Session, id: int, image: schemas.ImageUpdate):
+    # Query the existing channel by id
+    db_image = db.query(models.Image).filter(models.Image.id == id).first()
+
+    if db_image is None:
+        logger.debug(f"Image - {id} not found")
+        return None
+
+    # Update the attributes
+    image_data = image.dict(exclude_unset=True)
+    for key, value in image_data.items():
+        setattr(db_image, key, value)
+
+    # Commit the changes
+    db.commit()
+
+    # Refresh the object
+    db.refresh(db_image)
+
+    return db_image
+
+def delete_image(db: Session, id: int):
+    db_image = db.query(models.Image).filter(models.Image.id == id).first()
+    if db_image is None:
+        return None
+    try:
+        db.delete(db_image)
+        db.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Error deleting image: {str(e)}")
+        db.rollback()  # Rollback the transaction in case of error
+        return None
+
+# Detections
+
 def create_detection(db: Session,
                  detection: schemas.DetectionCreate,
                  ):
@@ -184,6 +287,41 @@ def create_detection(db: Session,
         return db_detection
     except:
         return None
+
+def update_detection(db: Session, id: int, detection: schemas.DetectionUpdate):
+    db_det = db.query(models.Detection).filter(models.Detection.id == id).first()
+
+    if db_det is None:
+        logger.debug(f"detection - {id} not found")
+        return None
+
+    # Update the attributes
+    det_data = detection.dict(exclude_unset=True)
+    for key, value in det_data.items():
+        setattr(db_det, key, value)
+
+    # Commit the changes
+    db.commit()
+
+    # Refresh the object
+    db.refresh(db_det)
+
+    return db_det
+
+def delete_detection(db: Session, id: int):
+    db_det = db.query(models.Detection).filter(models.Detection.id == id).first()
+    if db_det is None:
+        return None
+    try:
+        db.delete(db_det)
+        db.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Error deleting detection: {str(e)}")
+        db.rollback()  # Rollback the transaction in case of error
+        return None
+
+# Detection Objects
 
 def create_detection_object(db: Session,
                  detectionobj: schemas.DetectionObjectCreate,
@@ -203,19 +341,37 @@ def create_detection_object(db: Session,
     except:
         return None
 
+def update_detection_object(db: Session, id: int, detection_object: schemas.DetectionObjectUpdate):
+    db_deto = db.query(models.DetectionObjects).filter(models.DetectionObjects.id == id).first()
+
+    if db_deto is None:
+        logger.debug(f"Detection object - {id} not found")
+        return None
+
+    # Update the attributes
+    deto_data = detection_object.dict(exclude_unset=True)
+    for key, value in deto_data.items():
+        setattr(db_deto, key, value)
+
+    # Commit the changes
+    db.commit()
+
+    # Refresh the object
+    db.refresh(db_deto)
+
+    return db_deto
+
+def delete_detection_object(db: Session, id: int):
+    db_deto = db.query(models.DetectionObjects).filter(models.DetectionObjects.id == id).first()
+    if db_deto is None:
+        return None
+    try:
+        db.delete(db_deto)
+        db.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Error deleting detection object: {str(e)}")
+        db.rollback()  # Rollback the transaction in case of error
+        return None
+
 # Add other CRUD operations as needed
-
-
-# Message Format
-    # image_data = {
-    #     "collected_timestamp": f"{timestamp}",
-    #     "uri": f"{snapshot_url}",
-    #     "content_type": f"{response.headers.get('Content-Type', None)}",
-    #     "content_length": f"{response.headers.get('Content-Length', None)}",
-    #     "channel": f"{channel}",
-    #     "object_name": f"{config['collector']['image_filename_prefix']}_{timestamp}.json",
-    #     "hash": f"{content_hash}",
-    #     "image_base64": f"{base64_image}",
-    #     "recorder_status_code":f"{response.status_code or None}",
-    #     "status":f"ok"
-    # }

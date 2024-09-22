@@ -65,6 +65,8 @@ class Image(Base):
     recorder_status_data = Column(String,nullable=True)
     collected_timestamp = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
     collection_status = Column(String,nullable=False)
+    notes = Column(String,nullable=True)
+    tags = Column(JSONB,nullable=True)
     ingest_timestamp = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
     created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
 
@@ -85,11 +87,11 @@ class Detection(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'))
 
     image = relationship("Image", back_populates="detections")
-    detectionobjects = relationship("DetectionObjects", back_populates="detection_rel")
+    detectionobjects = relationship("DetectionObject", back_populates="detection_rel")
 
 Index("idx_detection", Detection.id, Detection.fid)
 
-class DetectionObjects(Base):
+class DetectionObject(Base):
     __tablename__ = 'detections_objects'
 
     id = Column(Integer,primary_key=True,nullable=False)
@@ -103,4 +105,4 @@ class DetectionObjects(Base):
 
     detection_rel = relationship("Detection", back_populates="detectionobjects")
 
-Index("idx_detectionObj", DetectionObjects.id, DetectionObjects.fid, DetectionObjects.detection_class)
+Index("idx_detectionObj", DetectionObject.id, DetectionObject.fid, DetectionObject.detection_class)

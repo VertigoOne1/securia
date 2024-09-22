@@ -6,23 +6,6 @@ import json
 from envyaml import EnvYAML
 config = EnvYAML('config.yml')
 
-class Item(BaseModel):
-    name: str
-    description: str | None = None
-    price: float | None = None
-    tax: float | None = None
-
-class PostBase(BaseModel):
-    content: str
-    title: str
-
-    class Config:
-        from_attributes = True
-
-class CreatePost(PostBase):
-    class Config:
-        from_attributes = True
-
 class UserBase(BaseModel):
     username: str
     password: str
@@ -136,6 +119,8 @@ class ImageBase(BaseModel):
     recorder_status_data: str
     collected_timestamp: datetime = None
     collection_status: str
+    notes: str = None
+    tags: Json[Any] = None
     ingest_timestamp: datetime = None
 
     @field_validator('collected_timestamp', 'ingest_timestamp', mode="before")
@@ -145,6 +130,20 @@ class ImageBase(BaseModel):
         if isinstance(value, str):
            time_format = config['api']['time_format']
            return datetime.strptime(value, time_format)
+        return value
+
+    @field_validator('tags', mode="before")
+    @classmethod
+    def parse_tags(cls, value: Any)-> str:
+        if value is not None:
+            return "{}"
+        return "{}"
+
+    @field_validator('notes', mode="before")
+    @classmethod
+    def parse_notes(cls, value: Any)-> str:
+        if value is None:
+            return "None"
         return value
 
     # @computed_field
@@ -159,6 +158,18 @@ class ImageCreate(ImageBase):
 
     class Config:
         from_attributes = True
+
+class ImageUpdate(BaseModel):
+    fid: Optional[int] = None
+    hash: Optional[str] = None
+    s3_path: Optional[str] = None
+    content_length: Optional[int] = None
+    content_type: Optional[str] = None
+    recorder_status_code: Optional[str] = None
+    recorder_status_data: Optional[str] = None
+    collection_status: Optional[str] = None
+    notes: Optional[str] = None
+    tags: Optional[Json[Any]] = None
 
 class Image(ImageBase):
     id: int
@@ -195,6 +206,12 @@ class DetectionBase(BaseModel):
 class DetectionCreate(DetectionBase):
     class Config:
         from_attributes = True
+
+class DetectionUpdate(BaseModel):
+    fid: Optional[int] = None
+    detections: Optional[Json[Any]] = None
+    detections_count: Optional[int] = None
+    processing_time_ms: Optional[Json[Any]] = None
 
 class Detection(DetectionBase):
     id: int
@@ -234,3 +251,11 @@ class DetectionObjectBase(BaseModel):
 class DetectionObjectCreate(DetectionObjectBase):
     class Config:
         from_attributes = True
+
+class DetectionObjectUpdate(BaseModel):
+    fid: Optional[int] = None
+    detection_class: Optional[str] = None
+    detection_name: Optional[str] = None
+    confidence: Optional[float] = None
+    xyxy: Optional[Json[Any]] = None
+    crop_s3_path: Optional[str] = None
