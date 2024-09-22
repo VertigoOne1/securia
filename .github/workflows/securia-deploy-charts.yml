@@ -51,7 +51,7 @@ jobs:
       uses: azure/setup-helm@v4.2.0
     - name: Define AGE decryption secret and other env secrets
       run: |
-        echo "SOPS_AGE_KEY='${{ secrets.SOPS_AGE_KEY }}'" >> $GITHUB_ENV
+        echo "SOPS_AGE_KEY=${{ secrets.SOPS_AGE_KEY }}" >> $GITHUB_ENV
         while IFS='=' read -r key value; do
           if [[ ! $key =~ ^# && -n $key ]]; then
             echo "$key=$value" >> $GITHUB_ENV
