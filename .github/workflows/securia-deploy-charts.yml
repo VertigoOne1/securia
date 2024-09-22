@@ -1,4 +1,4 @@
-name: Securia Docker Image CI
+name: Deploy Securia
 
 on: workflow_dispatch
   # push:
@@ -20,7 +20,24 @@ jobs:
     runs-on: self-hosted
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Apply registry secret
+      uses: azure/setup-kubectl@v1
+    - run: |
+        export $(grep -v '^#' src/.env | xargs -d '\n')
+        export
+        if ! kubectl -n ${SECURIA_NAMESPACE} get secret registrypullsecret &> /dev/null; then
+          echo "Secret does not exist. Creating it..."
+          kubectl -n ${SECURIA_NAMESPACE} create secret docker-registry registrypullsecret \
+            --docker-username=${{ vars.REGISTRY_USER }} \
+            --docker-password=${{ secrets.REGISTRY_SECRET }} \
+            --docker-email="securia@marnus.com" \
+            --docker-server=${REGISTRY_HOST}
+          echo "Secret created successfully."
+        else
+          echo "Secret already exists. Skipping creation."
+        fi
     - name: Setup AGE
       uses: alessiodionisi/setup-age-action@v1.3.0
     - run: age --version

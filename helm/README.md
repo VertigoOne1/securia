@@ -1,4 +1,19 @@
-# Deploy
+# Helm objects
+
+## Push to registry
+
+```bash
+./push_all.sh
+```
+
+## Helmfile
+
+### Install on cluster
+
+```bash
+helmfile init
+helmfile apply
+```
 
 ## Hikvision Collector
 
