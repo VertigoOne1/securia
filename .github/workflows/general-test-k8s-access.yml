@@ -4,7 +4,9 @@ on: workflow_dispatch
 
 jobs:
   test-k8s-access:
+
     runs-on: homelab
+
     steps:
       - name: print vars
         run: env

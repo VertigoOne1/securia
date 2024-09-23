@@ -77,6 +77,7 @@ https://gha-cache-server.falcondev.io/getting-started
 
 ## DONE
 
+- turfflehog scan confirms no secrets in repo - done
 - removed all other secrets from github actions, only the AGE secret is there now, the rest is SOPS managed! - done
 - added harbor LB IP instead of running to the internet router - done (there has got to be an operator for that really) - build time down to 2 mins
 - setup cicd cache based building for images - done
@@ -168,6 +169,8 @@ You then only need to provide the AGE identity to the provider as a secret, inst
 They can then decrypt any secrets using SOPS/helm rather than you managing the secrets at the provider.
 
 In future, this can be swapped easily to use a cloud key providers to encrypt and decrypt, thus allowing much bigger teams of people to contribute while still being CICD agnostic and define access via provider/arn role based security.
+
+<https://github.com/trufflesecurity/trufflehog> can be used to check the repo for any secret leaks
 
 ## AGE + SOPS
 
