@@ -75,13 +75,9 @@ def fetch_recorder_by_uuid(uuid, limit=1, token=None):
 
 def recorder_process(token, image_dict):
     try:
-        # url = f"{config['api']['uri']}/recorder/uuid/search"
-        # request_body = {'recorder_uuid': image_dict['recorder_uuid']}
-        # headers = {
-        #     "Authorization": f"Bearer {token}"
-        # }
-        # resp = requests.post(url, json = request_body, headers=headers)
-        # logger.debug(f"Recorder search resp - {resp.text}")
+        if image_dict['recorder_uuid'] is None:
+            logger.info("No recorder UUID present, skipping")
+            return None
         resp = fetch_recorder_by_uuid(image_dict['recorder_uuid'],token=token)
         if resp is not None:
             if resp.status_code == 404: ## Create it
@@ -198,11 +194,14 @@ def preprocess_image(token, image_dict):
                 logger.debug(f"Writing - {output_file}")
                 with open(output_file, "a") as json_file:
                     json.dump(image_dict, json_file)
-            logger.debug(f"Status Code : {image_dict['recorder_status_code']}")
+            logger.debug(f"Recorder Status Code : {image_dict['recorder_status_code']}")
             if image_dict["recorder_status_code"] != "200":
-                logger.debug("Collector failed to retrieve image, skipping S3")
+                logger.debug("Collector failed to retrieve image, skipping S3 portion, registering NO_IMAGE event")
                 linking = {}
                 linking['recorder_id'] = recorder_process(token, image_dict)
+                if linking['recorder_id'] is None:
+                    logger.info("No recorder_id received, cannot do anything")
+                    return None
                 linking['channel_id'] = channel_process(token, image_dict, linking['recorder_id'])
                 linking['image_id'] = image_process(token, image_dict, linking['channel_id'], "NO_IMAGE")
                 if linking['image_id'] is not None:

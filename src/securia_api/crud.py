@@ -35,7 +35,7 @@ def create_initial_super_user(db: Session):
             db.refresh(db_user)
             logger.info(f"----- RECORD THE BELOW INFORMATION -----")
             logger.info(f"Created initial super user account")
-            logger.info(f"Initial Superuser is: {db_user}")
+            logger.info(f"Initial Superuser is: {db_user.username}")
             logger.info(f"Initial Password is : {initial_password}")
             logger.info(f"----- RECORD THE ABOVE INFORMATION -----")
             return db_user
