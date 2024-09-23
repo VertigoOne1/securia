@@ -56,6 +56,7 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
 https://gha-cache-server.falcondev.io/getting-started
 
+- bug - the containers do not exit/restart properly sometimes when errors are encountered. such as when the api service is unavailable.
 - develop image/psql pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
 - switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)
 - user driven recorder creation, attachment to collectors
