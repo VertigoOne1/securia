@@ -1,0 +1,39 @@
+name: Securia Registry pull secret
+
+on: workflow_dispatch
+  # push:
+  #   branches: [ "main" ]
+  #   # paths-ignore:
+  #   #   - 'docs/**'
+  #   # paths:
+  #   #   - '**.js'
+  # pull_request:
+  #   branches: [ "main" ]
+
+jobs:
+
+  build-push-images:
+    timeout-minutes: 1440
+
+    environment:
+      name: dev
+
+    runs-on: homelab
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v4
+
+    - name: Apply registry secret operator
+      run: |
+        kubectl apply -f infra/registry-creds/registry_secret_operator.yaml
+
+        kubectl create secret docker-registry harbor-registry-cred \
+          --namespace kube-system \
+          --docker-username=${{ vars.REGISTRY_USER }} \
+          --docker-password=${{ secrets.REGISTRY_SECRET }} \
+          --docker-email=${REGISTRY_HOST}
+
+        kubectl apply -f infra/registry-creds/cluster_pull_secret.yaml

@@ -8,5 +8,5 @@ jobs:
     steps:
       - name: print vars
         run: env
-      - uses: azure/setup-kubectl@v1
+      - uses: azure/setup-kubectl@v4
       - run: kubectl get pods -A

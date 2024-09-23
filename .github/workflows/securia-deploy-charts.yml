@@ -21,8 +21,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Apply registry secret
-      uses: azure/setup-kubectl@v1
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v4
     - name: Setup registry pull secret
       run: |
         export $(grep -v '^#' src/.env | xargs -d '\n')
