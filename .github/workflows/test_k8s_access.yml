@@ -3,7 +3,7 @@ name: Test K8s Access
 on: workflow_dispatch
 
 jobs:
-  deploy:
+  test-k8s-access:
     runs-on: homelab
     steps:
       - name: print vars

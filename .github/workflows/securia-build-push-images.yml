@@ -12,7 +12,8 @@ on: workflow_dispatch
 
 jobs:
 
-  build:
+  build-push-images:
+    timeout-minutes: 1440
 
     environment:
       name: dev
