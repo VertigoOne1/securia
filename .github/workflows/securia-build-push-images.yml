@@ -30,12 +30,33 @@ jobs:
       run: |
         echo "SECURIA_TAG=1.1.${{ github.run_number }}" >> $GITHUB_ENV
 
+    - name: populate dotenvs
+      run: |
+        sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
+        export $(grep -v '^#' src/.env.secrets | xargs -d '\n')
+
+        while IFS='=' read -r key value; do
+          if [[ ! $key =~ ^# && -n $key ]]; then
+            echo "$key=$value" >> $GITHUB_ENV
+            echo "Set $key"
+          fi
+        done < src/.env
+
+        while IFS='=' read -r key value; do
+          if [[ ! $key =~ ^# && -n $key ]]; then
+            echo "$key=$value" >> $GITHUB_ENV
+            echo "Set $key"
+          fi
+        done < src/.env.secrets
+      env:
+        SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+
     - name: Login to Registry
       uses: docker/login-action@v3
       with:
-        registry: ${{ vars.REGISTRY_HOST }}
-        username: ${{ vars.REGISTRY_USER }}
-        password: ${{ secrets.REGISTRY_SECRET }}
+        registry: ${{ env.REGISTRY_HOST }}
+        username: ${{ env.REGISTRY_USERNAME }}
+        password: ${{ env.REGISTRY_PASSWORD }}
 
     - name: Build and push images
       uses: docker/bake-action@v5
@@ -46,20 +67,3 @@ jobs:
         push: true
       # env:
       #   SECURIA_TAG: ${{ env.SECURIA_TAG }}
-
-    # - name: Build the Docker image
-    #   run: |
-    #     cd src
-    #     docker login -u '${{ vars.REGISTRY_USER }}' -p '${{ secrets.REGISTRY_SECRET }}' ${{ vars.REGISTRY_HOST }}
-    #     docker build collector_hikvision/ -t ${{ vars.REGISTRY_HOST }}/securia/collector-hikvision:latest
-    #     docker push ${{ vars.REGISTRY_HOST }}/securia/collector-hikvision:latest
-    #     docker build collector_simulator/ -t ${{ vars.REGISTRY_HOST }}/securia/collector-simulator:latest
-    #     docker push ${{ vars.REGISTRY_HOST }}/securia/collector-simulator:latest
-    #     docker build image_preprocessor/ -t ${{ vars.REGISTRY_HOST }}/securia/image-preprocessor:latest
-    #     docker push ${{ vars.REGISTRY_HOST }}/securia/image-preprocessor:latest
-    #     docker build securia_api/ -t ${{ vars.REGISTRY_HOST }}/securia/securia-api:latest
-    #     docker push ${{ vars.REGISTRY_HOST }}/securia/securia-api:latest
-    #     docker build securia_ui/ -t ${{ vars.REGISTRY_HOST }}/securia/securia-ui:latest
-    #     docker push ${{ vars.REGISTRY_HOST }}/securia/securia-ui:latest
-    #     docker build yolo_processor/ -t ${{ vars.REGISTRY_HOST }}/securia/yolo-processor:latest
-    #     docker push ${{ vars.REGISTRY_HOST }}/securia/yolo-processor:latest

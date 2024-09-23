@@ -54,8 +54,9 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 ## TODO
 
 https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
+https://gha-cache-server.falcondev.io/getting-started
 
-- develop pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
+- develop image/psql pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
 - switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)
 - user driven recorder creation, attachment to collectors
 - collector registration system, which allows linking recorders to collectors
@@ -76,6 +77,7 @@ https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-c
 
 ## DONE
 
+- removed all other secrets from github actions, only the AGE secret is there now, the rest is SOPS managed! - done
 - added harbor LB IP instead of running to the internet router - done (there has got to be an operator for that really) - build time down to 2 mins
 - setup cicd cache based building for images - done
 - optimised build with docker buildx bake, and setup layer caching=max to harbor - done (8 minutes now)

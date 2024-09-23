@@ -6,7 +6,7 @@ helmDefaults:
 
 releases:
 - name: securia-api
-  namespace: securia
+  namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/securia-api
   version: {{ env "CHART_VERSION" | default "1.1.0" }}
@@ -17,7 +17,7 @@ releases:
   secrets:
     - values/dev/securia_api/values_secrets.yaml
 - name: securia-ui
-  namespace: securia
+  namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/securia-ui
   version: {{ env "CHART_VERSION" | default "1.1.0" }}
@@ -28,7 +28,7 @@ releases:
   secrets:
     - values/dev/securia_ui/values_secrets.yaml
 - name: image-preprocessor
-  namespace: securia
+  namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/image-preprocessor
   version: {{ env "CHART_VERSION" | default "1.1.0" }}
@@ -39,7 +39,7 @@ releases:
   secrets:
     - values/dev/image_preprocessor/values_secrets.yaml
 - name: collector-hikvision
-  namespace: securia
+  namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/collector-hikvision
   version: {{ env "CHART_VERSION" | default "1.1.0" }}
@@ -50,7 +50,7 @@ releases:
   secrets:
     - values/dev/collector_hikvision/values_secrets.yaml
 - name: yolo-processor
-  namespace: securia
+  namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/yolo-processor
   version: {{ env "CHART_VERSION" | default "1.1.0" }}

@@ -21,39 +21,25 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    # - name: Install kubectl
-    #   uses: azure/setup-kubectl@v4
-    # - name: Setup registry pull secret # NO LONGER NECESSARY
-    #   run: |
-    #     export $(grep -v '^#' src/.env | xargs -d '\n')
-    #     export
-    #     if ! kubectl -n ${SECURIA_NAMESPACE} get secret registrypullsecret &> /dev/null; then
-    #       echo "Secret does not exist. Creating it..."
-    #       kubectl -n ${SECURIA_NAMESPACE} create secret docker-registry registrypullsecret \
-    #         --docker-username=${{ vars.REGISTRY_USER }} \
-    #         --docker-password=${{ secrets.REGISTRY_SECRET }} \
-    #         --docker-email="securia@marnus.com" \
-    #         --docker-server=${REGISTRY_HOST}
-    #       echo "Secret created successfully."
-    #     else
-    #       echo "Secret already exists. Skipping creation."
-    #     fi
     - name: Setup AGE
       uses: alessiodionisi/setup-age-action@v1.3.0
+
     - name: Check AGE version
       run: age --version
+
     - name: Setup SOPS
       uses: nhedger/setup-sops@v2
+
     - name: Check SOPS version
       run: sops --version
+
     - name: Install Helm
       uses: azure/setup-helm@v4.2.0
+
     - name: populate dotenvs
       run: |
         sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
         export $(grep -v '^#' src/.env.secrets | xargs -d '\n')
-
-        # echo "SOPS_AGE_KEY=${{ secrets.SOPS_AGE_KEY }}" >> $GITHUB_ENV
 
         while IFS='=' read -r key value; do
           if [[ ! $key =~ ^# && -n $key ]]; then
@@ -73,10 +59,12 @@ jobs:
         helm registry login -u ${REGISTRY_USERNAME} -p ${REGISTRY_PASSWORD} ${REGISTRY_HOST}
       env:
         SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+
     - name: Set Chart version
       run: |
         # echo "CHART_VERSION=1.1.${{ github.run_number }}" >> $GITHUB_ENV
         echo "CHART_VERSION=1.1.0" >> $GITHUB_ENV
+
     - name: Deploy application
       uses: helmfile/helmfile-action@v1.9.1
       with:
@@ -88,4 +76,5 @@ jobs:
         helmfile-auto-init: "true"
       env:
         CHART_VERSION: ${{ env.CHART_VERSION }}
+        SECURIA_NAMESPACE: ${{ env.SECURIA_NAMESPACE }}
         SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}

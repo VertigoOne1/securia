@@ -21,16 +21,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Setup Helm
       uses: azure/setup-helm@v4.2.0
+
     - name: Setup AGE
       uses: alessiodionisi/setup-age-action@v1.3.0
+
     - name: Check AGE version
       run: age --version
+
     - name: Setup SOPS
       uses: nhedger/setup-sops@v2
+
     - name: Check SOPS version
       run: sops --version
+
     - name: Package and push charts
       run: |
         export $(grep -v '^#' src/.env | xargs -d '\n')

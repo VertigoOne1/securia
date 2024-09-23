@@ -26,17 +26,37 @@ jobs:
     - name: Install kubectl
       uses: azure/setup-kubectl@v4
 
+    - name: populate dotenvs
+      run: |
+        sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
+        export $(grep -v '^#' src/.env.secrets | xargs -d '\n')
+
+        while IFS='=' read -r key value; do
+          if [[ ! $key =~ ^# && -n $key ]]; then
+            echo "$key=$value" >> $GITHUB_ENV
+            echo "Set $key"
+          fi
+        done < src/.env
+
+        while IFS='=' read -r key value; do
+          if [[ ! $key =~ ^# && -n $key ]]; then
+            echo "$key=$value" >> $GITHUB_ENV
+            echo "Set $key"
+          fi
+        done < src/.env.secrets
+      env:
+        SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+
     - name: Apply registry secret operator
       run: |
         kubectl apply -f infra/registry-creds/registry_secret_operator.yaml
-        
-        kubectl delete secret docker-registry harbor-registry-cred
 
+        kubectl delete secret docker-registry harbor-registry-cred
         kubectl create secret docker-registry harbor-registry-cred \
           --namespace kube-system \
-          --docker-username=${{ vars.REGISTRY_USER }} \
-          --docker-password=${{ secrets.REGISTRY_SECRET }} \
-          --docker-server=${{ vars.REGISTRY_HOST }} \
-          --docker-email=securia@marnus.com
+          --docker-username=${{ env.REGISTRY_USERNAME }} \
+          --docker-password=${{ env.REGISTRY_PASSWORD }} \
+          --docker-server=${{ env.REGISTRY_HOST }} \
+          --docker-email=${{ env.REGISTRY_EMAIL }}
 
         kubectl apply -f infra/registry-creds/cluster_pull_secret.yaml
