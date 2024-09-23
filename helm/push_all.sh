@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=1.1.0
+VERSION=1.1.1
 
 helm registry login -u ${LOCAL_REGISTRY_USER} -p ${LOCAL_REGISTRY_PASS} harbor.marnus.com:443
 helm package charts/collector_hikvision --version ${VERSION}

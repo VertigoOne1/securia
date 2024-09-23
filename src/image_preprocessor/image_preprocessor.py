@@ -67,10 +67,10 @@ def fetch_recorder_by_uuid(uuid, limit=1, token=None):
             "skip": 0
         }
     response = requests.get(f"{config['api']['uri']}/recorder/uuid/{uuid}?{urlencode(params)}", auth=BearerAuth(token))
-    if response:
+    if response.status_code >= 200:
         return response
     else:
-        logger.error(f"Failed to fetch details: {response.status_code}")
+        logger.error(f"Failed to fetch anything from API")
         return None
 
 def recorder_process(token, image_dict):
@@ -78,7 +78,7 @@ def recorder_process(token, image_dict):
         if image_dict['recorder_uuid'] is None:
             logger.info("No recorder UUID present, skipping")
             return None
-        resp = fetch_recorder_by_uuid(image_dict['recorder_uuid'],token=token)
+        resp = fetch_recorder_by_uuid(image_dict['recorder_uuid'], auth=BearerAuth(token))
         if resp is not None:
             if resp.status_code == 404: ## Create it
                 logger.debug("Recorder not found, creating it")
@@ -92,7 +92,7 @@ def recorder_process(token, image_dict):
                     'location': f"{image_dict.get('location') or None}",
                     'contact': f"{image_dict.get('contact') or None}",
                     }
-                resp = requests.post(url, json = request_body)
+                resp = requests.post(url, json = request_body, auth=BearerAuth(token))
                 data = resp.json()
                 logger.debug(f"Create Recorder Response - {data}")
                 logger.debug(f"Recorder ID is {data['id']}")
@@ -131,7 +131,7 @@ def channel_process(token, image_dict, recorder_id):
                     'description': f"{image_dict.get('description') or None}"
                     }
                 logger.debug(f"Request Body - {request_body}")
-                resp = requests.post(url, json = request_body)
+                resp = requests.post(url, json = request_body, auth=BearerAuth(token))
                 data = resp.json()
                 logger.debug(f"Create Channnel Response - {data}")
                 logger.debug(f"Channel ID is {data['id']}")
