@@ -34,6 +34,7 @@ jobs:
           --namespace kube-system \
           --docker-username=${{ vars.REGISTRY_USER }} \
           --docker-password=${{ secrets.REGISTRY_SECRET }} \
-          --docker-email=${{ vars.REGISTRY_HOST }}
+          --docker-server=${{ vars.REGISTRY_HOST }} \
+          --docker-email=securia@marnus.com
 
         kubectl apply -f infra/registry-creds/cluster_pull_secret.yaml
