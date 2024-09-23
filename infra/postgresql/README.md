@@ -54,24 +54,13 @@ kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n postgresql run -i --rm --tty p
 PGBOUNCER_URI=$(kubectl --kubeconfig /home/marnus/iot/kubeconfigs/legion -n postgresql get secrets dev-pg-pg-db-pguser-dev -o jsonpath="{.data.pgbouncer-uri}" | base64 --decode)
 kubectl --kubeconfig /home/marnus/iot/kubeconfigs/legion -n postgresql run -i --rm --tty percona-client --image=perconalab/percona-distribution-postgresql:16 --restart=Never -- psql $PGBOUNCER_URI
 
-### in cluster connection string
-
-`postgresql://test:fQG%40%281as%28+D%3CZUkK%7BIKlys4g@my-pg-pg-db-pgbouncer.postgresql.svc:5432/mytest`
-
-### External connection string
-
-`postgresql://test:fQG%40%281as%28+D%3CZUkK%7BIKlys4g@localhost:32617/mytest`
-
-
 ## Dev deployment
 
 ### Operator
 
 helm --kubeconfig /home/marnus/iot/kubeconfigs/legion install pg-operator percona/pg-operator --namespace postgresql --create-namespace
 
-
 ### Dev Env
-
 
 helm --kubeconfig /home/marnus/iot/kubeconfigs/legion upgrade dev-pg percona/pg-db \
   --set instances[0].name=dev \
@@ -93,7 +82,3 @@ helm --kubeconfig /home/marnus/iot/kubeconfigs/legion upgrade dev-pg percona/pg-
   --set users[3].databases={keycloak} \
   --install \
   --namespace postgresql
-
-
-
-  
