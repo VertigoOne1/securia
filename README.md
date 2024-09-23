@@ -55,7 +55,6 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
 
-- setup cicd cache based building for images
 - develop pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
 - switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)
 - user driven recorder creation, attachment to collectors
@@ -77,7 +76,11 @@ https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-c
 
 ## DONE
 
-- move arc runners to homelab
+- added harbor LB IP instead of running to the internet router - done (there has got to be an operator for that really) - build time down to 2 mins
+- setup cicd cache based building for images - done
+- optimised build with docker buildx bake, and setup layer caching=max to harbor - done (8 minutes now)
+- increased temp storage for job-runner, might have to give it a PVC eventually.. my 256Gb root drives are getting tiny - done
+- move arc runners to homelab - done
 - work on the CICD automation for securia deployment to dev (SOPS setup in github actions) - done
 - bug - recorders by uri not right - switched to UUID
 - bug - kafka services don't scan for topic changes over time, so new topics don't find the prefixes - Refreshes every 30 seconds now
@@ -103,6 +106,18 @@ https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-c
 - deploy postgresql to dev cluster - done
 - move s3 to nfs provisioner eventually for more storage - done
 - redeploy keycloak - done
+
+## Building and Deployment Pipeline
+
+### CICD Sumary
+
+- Github Actions
+- actions-runner in homelab cluster with access to the cluster for helm and kubectl
+- clusterpullsecrets used to not need to worry about it, pipelined
+- helmfile in use plus SOPS/AGE in /helm for declarative git based control and templating
+- docker buildx bake, definition for securia from docker-compose.yaml in /src, which is also then provides declarative git control
+- docker-compose includes caching system to local registry, in cluster, significantly speeding up containerised building/downloading
+- coredns modified to point all cluster services to loadbalancer ips (Traefik LB), avoiding any packets bouncing to firewall
 
 ## Local Dev Env Links
 

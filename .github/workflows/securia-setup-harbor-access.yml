@@ -29,6 +29,8 @@ jobs:
     - name: Apply registry secret operator
       run: |
         kubectl apply -f infra/registry-creds/registry_secret_operator.yaml
+        
+        kubectl delete secret docker-registry harbor-registry-cred
 
         kubectl create secret docker-registry harbor-registry-cred \
           --namespace kube-system \
