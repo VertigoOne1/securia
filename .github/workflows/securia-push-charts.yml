@@ -37,7 +37,7 @@ jobs:
         sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
         export $(grep -v '^#' src/.env.secrets | xargs -d '\n')
         cd helm
-        helm registry login -u '${REGISTRY_USERNAME}' -p '${REGISTRY_PASSWORD}' ${REGISTRY_HOST}
+        helm registry login -u ${REGISTRY_USERNAME} -p ${REGISTRY_PASSWORD} ${REGISTRY_HOST}
         for dir in charts/*/; do
           if [ -d "$dir" ]; then
             chart_name=$(basename "$dir")

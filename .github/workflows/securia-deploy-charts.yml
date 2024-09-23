@@ -48,15 +48,31 @@ jobs:
       run: sops --version
     - name: Install Helm
       uses: azure/setup-helm@v4.2.0
-    - name: Define AGE decryption secret and other env secrets
+    - name: populate dotenvs
       run: |
+        sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
+        export $(grep -v '^#' src/.env.secrets | xargs -d '\n')
+
         # echo "SOPS_AGE_KEY=${{ secrets.SOPS_AGE_KEY }}" >> $GITHUB_ENV
+
         while IFS='=' read -r key value; do
           if [[ ! $key =~ ^# && -n $key ]]; then
             echo "$key=$value" >> $GITHUB_ENV
             echo "Set $key"
           fi
         done < src/.env
+
+        while IFS='=' read -r key value; do
+          if [[ ! $key =~ ^# && -n $key ]]; then
+            echo "$key=$value" >> $GITHUB_ENV
+            echo "Set $key"
+          fi
+        done < src/.env.secrets
+
+        # Test Credentials
+        helm registry login -u ${REGISTRY_USERNAME} -p ${REGISTRY_PASSWORD} ${REGISTRY_HOST}
+      env:
+        SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
     - name: Set Chart version
       run: |
         # echo "CHART_VERSION=1.1.${{ github.run_number }}" >> $GITHUB_ENV
