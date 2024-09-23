@@ -53,9 +53,9 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 
 ## TODO
 
-Error: buildx bake failed with: ERROR: target image-preprocessor: failed to solve: failed to push harbor.marnus.com:443/securia/image-preprocessor:latest: unexpected status from POST request to https://harbor.marnus.com:443/v2/securia/image-preprocessor/blobs/uploads/: 401 Unauthorized
+https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
 
-- move arc runners to homelab
+- setup cicd cache based building for images
 - develop pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
 - switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)
 - user driven recorder creation, attachment to collectors
@@ -77,6 +77,7 @@ Error: buildx bake failed with: ERROR: target image-preprocessor: failed to solv
 
 ## DONE
 
+- move arc runners to homelab
 - work on the CICD automation for securia deployment to dev (SOPS setup in github actions) - done
 - bug - recorders by uri not right - switched to UUID
 - bug - kafka services don't scan for topic changes over time, so new topics don't find the prefixes - Refreshes every 30 seconds now

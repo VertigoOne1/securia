@@ -6,8 +6,16 @@ Options are
 
 ### Buildx bake
 
+#### Setup containerised building
+
 ```bash
-docker buildx bake --push
+docker buildx create --name=container --driver=docker-container --use --bootstrap
+```
+
+#### Usage
+
+```bash
+docker buildx bake --push --builder=container
 ```
 
 ### Compose
