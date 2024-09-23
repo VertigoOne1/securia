@@ -40,7 +40,7 @@ def login():
         if st.button("Register"):
             pass
     with right:
-        st.image('http://localhost:8501/app/static/login_logo.png')
+        st.image(f"{config['api']['static_content_root]']}/login_logo.png")
 
 def logout():
     if st.button("Log out"):

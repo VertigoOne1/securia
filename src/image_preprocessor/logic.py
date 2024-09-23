@@ -81,7 +81,6 @@ def collect_raw_images(token):
                         logger.debug(f"Offset - {message.offset}")
                         topic = f'{config["kafka"]["dlq_topic_prefix"]}process'
                         send_result = kafka_client.send_message(topic, "NA", message.value)
-                        sleep(2)
                     else:
                         logger.info("Processed message, ID: {status} - notifying upstreams")
                         topic = f'{config["kafka"]["produce_topic_prefix"]}image'
