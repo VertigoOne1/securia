@@ -12,7 +12,7 @@ on: workflow_dispatch
 
 jobs:
 
-  build-push-images:
+  install-harbor-registry-secret:
     timeout-minutes: 1440
 
     environment:
@@ -34,6 +34,6 @@ jobs:
           --namespace kube-system \
           --docker-username=${{ vars.REGISTRY_USER }} \
           --docker-password=${{ secrets.REGISTRY_SECRET }} \
-          --docker-email=${REGISTRY_HOST}
+          --docker-email=${{ vars.REGISTRY_HOST }}
 
         kubectl apply -f infra/registry-creds/cluster_pull_secret.yaml
