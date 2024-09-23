@@ -30,6 +30,18 @@ jobs:
       run: |
         echo "SECURIA_TAG=1.1.${{ github.run_number }}" >> $GITHUB_ENV
 
+    - name: Setup AGE
+      uses: alessiodionisi/setup-age-action@v1.3.0
+
+    - name: Check AGE version
+      run: age --version
+
+    - name: Setup SOPS
+      uses: nhedger/setup-sops@v2
+
+    - name: Check SOPS version
+      run: sops --version
+
     - name: populate dotenvs
       run: |
         sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
