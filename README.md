@@ -222,6 +222,12 @@ echo "text: hello there" > test.yaml
 sops --config .sops.yaml encrypt -i test.yaml
 ```
 
+Encrypting/decryipting dotenv files
+
+```bash
+sops -i -e --input-type dotenv --output-type dotenv .env.secrets
+```
+
 ### Decrypt Process
 
 ```bash

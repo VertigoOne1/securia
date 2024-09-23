@@ -21,23 +21,23 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Install kubectl
-      uses: azure/setup-kubectl@v4
-    - name: Setup registry pull secret
-      run: |
-        export $(grep -v '^#' src/.env | xargs -d '\n')
-        export
-        if ! kubectl -n ${SECURIA_NAMESPACE} get secret registrypullsecret &> /dev/null; then
-          echo "Secret does not exist. Creating it..."
-          kubectl -n ${SECURIA_NAMESPACE} create secret docker-registry registrypullsecret \
-            --docker-username=${{ vars.REGISTRY_USER }} \
-            --docker-password=${{ secrets.REGISTRY_SECRET }} \
-            --docker-email="securia@marnus.com" \
-            --docker-server=${REGISTRY_HOST}
-          echo "Secret created successfully."
-        else
-          echo "Secret already exists. Skipping creation."
-        fi
+    # - name: Install kubectl
+    #   uses: azure/setup-kubectl@v4
+    # - name: Setup registry pull secret # NO LONGER NECESSARY
+    #   run: |
+    #     export $(grep -v '^#' src/.env | xargs -d '\n')
+    #     export
+    #     if ! kubectl -n ${SECURIA_NAMESPACE} get secret registrypullsecret &> /dev/null; then
+    #       echo "Secret does not exist. Creating it..."
+    #       kubectl -n ${SECURIA_NAMESPACE} create secret docker-registry registrypullsecret \
+    #         --docker-username=${{ vars.REGISTRY_USER }} \
+    #         --docker-password=${{ secrets.REGISTRY_SECRET }} \
+    #         --docker-email="securia@marnus.com" \
+    #         --docker-server=${REGISTRY_HOST}
+    #       echo "Secret created successfully."
+    #     else
+    #       echo "Secret already exists. Skipping creation."
+    #     fi
     - name: Setup AGE
       uses: alessiodionisi/setup-age-action@v1.3.0
     - name: Check AGE version
@@ -50,7 +50,7 @@ jobs:
       uses: azure/setup-helm@v4.2.0
     - name: Define AGE decryption secret and other env secrets
       run: |
-        echo "SOPS_AGE_KEY=${{ secrets.SOPS_AGE_KEY }}" >> $GITHUB_ENV
+        # echo "SOPS_AGE_KEY=${{ secrets.SOPS_AGE_KEY }}" >> $GITHUB_ENV
         while IFS='=' read -r key value; do
           if [[ ! $key =~ ^# && -n $key ]]; then
             echo "$key=$value" >> $GITHUB_ENV
@@ -72,4 +72,4 @@ jobs:
         helmfile-auto-init: "true"
       env:
         CHART_VERSION: ${{ env.CHART_VERSION }}
-        SOPS_AGE_KEY: ${{ env.SOPS_AGE_KEY }}
+        SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}

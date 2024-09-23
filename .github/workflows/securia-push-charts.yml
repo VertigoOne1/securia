@@ -23,18 +23,31 @@ jobs:
     - uses: actions/checkout@v4
     - name: Setup Helm
       uses: azure/setup-helm@v4.2.0
+    - name: Setup AGE
+      uses: alessiodionisi/setup-age-action@v1.3.0
+    - name: Check AGE version
+      run: age --version
+    - name: Setup SOPS
+      uses: nhedger/setup-sops@v2
+    - name: Check SOPS version
+      run: sops --version
     - name: Package and push charts
       run: |
         export $(grep -v '^#' src/.env | xargs -d '\n')
+        sops -i -e --input-type dotenv --output-type dotenv src/.env.secrets
+        export $(grep -v '^#' src/.env.secrets | xargs -d '\n')
         cd helm
-        helm registry login -u '${{ vars.REGISTRY_USER }}' -p '${{ secrets.REGISTRY_SECRET }}' ${REGISTRY_HOST}
+        helm registry login -u '${REGISTRY_USERNAME}' -p '${REGISTRY_PASSWORD}' ${REGISTRY_HOST}
         for dir in charts/*/; do
           if [ -d "$dir" ]; then
             chart_name=$(basename "$dir")
             echo "Packaging chart: $chart_name"
             package_name=$(echo "${chart_name}" | tr '_' '-')
             helm package "$dir" --version ${SECURIA_VERSION}
+            echo "Pushing chart: $chart_name"
             helm push $package_name-${SECURIA_VERSION}.tgz oci://${REGISTRY_HOST}/securia
           fi
         done
         rm *tgz
+      env:
+        SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
