@@ -275,3 +275,8 @@ class DetectionObjectUpdate(BaseModel):
     confidence: Optional[float] = None
     xyxy: Optional[Json[Any]] = None
     crop_s3_path: Optional[str] = None
+
+class HealthCheck(BaseModel):
+    """Response model to validate and return when performing a health check."""
+
+    status: str = "OK"

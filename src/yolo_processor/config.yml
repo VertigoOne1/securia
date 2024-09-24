@@ -34,14 +34,13 @@ kafka:
   auto_offset_reset: earliest
   enable_auto_commit: True
   value_serialiser: lambda x:json.dumps(x).encode('utf-8')
-flask:
-  default_port: 8089
-  debug_level: INFO
-  debug_enabled: False
 api:
   uri: http://10.0.0.95:8088/securia
   username: apiuser
   password: handed-renovate-silencer-starry
+  default_port: 8089
+  debug_level: info
+  debug_enabled: False
 scheduler:
   enabled: False
 metrics:

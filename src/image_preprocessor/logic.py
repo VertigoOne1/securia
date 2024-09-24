@@ -28,7 +28,8 @@ config = EnvYAML('config.yml')
 
 kafka_client = KafkaClientSingleton.get_instance()
 
-def collect_raw_images():
+async def collect_raw_images():
+    logger.debug("Starting collection")
     if config['preprocessor']['write_local_file']:
         os.makedirs(config['preprocessor']['temp_output_folder'], exist_ok=True)
     while True:
@@ -42,7 +43,7 @@ def collect_raw_images():
                     continue
                 if message is not None:
                     logger.debug(f"Received message from: {message.topic} partition: {message.partition} at offset: {message.offset}")
-                    logger.debug(f"Message: {message}")
+                    logger.trace(f"Message: {message}")
                     status = image_preprocessor.preprocess_image(message.value)
                     if status is None:
                         logger.error("Could not successfully complete message processing, send to DLQ and sleep for 2 seconds")

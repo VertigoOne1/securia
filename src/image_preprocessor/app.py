@@ -1,23 +1,15 @@
 #!/usr/bin/env python3
-
-import sys
-sys.path.append(r'./modules')
-
 from envyaml import EnvYAML
 from time import sleep
 from pprint import pformat
-from apicontroller import FlaskThread
 import requests, time, jwt
+from apicontroller import start_api_server
+import asyncio
 
 import logger, logic
 
 logger = logger.setup_custom_logger(__name__)
 config = EnvYAML('config.yml')
-
-def startApiServer():
-    server = FlaskThread()
-    server.daemon = True
-    server.start()
 
 class BearerAuth(requests.auth.AuthBase):
     def __init__(self, token, refresh_token_func):
@@ -74,6 +66,8 @@ def login():
         logger.error(f"requests - An error occurred: {e}")
 
 if __name__ == '__main__':
-    apiserver = startApiServer()
     logger.info(f"Start - {config['general']['app_name']}")
-    logic.collect_raw_images()
+    logger.debug("Starting image processing")
+    asyncio.run(logic.collect_raw_images())
+    logger.debug("Starting api server")
+    apiserver = start_api_server()

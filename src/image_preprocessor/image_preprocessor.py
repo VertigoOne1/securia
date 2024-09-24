@@ -74,7 +74,7 @@ def recorder_process(image_dict):
         if image_dict['recorder_uuid'] is None:
             logger.info("No recorder UUID present, skipping")
             return None
-        resp = fetch_recorder_by_uuid(image_dict['recorder_uuid'], auth=auth)
+        resp = fetch_recorder_by_uuid(image_dict['recorder_uuid'])
         if resp is not None:
             if resp.status_code == 404: ## Create it
                 logger.debug("Recorder not found, creating it")

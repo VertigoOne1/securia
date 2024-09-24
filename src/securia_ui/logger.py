@@ -5,12 +5,7 @@
 import logging, sys, os
 from envyaml import EnvYAML
 
-if "CONFIG_FILE" in os.environ:
-    logging.info("Loading Production Config")
-    config = EnvYAML(os.environ.get('CONFIG_FILE'))
-else:
-    logging.info("Loading Development Config")
-    config = EnvYAML('config.yml')
+config = EnvYAML('config.yml')
 
 DEBUG_LEVEL = str(config['general']['default_debug_level']).upper()
 

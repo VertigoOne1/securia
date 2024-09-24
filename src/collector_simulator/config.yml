@@ -40,9 +40,9 @@ kafka:
   subscribe_topic_prefix: collector.in.
   produce_topic_prefix: collector.out.
   value_serialiser: lambda x:json.dumps(x).encode('utf-8')
-flask:
-  default_port: 8090
-  debug_level: DEBUG
+api:
+  default_port: 8299
+  debug_level: debug
   debug_enabled: False
 scheduler:
   enabled: True

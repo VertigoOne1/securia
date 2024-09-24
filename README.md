@@ -57,6 +57,7 @@ https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-c
 https://gha-cache-server.falcondev.io/getting-started
 
 - bug - the containers do not exit/restart properly sometimes when errors are encountered. such as when the api service is unavailable.
+- bug - the kafka needs to be more "safe" on exit, the exit loop is just crashing it out.
 - develop image/psql pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
 - switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)
 - user driven recorder creation, attachment to collectors
@@ -75,9 +76,12 @@ https://gha-cache-server.falcondev.io/getting-started
 - expand api auth to keycloak and social auth
 - long term, were going to be multi-tenant.. that requires federated auth and social auth.
 - Turn gpustat --json into prometheus metrics (will need to watch temps)
+- implement "remember me" cookies, and expiry notifications for ui
 
 ## DONE
 
+- improved authentication handling class for services that talk to the api, including token refresh handling - done
+- improved scheduler module code, it should no longer now be "blocking"
 - turfflehog scan confirms no secrets in repo - done
 - removed all other secrets from github actions, only the AGE secret is there now, the rest is SOPS managed! - done
 - added harbor LB IP instead of running to the internet router - done (there has got to be an operator for that really) - build time down to 2 mins

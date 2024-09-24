@@ -20,6 +20,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from eventbus import KafkaClientSingleton
 from kafka.structs import TopicPartition
 import s3
+from app import BearerAuth, login
 
 import logger, metrics
 
@@ -27,12 +28,7 @@ logger = logger.setup_custom_logger(__name__)
 
 config = EnvYAML('config.yml')
 
-class BearerAuth(requests.auth.AuthBase):
-    def __init__(self, token):
-        self.token = token
-    def __call__(self, r):
-        r.headers["authorization"] = "Bearer " + self.token
-        return r
+auth = BearerAuth(token=login(), refresh_token_func=login())
 
 def login():
     username = config['api']['username']
@@ -59,11 +55,11 @@ def login():
 
 kafka_client = KafkaClientSingleton.get_instance()
 
-def fetch_image_key(token, id):
+def fetch_image_key(id):
     logger.debug(f"Fetching key for {id}")
     try:
         url = f"{config['api']['uri']}/image/{id['image_id']}"
-        resp = requests.get(url, auth=BearerAuth(token))
+        resp = requests.get(url, auth=auth)
         data = resp.json()
         logger.debug(f"{data}")
         if resp.status_code == 200:
@@ -102,7 +98,7 @@ def fetch_image_s3(bucket, key):
     im = Image.open(file_stream)
     return im
 
-def predictions_process(token, predictions, image_id, processing_time, time_collected, detections_count):
+def predictions_process(predictions, image_id, processing_time, time_collected, detections_count):
     if predictions is not None and image_id is not None:
         try:
             url = f"{config['api']['uri']}/detection"
@@ -113,7 +109,7 @@ def predictions_process(token, predictions, image_id, processing_time, time_coll
                             'detections_timestamp': time_collected
                             }
             logger.debug(f"Sending - {request_body}")
-            resp = requests.post(url, json = request_body, auth=BearerAuth(token))
+            resp = requests.post(url, json = request_body, auth=auth)
             data = resp.json()
             if resp.status_code == 200:
                 logger.debug(f"detection post resp - {data}")
@@ -129,17 +125,12 @@ def predictions_process(token, predictions, image_id, processing_time, time_coll
         logger.error("Did not receive a valid image_id or predictions")
         return None
 
-# fid = Column(Integer, ForeignKey('detections.id'))
-# detection_class = Column(String,nullable=False)
-# confidence = Column(Double, nullable=False)
-# xyxy = Column(JSONB)
-# crop_s3_path = Column(String,nullable=True)
-def detections_process(token, detections_dict, detections_id):
+def detections_process(detections_dict, detections_id):
     if detections_dict is not None and detections_id is not None:
         detection_ids = []
         for detection in detections_dict:
             try:
-                url = f"{config['api']['uri']}/detection_objects"
+                url = f"{config['api']['uri']}/detection_object"
                 request_body = {'fid': detections_id,
                                 'detection_class': str(detection["class"]),
                                 'detection_name': detection["name"],
@@ -148,7 +139,7 @@ def detections_process(token, detections_dict, detections_id):
                                 'crop_s3_path': "NOT_IMPLEMENTED_YET"
                                 }
                 logger.debug(f"Sending - {request_body}")
-                resp = requests.post(url, json = request_body, auth=BearerAuth(token))
+                resp = requests.post(url, json = request_body, auth=auth)
                 data = resp.json()
                 if resp.status_code == 200:
                     logger.debug(f"detection objects post resp - {data}")
@@ -167,7 +158,7 @@ def detections_process(token, detections_dict, detections_id):
         logger.error("Did not receive a valid detection_id or detection_dict")
         return None
 
-def process_images(token):
+async def process_images():
     if config['yolo']['write_local_file']:
         os.makedirs(config['yolo']['temp_output_folder'], exist_ok=True)
     while True:
@@ -182,7 +173,7 @@ def process_images(token):
                     continue
                 if message is not None:
                     logger.debug(f"Received message from: {message.topic} partition: {message.partition} at offset: {message.offset}")
-                    key = fetch_image_key(token, message.value)
+                    key = fetch_image_key(message.value)
                     if key is None:
                         logger.debug("Key is NONE")
                         logger.error("Could not successfully complete message processing, send to DLQ")
@@ -195,14 +186,14 @@ def process_images(token):
                         logger.debug(f"Retrieving image for {key}")
                         image = fetch_image_s3(key[0], key[1])
                         predictions = image_predict.predict_image(image)
-                        predict_id = predictions_process(token, predictions["image_summary"], message.value['image_id'], predictions["timings"], message_collected_time, predictions["detections_count"])
+                        predict_id = predictions_process(predictions["image_summary"], message.value['image_id'], predictions["timings"], message_collected_time, predictions["detections_count"])
                         if predict_id is None:
                             logger.error("Could not commit predictions summary")
                             logger.error("Send to DLQ")
                             topic = f'{config["kafka"]["dlq_topic_prefix"]}commit'
                             send_result = kafka_client.send_message(topic, "NA", message.value)
                         else:
-                            detection_id = detections_process(token, predictions["image_summary"], predict_id)
+                            detection_id = detections_process(predictions["image_summary"], predict_id)
                             if detection_id is None:
                                 logger.error("Could not commit prediction objects")
                                 logger.error("Send to DLQ")

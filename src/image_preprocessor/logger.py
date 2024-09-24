@@ -5,15 +5,10 @@
 import logging, sys, os
 from envyaml import EnvYAML
 
-if "CONFIG_FILE" in os.environ:
-    logging.info("Loading Production Config")
-    config = EnvYAML(os.environ.get('CONFIG_FILE'))
-else:
-    logging.info("Loading Development Config")
-    config = EnvYAML('config.yml')
+config = EnvYAML('config.yml')
 
 DEBUG_LEVEL = str(config['general']['default_debug_level']).upper()
-FLASK_DEBUG_LEVEL = str(config['flask']['debug_level']).upper()
+API_DEBUG_LEVEL = str(config['api']['debug_level']).upper()
 
 logging.lastResort = None
 
@@ -70,15 +65,6 @@ def setup_custom_logger(name):
     except:
         pass
     formatter = logging.Formatter(fmt='%(asctime)s %(levelname)-4s %(name)s %(funcName)s %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
-    flask_log_level = logging.getLevelName(FLASK_DEBUG_LEVEL)
-    flask_logging = logging.getLogger('werkzeug')
-    flask_logging.setLevel(flask_log_level)
-    logger_urllib = logging.getLogger('urllib3')
-    logger_urllib.setLevel(logging.DEBUG)
-    # flask_logging.default_handler.setFormatter(formatter) #Investigate this sometime
-    logging.info(f"Flask debug logging set to - {FLASK_DEBUG_LEVEL}")
-    logger2 = logging.getLogger()
-    lhStdout = logger2.handlers[0]
     logger = logging.getLogger(name)
     defaultlevel = logging.getLevelName(DEBUG_LEVEL)
     logger.setLevel(defaultlevel)
@@ -101,7 +87,5 @@ def setup_custom_logger(name):
         logger.info("File logging handler disabled")
 
     logging.info("Logging setup complete, disable further root logger messages that is not CRITICAL level")
-    logger2.removeHandler(lhStdout)
-    logger2 = None
     logger.propagate = False
     return logger

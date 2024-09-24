@@ -1,33 +1,21 @@
 #!/usr/bin/env python3
-
-import sys
-sys.path.append(r'./modules')
-
 from envyaml import EnvYAML
-import json, requests, socket
 from time import sleep
-import os, fnmatch
 from pprint import pformat
-from apicontroller import FlaskThread
 from scheduler import start_schedules
+from apicontroller import start_api_server
 
 import logger, logic
 
 logger = logger.setup_custom_logger(__name__)
 config = EnvYAML('config.yml')
 
-def startApiServer():
-    server = FlaskThread()
-    server.daemon = True
-    server.start()
-
 if __name__ == '__main__':
-    apiserver = startApiServer()
     logger.info(f"Start - {config['general']['app_name']}")
     continuous_thread, stop_run_continuously = start_schedules()
+    apiserver = start_api_server()
     try:
         while True:
-            apiserver = apiserver = startApiServer()
             sleep(1)
     except KeyboardInterrupt:
         print("Shutting down...")

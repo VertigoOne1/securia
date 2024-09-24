@@ -11,7 +11,7 @@ from prometheus_client import make_asgi_app
 from envyaml import EnvYAML
 from logger import setup_custom_logger
 from starlette import status
-import s3, tempfile
+import s3
 from uuid import UUID
 import threading
 import signal
@@ -62,7 +62,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     import datetime
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        logger.debug(f"Token Payload: {payload}")
+        logger.trace(f"Token Payload: {payload}")
         username: str = payload.get("sub")
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
@@ -89,7 +89,7 @@ class Role(Enum):
 
 class AccessHierarchy:
     @staticmethod
-    def can_access(accessor_role: str, target_role: str) -> bool:
+    def can_access_user(accessor_role: str, target_role: str) -> bool:
         try:
             accessor = Role[accessor_role.upper()]
             target = Role[target_role.upper()]
@@ -102,7 +102,20 @@ class AccessHierarchy:
         except KeyError:
             return False
 
-    def can_create_update(accessor_role: str) -> bool:
+    def can_get_object(accessor_role: str) -> bool:
+        try:
+            accessor = Role[accessor_role.upper()]
+            target = Role["guest".upper()]
+            if accessor.value >= target.value:
+                logger.debug(f"accessor_role '{accessor_role}' is greater or equal to target_role 'user'")
+                return True
+            else:
+                logger.debug(f"accessor_role '{accessor_role}' is NOT greater or equal to target_role 'user'")
+                return False
+        except KeyError:
+            return False
+
+    def can_create_update_delete_object(accessor_role: str) -> bool:
         try:
             accessor = Role[accessor_role.upper()]
             target = Role["user".upper()]
@@ -196,7 +209,7 @@ def start_api_server():
 
 @app.get("/")
 def root():
-    return {"message": "SecurIA"}
+    return {"message": "SecurIA - API"}
 
 @app.get("/securia/status")
 def status():
@@ -226,7 +239,6 @@ async def login_for_access_token(db: db_dependency, form_data: OAuth2PasswordReq
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
     token_expires = calc_expiry()
-    logger.debug(f"Expiry epoch: {token_expires}")
     token_data = {"sub": user.username, "role": user.role, "email": user.email, "id": user.id, "exp": token_expires}
     access_token = create_access_token(token_data)
     return {"access_token": access_token, "token_type": "bearer"}
@@ -238,7 +250,6 @@ async def login_for_access_token(db: db_dependency, form_data: OAuth2PasswordReq
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
     token_expires = calc_expiry()
-    logger.debug(f"Expiry epoch: {token_expires}")
     token_data = {"sub": user.username, "role": user.role, "email": user.email, "id": user.id, "exp": token_expires}
     access_token = create_access_token(token_data)
     return {"access_token": access_token, "token_type": "bearer"}
@@ -253,9 +264,9 @@ async def protected_route(current_user: dict = Depends(get_current_user)):
 async def create_user(db: db_dependency, user: schemas.UserCreate, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_access(current_user['role'], "super"):
+    if AccessHierarchy.can_access_user(current_user['role'], "super"):
         pass
-    elif AccessHierarchy.can_access(current_user['role'], user.role):
+    elif AccessHierarchy.can_access_user(current_user['role'], user.role):
         pass
     else:
         logger.error(f"{current_user['role']} < {db_user.role}")
@@ -263,7 +274,7 @@ async def create_user(db: db_dependency, user: schemas.UserCreate, current_user:
     db_user = crud.create_user(db, user)
     if db_user is None:
         raise HTTPException(status_code=509, detail='CRUD issue')
-    logger.debug(f"Created new user with id: {db_user.id}")
+    logger.debug(f"Created user with id: {db_user.id}")
     return db_user
 
 @app.get("/securia/user/{user_id}")
@@ -271,9 +282,9 @@ async def get_user_by_id(db: db_dependency, user_id: int = Path(gt=0), current_u
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
-    if AccessHierarchy.can_access(current_user['role'], "super"):
+    if AccessHierarchy.can_access_user(current_user['role'], "super"):
         pass
-    elif AccessHierarchy.can_access(current_user['role'], db_user.role):
+    elif AccessHierarchy.can_access_user(current_user['role'], db_user.role):
         pass
     else:
         logger.error(f"{current_user['role']} < {db_user.role}")
@@ -289,15 +300,15 @@ async def update_user_by_id(db: db_dependency, user: schemas.UserUpdate, user_id
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
-    if AccessHierarchy.can_access(current_user['role'], "super"):
+    if AccessHierarchy.can_access_user(current_user['role'], "super"):
         pass
-    elif AccessHierarchy.can_access(current_user['role'], db_user.role):
+    elif AccessHierarchy.can_access_user(current_user['role'], db_user.role):
         pass
     else:
         logger.error("You cannot update users that have higher access than your own")
         raise HTTPException(status_code=403, detail="You cannot update users that have higher access than your own")
     if user.role is not None:
-        if AccessHierarchy.can_access(current_user['role'], user.role):
+        if AccessHierarchy.can_access_user(current_user['role'], user.role):
             pass
         else:
             logger.error("You cannot update users to have higher access than your own")
@@ -316,9 +327,9 @@ async def delete_user_by_id(db: db_dependency, user_id: int = Path(gt=0), curren
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
     if db_user is None:
         raise HTTPException(status_code=404, detail='User Not Found')
-    if AccessHierarchy.can_access(current_user['role'], "super"):
+    if AccessHierarchy.can_access_user(current_user['role'], "super"):
         pass
-    elif AccessHierarchy.can_access(current_user['role'], db_user.role):
+    elif AccessHierarchy.can_access_user(current_user['role'], db_user.role):
         pass
     else:
         logger.error(f"{current_user['role']} < {db_user.role}")
@@ -338,20 +349,24 @@ async def delete_user_by_id(db: db_dependency, user_id: int = Path(gt=0), curren
 async def create_recorder(db: db_dependency, recorder: schemas.RecorderCreate, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     db_recorder = crud.create_recorder(db, recorder)
     if db_recorder is None:
         raise HTTPException(status_code=509, detail='CRUD issue')
-    logger.debug(f"Created new recorder with id: {db_recorder.id}")
+    logger.debug(f"Created recorder with id: {db_recorder.id}")
     return db_recorder
 
 @app.get("/securia/recorder/{recorder_id}")
 async def get_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     recorder = db.query(models.Recorder).filter(models.Recorder.id == recorder_id).first()
     if recorder is not None:
         return recorder
@@ -363,6 +378,10 @@ async def get_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0), c
 async def get_recorder_by_uuid(db: db_dependency, recorder_uuid: UUID = Path(..., description="The recorder's UUID4"), skip: int = 0, limit: int = 1, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     recorder = db.query(models.Recorder).filter(models.Recorder.recorder_uuid == recorder_uuid).first()
     if recorder is not None:
         return recorder
@@ -374,7 +393,7 @@ async def get_recorder_by_uuid(db: db_dependency, recorder_uuid: UUID = Path(...
 async def update_recorder_by_id(db: db_dependency, recorder: schemas.RecorderUpdate, recorder_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
@@ -389,7 +408,7 @@ async def update_recorder_by_id(db: db_dependency, recorder: schemas.RecorderUpd
 async def delete_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
@@ -406,7 +425,7 @@ async def delete_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0)
 async def search_recorder(db: db_dependency, recorder: schemas.RecorderSearch, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_get_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
@@ -423,6 +442,10 @@ async def search_recorder(db: db_dependency, recorder: schemas.RecorderSearch, c
 async def get_recorder_by_id(db: db_dependency, skip: int = 0, limit: int = 100, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     recorders = db.query(models.Recorder).offset(skip).limit(limit).all()
     if recorders is not None:
         return [schemas.Recorder.from_orm(recorder) for recorder in recorders]
@@ -436,20 +459,24 @@ async def get_recorder_by_id(db: db_dependency, skip: int = 0, limit: int = 100,
 async def create_channel(db: db_dependency, channel: schemas.ChannelCreate, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     db_channel = crud.create_channel(db, channel)
     if db_channel is None:
         raise HTTPException(status_code=509, detail='CRUD issue')
-    logger.debug(f"Created new Channel with id: {db_channel.id}")
+    logger.debug(f"Created channel with id: {db_channel.id}")
     return db_channel
 
 @app.get("/securia/channel/id/{channel_id}")
 async def get_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     channel = db.query(models.Channel).filter(models.Channel.id == channel_id).first()
     if channel is not None:
         return channel
@@ -461,7 +488,7 @@ async def get_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0), cur
 async def update_channel_by_id(db: db_dependency, channel: schemas.ChannelUpdate, channel_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
@@ -476,7 +503,7 @@ async def update_channel_by_id(db: db_dependency, channel: schemas.ChannelUpdate
 async def delete_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
@@ -493,7 +520,7 @@ async def delete_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0), 
 async def search_channel(db: db_dependency, channel: schemas.ChannelSearch, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
@@ -511,6 +538,10 @@ async def search_channel(db: db_dependency, channel: schemas.ChannelSearch, curr
 async def get_channels_by_recorder(db: db_dependency, recorder_id: int = Path(gt=0), skip: int = 0, limit: int = 100, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     channels = db.query(models.Channel).filter(models.Channel.fid == recorder_id).offset(skip).limit(limit).all()
     if channels is not None:
         return [schemas.Channel.from_orm(channel) for channel in channels]
@@ -522,6 +553,10 @@ async def get_channels_by_recorder(db: db_dependency, recorder_id: int = Path(gt
 async def get_channels_by_name(db: db_dependency, channel_name: str = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     channel = db.query(models.Channel).filter(models.Channel.channel_id == channel_name).first()
     if channel is not None:
         return channel
@@ -535,21 +570,25 @@ async def get_channels_by_name(db: db_dependency, channel_name: str = Path(gt=0)
 async def create_image(db: db_dependency, image: schemas.ImageCreate, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    logger.debug(f"received {image}")
+    logger.trace(f"received {image}")
     db_image = crud.create_image(db, image)
     if db_image is None:
         raise HTTPException(status_code=509, detail='CRUD issue')
-    logger.debug(f"Created new Image with id: {db_image.id}")
+    logger.debug(f"Created image with id: {db_image.id}")
     return db_image
 
 @app.get("/securia/image/{image_id}")
 async def get_image_by_id(db: db_dependency, image_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     image = db.query(models.Image).filter(models.Image.id == image_id).first()
     if image is not None:
         return image
@@ -561,7 +600,7 @@ async def get_image_by_id(db: db_dependency, image_id: int = Path(gt=0), current
 async def update_image_by_id(db: db_dependency, image: schemas.ImageUpdate, image_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
@@ -576,7 +615,7 @@ async def update_image_by_id(db: db_dependency, image: schemas.ImageUpdate, imag
 async def delete_image_by_id(db: db_dependency, image_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
@@ -589,14 +628,6 @@ async def delete_image_by_id(db: db_dependency, image_id: int = Path(gt=0), curr
         content={"message": f"Image with id {image_id} deleted"}
     )
 
-@app.get("/securia/image_file/{image_id}",
-    responses = {
-        200: {
-            "content": {"image/jpeg": {}}
-        }
-    }
-)
-
 @app.get("/securia/image/channel/{fid_id}",response_model=list[schemas.Image])
 async def get_image_by_channel_fid(db: db_dependency,
                                    fid_id: int = Path(gt=0),
@@ -608,6 +639,10 @@ async def get_image_by_channel_fid(db: db_dependency,
                                    ):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     try:
         query = db.query(models.Image).filter(models.Image.fid == fid_id)
 
@@ -646,6 +681,10 @@ async def get_detection_by_channel_fid(db: db_dependency,
     from sqlalchemy.orm import aliased
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     try:
         d = aliased(models.Detection)
         i = aliased(models.Image)
@@ -675,10 +714,15 @@ async def get_detection_by_channel_fid(db: db_dependency,
         logger.error(f"{e}")
         raise HTTPException(status_code=500, detail=f'Server error: {str(e)}')
 
+@app.get("/securia/image_file/{image_id}", responses = {200: {"content": {"image/jpeg": {}}}})
 async def get_image_file_by_id(db: db_dependency, image_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     import io
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     image = db.query(models.Image).filter(models.Image.id == image_id).first()
     if image is not None:
         image_path = image.s3_path.split('/')
@@ -699,7 +743,7 @@ async def get_image_file_by_id(db: db_dependency, image_id: int = Path(gt=0), cu
 async def create_detection(db: db_dependency, detection: schemas.DetectionCreate, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
@@ -707,15 +751,19 @@ async def create_detection(db: db_dependency, detection: schemas.DetectionCreate
         db_detection = crud.create_detection(db, detection)
         if db_detection is None:
             raise HTTPException(status_code=509, detail='CRUD issue')
+        logger.debug(f"Created Detections with id: {db_detection.id}")
     except:
         logger.error("Issue somewhere")
-    logger.debug(f"Created new Detections with id: {db_detection.id}")
     return db_detection
 
 @app.get("/securia/detection/{detection_id}")
 async def get_detection_by_id(db: db_dependency, detection_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     detection = db.query(models.Detection).filter(models.Detection.id == detection_id).first()
     if detection is not None:
         return detection
@@ -727,7 +775,7 @@ async def get_detection_by_id(db: db_dependency, detection_id: int = Path(gt=0),
 async def update_detection_by_id(db: db_dependency, detection: schemas.DetectionUpdate, detection_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
@@ -742,7 +790,7 @@ async def update_detection_by_id(db: db_dependency, detection: schemas.Detection
 async def delete_detection_by_id(db: db_dependency, detection_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
@@ -761,23 +809,28 @@ async def delete_detection_by_id(db: db_dependency, detection_id: int = Path(gt=
 async def create_detection_object(db: db_dependency, detectionobject: schemas.DetectionObjectCreate, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     try:
+        logger.trace(f"creating - {detectionobject}")
         db_detectionobj = crud.create_detection_object(db, detectionobject)
         if db_detectionobj is None:
             raise HTTPException(status_code=509, detail='CRUD issue')
-    except:
-        logger.error("Issue somewhere")
-    logger.debug(f"Created new Detections with id: {db_detectionobj.id}")
+        logger.debug(f"Created Detection object with id: {db_detectionobj.id}")
+    except Exception as e:
+        logger.error(f"{e}")
     return db_detectionobj
 
 @app.get("/securia/detection_object/{detectionobject_id}")
 async def get_detection_object_by_id(db: db_dependency, detectionobject_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     detection = db.query(models.DetectionObjects).filter(models.DetectionObjects.id == detectionobject_id).first()
     if detection is not None:
         return detection
@@ -789,7 +842,7 @@ async def get_detection_object_by_id(db: db_dependency, detectionobject_id: int 
 async def update_detection_object_by_id(db: db_dependency, detectionobject: schemas.DetectionObjectUpdate, detectionobject_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
@@ -804,7 +857,7 @@ async def update_detection_object_by_id(db: db_dependency, detectionobject: sche
 async def delete_detection_object_by_id(db: db_dependency, detectionobject_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    if AccessHierarchy.can_create_update(current_user['role']):
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
@@ -816,3 +869,25 @@ async def delete_detection_object_by_id(db: db_dependency, detectionobject_id: i
         status_code=200,
         content={"message": f"Detection object with id {detectionobject_id} deleted"}
     )
+
+# Health
+
+@app.get(
+    "/health",
+    tags=["healthcheck"],
+    summary="Perform a Health Check",
+    response_description="Return HTTP Status Code 200 (OK)",
+    status_code=200,
+    response_model=schemas.HealthCheck,
+)
+async def get_health() -> schemas.HealthCheck:
+    """
+    ## Perform a Health Check
+    Endpoint to perform a healthcheck on. This endpoint can primarily be used Docker
+    to ensure a robust container orchestration and management is in place. Other
+    services which rely on proper functioning of the API service will not deploy if this
+    endpoint returns any other HTTP status code except 200 (OK).
+    Returns:
+        HealthCheck: Returns a JSON response with the health status
+    """
+    return schemas.HealthCheck(status="OK")

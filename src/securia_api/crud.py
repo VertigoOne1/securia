@@ -71,18 +71,23 @@ def create_user(db: Session, user: schemas.UserCreate):
         return None
 
 def get_user_by_username(db: Session, username: str) -> Optional[schemas.User]:
-    logger.debug("Fetching user from model.User")
+    logger.debug(f"Finding user: {username} from db")
     user = db.query(models.User).filter(models.User.username == username).first()
     if user is not None:
+        logger.debug("User Found")
         return schemas.User.from_orm(user)
     else:
         logger.debug(f"User not found - {username}")
     return None
 
-def get_user_by_email(db: Session, email):
-    users = db.query(models.User).filter(models.User.email == email).first()
-    if users is not None:
-        return [schemas.Recorder.from_orm(user) for user in users]
+def get_user_by_email(db: Session, email: str) -> Optional[schemas.User]:
+    logger.debug("Finding user by email: {email} from db")
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if user is not None:
+        logger.debug("User Found")
+        return schemas.User.from_orm(user)
+    else:
+        logger.debug(f"User not found - {email}")
     return None
 
 def verify_user_password(plain_password, hashed_password):
@@ -326,7 +331,7 @@ def delete_detection(db: Session, id: int):
 def create_detection_object(db: Session,
                  detectionobj: schemas.DetectionObjectCreate,
                  ):
-    db_detectionobj = models.DetectionObjects(fid=detectionobj.fid,
+    db_detectionobj = models.DetectionObject(fid=detectionobj.fid,
                                                  detection_class=detectionobj.detection_class,
                                                  detection_name=detectionobj.detection_name,
                                                  confidence=detectionobj.confidence,
@@ -342,7 +347,7 @@ def create_detection_object(db: Session,
         return None
 
 def update_detection_object(db: Session, id: int, detection_object: schemas.DetectionObjectUpdate):
-    db_deto = db.query(models.DetectionObjects).filter(models.DetectionObjects.id == id).first()
+    db_deto = db.query(models.DetectionObject).filter(models.DetectionObject.id == id).first()
 
     if db_deto is None:
         logger.debug(f"Detection object - {id} not found")
@@ -362,7 +367,7 @@ def update_detection_object(db: Session, id: int, detection_object: schemas.Dete
     return db_deto
 
 def delete_detection_object(db: Session, id: int):
-    db_deto = db.query(models.DetectionObjects).filter(models.DetectionObjects.id == id).first()
+    db_deto = db.query(models.DetectionObject).filter(models.DetectionObject.id == id).first()
     if db_deto is None:
         return None
     try:

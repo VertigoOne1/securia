@@ -92,6 +92,6 @@ class KafkaClientSingleton:
             self.consumer.close()
         logger.debug("Closed consumer")
         if self.producer:
-            self.producer.close(timeout=5)
+            self.producer.close(timeout=2)
         logger.debug("Closed Producer")
         return None

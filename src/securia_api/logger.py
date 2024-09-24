@@ -6,12 +6,7 @@ import logging, sys, os
 from envyaml import EnvYAML
 from fastapi.logger import logger
 
-if "CONFIG_FILE" in os.environ:
-    logging.info("Loading Production Config")
-    config = EnvYAML(os.environ.get('CONFIG_FILE'))
-else:
-    logging.info("Loading Development Config")
-    config = EnvYAML('config.yml')
+config = EnvYAML('config.yml')
 
 DEBUG_LEVEL = str(config['general']['default_debug_level']).upper()
 API_DEBUG_LEVEL = str(config['api']['debug_level']).upper()
@@ -77,9 +72,6 @@ def setup_custom_logger(name):
     # logging.handlers = api_logging.handlers
     # api_logging.setLevel(api_log_level)
     logging.info(f"api debug logging set to - {API_DEBUG_LEVEL}")
-
-    logger2 = logging.getLogger()
-    lhStdout = logger2.handlers[0]
     logger = logging.getLogger(name)
     defaultlevel = logging.getLevelName(DEBUG_LEVEL)
     logger.setLevel(defaultlevel)
@@ -102,7 +94,5 @@ def setup_custom_logger(name):
         logger.info("File logging handler disabled")
 
     logging.info("Logging setup complete, disable further root logger messages that is not CRITICAL level")
-    logger2.removeHandler(lhStdout)
-    logger2 = None
     logger.propagate = False
     return logger
