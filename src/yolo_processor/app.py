@@ -9,7 +9,6 @@ from time import sleep
 import os, fnmatch, traceback
 from pprint import pformat
 from apicontroller import FlaskThread
-from scheduler import start_schedules
 
 import logger, logic
 

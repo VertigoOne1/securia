@@ -352,14 +352,13 @@ yolov8l.pt
 - Change vector analysis: Comparing multi-spectral or multi-temporal images to detect changes in land cover or use.
 - Object-based change detection: Segmenting images into objects and comparing their properties between images.
 
-
 ## Clean slate start up
 
 - push images
 - push charts
 - deploy application
-- connect to api/docs - login with anything
-- check the logs for the initial superuser
+- connect to api/docs - login with anything to create superuser
+- check the logs for the initial superuser details
 - login with the superuser on api/docs and create the necessary users for the other services
 - create your own admin user if you want
 - restart services

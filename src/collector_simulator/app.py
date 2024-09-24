@@ -24,4 +24,14 @@ def startApiServer():
 if __name__ == '__main__':
     apiserver = startApiServer()
     logger.info(f"Start - {config['general']['app_name']}")
-    scheduling = start_schedules()
+    continuous_thread, stop_run_continuously = start_schedules()
+    try:
+        while True:
+            apiserver = apiserver = startApiServer()
+            sleep(1)
+    except KeyboardInterrupt:
+        print("Shutting down...")
+    finally:
+        if stop_run_continuously:
+            stop_run_continuously.set()
+            continuous_thread.join()

@@ -24,13 +24,13 @@ collector:
   image_filename_prefix: "image"
   channels:
     - 101
-    # - 201
-    # - 301
-    # - 401
-    # - 501
-    # - 601
-    # - 701
-    # - 801
+    - 201
+    - 301
+    - 401
+    - 501
+    - 601
+    - 701
+    - 801
 kafka:
   broker_url: ["10.0.0.59:32394"]
   security_protocol: SASL_PLAINTEXT

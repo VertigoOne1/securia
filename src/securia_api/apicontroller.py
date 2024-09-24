@@ -13,6 +13,10 @@ from logger import setup_custom_logger
 from starlette import status
 import s3, tempfile
 from uuid import UUID
+import threading
+import signal
+import sys
+import faulthandler
 
 import logger, logic, models, schemas, crud
 from database import engine, SessionLocal
@@ -26,7 +30,6 @@ APP_NAME = config['general']['app_name']
 app = FastAPI()
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
-
 
 # Secret key for signing JWT tokens
 SECRET_KEY = config["api"]["secret_key"]
@@ -150,12 +153,46 @@ def authenticate_user(db: db_dependency, username: str, password: str):
     return user
 
 logger.info("Creating schemas")
-models.Base.metadata.create_all(bind=engine)
+try:
+    models.Base.metadata.create_all(bind=engine)
+except Exception as e:
+    import sys
+    logger.error(f"Could not create schemas: {str(e)}")
+    faulthandler.dump_traceback()
+    sys.exit(1)
 
 def start_api_server():
-    uvconfig = uvicorn.Config(app, host="0.0.0.0", port=config['api']['default_port'], log_level=config['api']['debug_level'])
+    uvconfig = uvicorn.Config(
+        app,
+        host="0.0.0.0",
+        port=config['api']['default_port'],
+        log_level=config['api']['debug_level']
+    )
     server = uvicorn.Server(uvconfig)
-    server.run()
+
+    def run_server():
+        server.run()
+
+    thread = threading.Thread(target=run_server, daemon=True)
+    thread.start()
+
+    def signal_handler(signum, frame):
+        print("Received shutdown signal. Stopping server...")
+        server.should_exit = True
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
+    try:
+        while True:
+            thread.join(timeout=1.0)
+            if not thread.is_alive():
+                break
+    except KeyboardInterrupt:
+        print("Keyboard interrupt received. Stopping server...")
+        server.should_exit = True
+        sys.exit(0)
 
 @app.get("/")
 def root():

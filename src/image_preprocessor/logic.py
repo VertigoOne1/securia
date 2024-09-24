@@ -26,42 +26,11 @@ logger = logger.setup_custom_logger(__name__)
 
 config = EnvYAML('config.yml')
 
-# class BearerAuth(requests.auth.AuthBase):
-#     def __init__(self, token):
-#         self.token = token
-#     def __call__(self, r):
-#         r.headers["authorization"] = "Bearer " + self.token
-#         return r
-
-def login():
-    username = config['api']['username']
-    password = config['api']['password']
-    data = {
-        "grant_type": "password",
-        "username": username,
-        "password": password,
-        "scope": "api",
-        "client_id": "client_id",
-        "client_secret": "client_secret"
-    }
-    try:
-        response = requests.post(f"{config['api']['uri']}/token", data=data)
-
-        if response.status_code == 200:
-            # Successful login
-            token = response.json().get("access_token")
-            return token
-        else:
-            logger.error("Invalid username or password. Please try again.")
-    except requests.exceptions.RequestException as e:
-        logger.error(f"requests - An error occurred: {e}")
-
 kafka_client = KafkaClientSingleton.get_instance()
 
-def collect_raw_images(token):
+def collect_raw_images():
     if config['preprocessor']['write_local_file']:
         os.makedirs(config['preprocessor']['temp_output_folder'], exist_ok=True)
-    token = login()
     while True:
         # Consume messages
         try:
@@ -74,7 +43,7 @@ def collect_raw_images(token):
                 if message is not None:
                     logger.debug(f"Received message from: {message.topic} partition: {message.partition} at offset: {message.offset}")
                     logger.debug(f"Message: {message}")
-                    status = image_preprocessor.preprocess_image(token, message.value)
+                    status = image_preprocessor.preprocess_image(message.value)
                     if status is None:
                         logger.error("Could not successfully complete message processing, send to DLQ and sleep for 2 seconds")
                         logger.debug(f"Partition - {message.partition}")

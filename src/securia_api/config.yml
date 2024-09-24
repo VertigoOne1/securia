@@ -28,7 +28,7 @@ api:
   secret_key: 7a61f307a3c2040fd6923cb0357a546f1bf436607f5dd5fad0ceb0c0844c6f64
   token_expiry_seconds: 86400 # 1 day
 scheduler:
-  enabled: False
+  enabled: True
 metrics:
   enabled: True
 logging:

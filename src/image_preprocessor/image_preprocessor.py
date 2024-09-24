@@ -4,17 +4,13 @@ import requests, os, time, json, hashlib, base64, traceback
 from envyaml import EnvYAML
 from datetime import datetime
 import logger
+from app import BearerAuth, login
 import s3, tempfile
 
 logger = logger.setup_custom_logger(__name__)
 config = EnvYAML('config.yml')
 
-class BearerAuth(requests.auth.AuthBase):
-    def __init__(self, token):
-        self.token = token
-    def __call__(self, r):
-        r.headers["authorization"] = "Bearer " + self.token
-        return r
+auth = BearerAuth(token=login(), refresh_token_func=login())
 
 def calculate_sha256(content):
     sha256_hash = hashlib.sha256()
@@ -60,25 +56,25 @@ def send_s3(image_dict):
         logger.error(traceback.format_exc())
         return None
 
-def fetch_recorder_by_uuid(uuid, limit=1, token=None):
+def fetch_recorder_by_uuid(uuid, limit=1):
     from urllib.parse import urlencode
     params = {
             "limit": limit,
             "skip": 0
         }
-    response = requests.get(f"{config['api']['uri']}/recorder/uuid/{uuid}?{urlencode(params)}", auth=BearerAuth(token))
+    response = requests.get(f"{config['api']['uri']}/recorder/uuid/{uuid}?{urlencode(params)}", auth=auth)
     if response.status_code >= 200:
         return response
     else:
         logger.error(f"Failed to fetch anything from API")
         return None
 
-def recorder_process(token, image_dict):
+def recorder_process(image_dict):
     try:
         if image_dict['recorder_uuid'] is None:
             logger.info("No recorder UUID present, skipping")
             return None
-        resp = fetch_recorder_by_uuid(image_dict['recorder_uuid'], auth=BearerAuth(token))
+        resp = fetch_recorder_by_uuid(image_dict['recorder_uuid'], auth=auth)
         if resp is not None:
             if resp.status_code == 404: ## Create it
                 logger.debug("Recorder not found, creating it")
@@ -92,7 +88,7 @@ def recorder_process(token, image_dict):
                     'location': f"{image_dict.get('location') or None}",
                     'contact': f"{image_dict.get('contact') or None}",
                     }
-                resp = requests.post(url, json = request_body, auth=BearerAuth(token))
+                resp = requests.post(url, json = request_body, auth=auth)
                 data = resp.json()
                 logger.debug(f"Create Recorder Response - {data}")
                 logger.debug(f"Recorder ID is {data['id']}")
@@ -112,13 +108,13 @@ def recorder_process(token, image_dict):
         logger.error(traceback.format_exc())
         return None
 
-def channel_process(token, image_dict, recorder_id):
+def channel_process(image_dict, recorder_id):
     if recorder_id is not None:
         try:
             url = f"{config['api']['uri']}/channel/search/"
             request_body = {'fid': recorder_id, 'channel_id': image_dict['channel']}
             logger.debug(f"Finding channel and recorder - {request_body}")
-            resp = requests.post(url, json = request_body, auth=BearerAuth(token))
+            resp = requests.post(url, json = request_body, auth=auth)
             data = resp.json()
             logger.debug(f"Channel search resp - {data}")
             if resp.status_code == 404: ## Create it
@@ -131,7 +127,7 @@ def channel_process(token, image_dict, recorder_id):
                     'description': f"{image_dict.get('description') or None}"
                     }
                 logger.debug(f"Request Body - {request_body}")
-                resp = requests.post(url, json = request_body, auth=BearerAuth(token))
+                resp = requests.post(url, json = request_body, auth=auth)
                 data = resp.json()
                 logger.debug(f"Create Channnel Response - {data}")
                 logger.debug(f"Channel ID is {data['id']}")
@@ -148,7 +144,7 @@ def channel_process(token, image_dict, recorder_id):
         logger.error("Did not receive a valid recorder_id")
         return None
 
-def image_process(token, image_dict, channel_id, object_name):
+def image_process(image_dict, channel_id, object_name):
     if channel_id is not None and object_name is not None:
         try:
             url = f"{config['api']['uri']}/image"
@@ -164,7 +160,7 @@ def image_process(token, image_dict, channel_id, object_name):
                             'ingest_timestamp': image_dict['preproc_ingest_time']
                             }
             logger.debug(f"Sending - {request_body}")
-            resp = requests.post(url, json = request_body, auth=BearerAuth(token))
+            resp = requests.post(url, json = request_body, auth=auth)
             data = resp.json()
             if resp.status_code == 200:
                 logger.debug(f"Image post resp - {data}")
@@ -180,7 +176,7 @@ def image_process(token, image_dict, channel_id, object_name):
         logger.error("Did not receive a valid channel_id or uuid")
         return None
 
-def preprocess_image(token, image_dict):
+def preprocess_image(image_dict):
     try:
         logger.debug(f"Received data from {image_dict['uri']} | Channel: {image_dict['channel']} | Status: {image_dict['status'] or 'None'}")
         image_dict["preproc_ingest_time"] = datetime.now().strftime(config['preprocessor']['time_format'])
@@ -198,12 +194,12 @@ def preprocess_image(token, image_dict):
             if image_dict["recorder_status_code"] != "200":
                 logger.debug("Collector failed to retrieve image, skipping S3 portion, registering NO_IMAGE event")
                 linking = {}
-                linking['recorder_id'] = recorder_process(token, image_dict)
+                linking['recorder_id'] = recorder_process(image_dict)
                 if linking['recorder_id'] is None:
                     logger.info("No recorder_id received, cannot do anything")
                     return None
-                linking['channel_id'] = channel_process(token, image_dict, linking['recorder_id'])
-                linking['image_id'] = image_process(token, image_dict, linking['channel_id'], "NO_IMAGE")
+                linking['channel_id'] = channel_process(image_dict, linking['recorder_id'])
+                linking['image_id'] = image_process(image_dict, linking['channel_id'], "NO_IMAGE")
                 if linking['image_id'] is not None:
                     logger.debug("Processes completed successfully")
                     return linking['image_id']
@@ -219,11 +215,11 @@ def preprocess_image(token, image_dict):
                         logger.info(f"Sent to S3 - {config['storage']['bucket_name']}/{object_name}")
                         # Submit to API
                         # resolve recorder uri to id -> recorder_id
-                        linking['recorder_id'] = recorder_process(token, image_dict)
+                        linking['recorder_id'] = recorder_process(image_dict)
                         # resolve channel id via recorder id and channel name
-                        linking['channel_id'] = channel_process(token, image_dict, linking['recorder_id'])
+                        linking['channel_id'] = channel_process(image_dict, linking['recorder_id'])
                         # insert image via channel_id
-                        linking['image_id'] = image_process(token, image_dict, linking['channel_id'], object_name)
+                        linking['image_id'] = image_process(image_dict, linking['channel_id'], object_name)
                         if linking['image_id'] is not None:
                             logger.debug("Processes completed successfully")
                             return linking['image_id']
