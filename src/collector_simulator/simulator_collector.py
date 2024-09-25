@@ -52,7 +52,7 @@ def capture_simulated_image(channel):
             image_data = {
                 "collected_timestamp": f"{timestamp}",
                 "recorder_uuid": f"{config['collector']['recorder_uuid']}",
-                "uri": f"config['collector']['recorder_fqdn']",
+                "uri": f"{config['collector']['recorder_fqdn']}",
                 "friendly_name": f"{config['collector']['recorder_friendly_name']}",
                 "content_type": f"image/jpeg",
                 "content_length": f"{len(image['byte_data'])}",

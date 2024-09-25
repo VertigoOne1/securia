@@ -376,6 +376,7 @@ async def get_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0), c
 
 @app.get("/securia/recorder/uuid/{recorder_uuid}")
 async def get_recorder_by_uuid(db: db_dependency, recorder_uuid: UUID = Path(..., description="The recorder's UUID4"), skip: int = 0, limit: int = 1, current_user: dict = Depends(get_current_user)):
+    import uuid
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     if AccessHierarchy.can_get_object(current_user['role']):
@@ -385,7 +386,8 @@ async def get_recorder_by_uuid(db: db_dependency, recorder_uuid: UUID = Path(...
     recorder = db.query(models.Recorder).filter(models.Recorder.recorder_uuid == recorder_uuid).first()
     if recorder is not None:
         return recorder
-    if recorder is None:
+    elif recorder is None:
+        logger.debug("Recorder not found")
         raise HTTPException(status_code=404, detail='Recorder not found')
     raise HTTPException(status_code=500, detail='CRUD issue')
 

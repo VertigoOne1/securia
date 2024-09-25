@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import inspect
 import models, schemas
 from typing import Annotated, Optional
 import logger, bcrypt
@@ -132,14 +133,18 @@ def create_recorder(db: Session,
                  recorder: schemas.RecorderCreate,
                  ):
     try:
-        db_recorder = models.Recorder(uri=recorder.uri)
-        logger.debug(f"New recorder URI - {recorder.uri}")
-        logger.debug(f"{db_recorder}")
+        recorder_data = recorder.dict()
+        recorder_columns = inspect(models.Recorder).columns.keys()
+        filtered_data = {k: v for k, v in recorder_data.items() if k in recorder_columns}
+        db_recorder = models.Recorder(**filtered_data)
+        logger.debug(f"New recorder UUID - {recorder.recorder_uuid}")
         db.add(db_recorder)
         db.commit()
         db.refresh(db_recorder)
         return db_recorder
-    except:
+    except Exception as e:
+        logger.error(f"Error creating recorder: {e}")
+        db.rollback()
         return None
 
 def update_recorder(db: Session, id: int, recorder: schemas.RecorderUpdate):
@@ -180,12 +185,19 @@ def delete_recorder(db: Session, id: int):
 def create_channel(db: Session,
                  channel: schemas.ChannelCreate,
                  ):
-    db_channel = models.Channel(channel_id=channel.channel_id,
-                                 fid=channel.fid)
-    db.add(db_channel)
-    db.commit()
-    db.refresh(db_channel)
-    return db_channel
+    try:
+        channel_data = channel.dict()
+        channel_columns = inspect(models.Channel).columns.keys()
+        filtered_data = {k: v for k, v in channel_data.items() if k in channel_columns}
+        db_channel = models.Channel(**filtered_data)
+        db.add(db_channel)
+        db.commit()
+        db.refresh(db_channel)
+        return db_channel
+    except Exception as e:
+        logger.error(f"Error creating channel: {e}")
+        db.rollback()
+        return None
 
 def update_channel(db: Session, id: int, channel: schemas.ChannelUpdate):
     db_channel = db.query(models.Channel).filter(models.Channel.id == id).first()
@@ -225,20 +237,19 @@ def delete_channel(db: Session, id: int):
 def create_image(db: Session,
                  image: schemas.ImageCreate,
                  ):
-    db_image = models.Image(fid=image.fid,
-                            hash=image.hash,
-                            s3_path=image.s3_path,
-                            content_length=image.content_length,
-                            content_type=image.content_type,
-                            recorder_status_code=image.recorder_status_code,
-                            recorder_status_data=image.recorder_status_data,
-                            collection_status=image.collection_status,
-                            collected_timestamp=image.collected_timestamp
-                            )
-    db.add(db_image)
-    db.commit()
-    db.refresh(db_image)
-    return db_image
+    try:
+        image_data = image.dict()
+        image_columns = inspect(models.Image).columns.keys()
+        filtered_data = {k: v for k, v in image_data.items() if k in image_columns}
+        db_image = models.Image(**filtered_data)
+        db.add(db_image)
+        db.commit()
+        db.refresh(db_image)
+        return db_image
+    except Exception as e:
+        logger.error(f"Error creating image: {e}")
+        db.rollback()
+        return None
 
 def update_image(db: Session, id: int, image: schemas.ImageUpdate):
     # Query the existing channel by id
@@ -279,18 +290,19 @@ def delete_image(db: Session, id: int):
 def create_detection(db: Session,
                  detection: schemas.DetectionCreate,
                  ):
-    db_detection = models.Detection(fid=detection.fid,
-                                    detections=detection.detections,
-                                    detections_count=detection.detections_count,
-                                    processing_time_ms=detection.processing_time_ms,
-                                    detections_timestamp=detection.detections_timestamp
-                                    )
+
     try:
+        detection_data = detection.dict()
+        detection_columns = inspect(models.Detection).columns.keys()
+        filtered_data = {k: v for k, v in detection_data.items() if k in detection_columns}
+        db_detection = models.Detection(**filtered_data)
         db.add(db_detection)
         db.commit()
         db.refresh(db_detection)
         return db_detection
-    except:
+    except Exception as e:
+        logger.error(f"Error creating detection: {e}")
+        db.rollback()
         return None
 
 def update_detection(db: Session, id: int, detection: schemas.DetectionUpdate):
@@ -331,14 +343,11 @@ def delete_detection(db: Session, id: int):
 def create_detection_object(db: Session,
                  detectionobj: schemas.DetectionObjectCreate,
                  ):
-    db_detectionobj = models.DetectionObject(fid=detectionobj.fid,
-                                                 detection_class=detectionobj.detection_class,
-                                                 detection_name=detectionobj.detection_name,
-                                                 confidence=detectionobj.confidence,
-                                                 xyxy=detectionobj.xyxy,
-                                                 crop_s3_path=detectionobj.crop_s3_path
-                                                 )
     try:
+        detection_object_data = detectionobj.dict()
+        detection_object_columns = inspect(models.DetectionObject).columns.keys()
+        filtered_data = {k: v for k, v in detection_object_data.items() if k in detection_object_columns}
+        db_detectionobj = models.DetectionObject(**filtered_data)
         db.add(db_detectionobj)
         db.commit()
         db.refresh(db_detectionobj)

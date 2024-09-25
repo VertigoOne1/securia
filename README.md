@@ -56,9 +56,6 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
 https://gha-cache-server.falcondev.io/getting-started
 
-- bug 2024-09-25T00:41:28 DEBUG image_preprocessor recorder_process Create Recorder Response - {'detail': [{'type': 'missing', 'loc': ['body', 'recorder_uuid'], 'msg': 'Field required', 'input': {'uri': "config['collector']['recorder_fqdn']", 'uuid': '79981d14-7719-49b2-b6b5-f7996b73ba04', 'friendly_name': 'Simulator2', 'owner': 'None', 'type': 'None', 'location': 'None', 'contact': 'None'}}]}
-- when inserting a new recorder, i think i'm just missing the schema update to uuid->recorder_uuid
-
 - bug - the kafka needs to be more "safe" on exit, the exit loop is just crashing it out.
 - develop image/psql pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
 - switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)
@@ -82,6 +79,7 @@ https://gha-cache-server.falcondev.io/getting-started
 
 ## DONE
 
+- fixed bug with recorder_uuid and bulletproofed the db create on new
 - revamped the authentication for all services, and added ACL checks for get services as well to have a role of at least guest for GET, all other CRUD needs at least user, and user manipulation needs your user to be above any other user - done
 - cleaned up logger code and fixed scheduler code as well - done
 - migrated all services from flask to fastapi, and introduced asyncio - done

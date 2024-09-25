@@ -70,6 +70,7 @@ def fetch_recorder_by_uuid(uuid, limit=1):
         return None
 
 def recorder_process(image_dict):
+    logger.debug(f"Processing Recorder: {image_dict['recorder_uuid']}")
     try:
         if image_dict['recorder_uuid'] is None:
             logger.info("No recorder UUID present, skipping")
@@ -81,7 +82,7 @@ def recorder_process(image_dict):
                 url = f"{config['api']['uri']}/recorder"
                 request_body = {
                     'uri': image_dict['uri'],
-                    'uuid': image_dict['recorder_uuid'],
+                    'recorder_uuid': f"{image_dict['recorder_uuid']}",
                     'friendly_name': f"{image_dict.get('friendly_name') or None}",
                     'owner': f"{image_dict.get('owner') or None}",
                     'type': f"{image_dict.get('type') or None}",
@@ -95,7 +96,7 @@ def recorder_process(image_dict):
                 return data['id']
             elif resp.status_code == 200:
                 data = resp.json()
-                logger.debug(f"Recorder ID is {data['id']}")
+                logger.debug(f"Found Recorder - id: {data['id']} - uuid: {data['recorder_uuid']}")
                 return data['id']
             else:
                 logger.error(f"Response status: {resp.status_code} - {resp.json()}")

@@ -7,3 +7,5 @@ yamlApplicationConfig:
 service:
   type: NodePort
   port: 80
+  auth:
+      type: login_form
