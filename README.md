@@ -56,6 +56,17 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
 https://gha-cache-server.falcondev.io/getting-started
 
+- busy with a basic user management ui
+
+continue here in securia-ui , users.py
+
+this is currently being very naughty
+
+        # Update the dataframe with successful changes
+        print(st.session_state.ed)
+        for row_index in successful_updates:
+            st.session_state.users_df.iloc[row_index] = next(iter(st.session_state.ed['edited_rows']))
+
 - bug - the kafka needs to be more "safe" on exit, the exit loop is just crashing it out.
 - develop image/psql pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
 - switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)

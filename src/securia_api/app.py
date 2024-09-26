@@ -5,7 +5,6 @@ sys.path.append(r'./modules')
 
 from envyaml import EnvYAML
 from time import sleep
-from pprint import pformat
 import scheduler
 from apicontroller import start_api_server
 

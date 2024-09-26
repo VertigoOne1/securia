@@ -11,37 +11,35 @@ config = EnvYAML('config.yml')
 
 # Users
 
-def create_initial_super_user(db: Session):
-    import string, random
+def create_system_users(db: Session):
     try:
-        # Check if we already have an admin user
-        user = get_user_by_username(db, "admin")
-        if user is not None:
-            logger.debug("Admin user already exists, skipping create")
-            return user
-        else:
-            # Need an initial user, generate a salt and hash the password
-            salt = bcrypt.gensalt()
-            initial_password = ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(18))
-            hashed_password = bcrypt.hashpw(initial_password.encode('utf-8'), salt)
+        for system_user in config['system_users']:
+            # Check if we already have an admin user
+            user = get_user_by_username(db, system_user['username'])
+            if user is not None:
+                logger.debug(f"{system_user['username']} already exists, skipping create")
+            else:
+                # Need an initial user, generate a salt and hash the password
+                salt = bcrypt.gensalt()
+                initial_password = system_user['password']
+                hashed_password = bcrypt.hashpw(initial_password.encode('utf-8'), salt)
 
-            db_user = models.User(
-                email="securia_admin@marnus.com",
-                username="admin",
-                role="super",
-                password=hashed_password.decode('utf-8')  # Store the hash as a string
-            )
-            db.add(db_user)
-            db.commit()
-            db.refresh(db_user)
-            logger.info(f"----- RECORD THE BELOW INFORMATION -----")
-            logger.info(f"Created initial super user account")
-            logger.info(f"Initial Superuser is: {db_user.username}")
-            logger.info(f"Initial Password is : {initial_password}")
-            logger.info(f"----- RECORD THE ABOVE INFORMATION -----")
-            return db_user
+                db_user = models.User(
+                    email=f"{system_user['username']}@marnus.com",
+                    username=system_user['username'],
+                    role=system_user['role'],
+                    password=hashed_password.decode('utf-8')  # Store the hash as a string
+                )
+                db.add(db_user)
+                db.commit()
+                db.refresh(db_user)
+                logger.info(f"----- RECORD THE BELOW INFORMATION -----")
+                logger.info(f"Created initial account")
+                logger.info(f"Initial Superuser is: {db_user.username}")
+                logger.info(f"Initial Password is : {initial_password}")
+                logger.info(f"----- RECORD THE ABOVE INFORMATION -----")
     except Exception as e:
-        logger.error(f"Error creating user: {str(e)}")
+        logger.error(f"Error creating system users: {str(e)}")
         db.rollback()  # Rollback the transaction in case of error
         return None
 

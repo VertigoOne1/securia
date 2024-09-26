@@ -16,6 +16,19 @@ class BearerAuth(requests.auth.AuthBase):
         r.headers["authorization"] = "Bearer " + self.token
         return r
 
+def fetch_users(token=None):
+    response = requests.get(f"{config['api']['uri']}/user", auth=BearerAuth(token))
+    if response.status_code == 200:
+        return response.json()
+    else:
+        logger.error(f"Failed to fetch data: {response.status_code}")
+        return None
+
+def update_user(user_id, updated_user, token=None):
+    # Send POST request to update user data
+    response = requests.post(f"{config['api']['uri']}/user/{user_id}", json=updated_user, auth=BearerAuth(token))
+    return response
+
 def fetch_recorders(token=None):
     response = requests.get(f"{config['api']['uri']}/recorder", auth=BearerAuth(token))
     if response.status_code == 200:

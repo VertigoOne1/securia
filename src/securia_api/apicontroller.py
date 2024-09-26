@@ -152,9 +152,10 @@ def get_db():
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
+logger.debug("Create system users if necessary")
+admin_users = crud.create_system_users(SessionLocal())
+
 def authenticate_user(db: db_dependency, username: str, password: str):
-    logger.debug("Create initial admin user if necessary")
-    admin_user = crud.create_initial_super_user(db)
     logger.debug("Check if username exists")
     user = crud.get_user_by_username(db, username)
     # logger.debug(f"{user}")
@@ -342,6 +343,21 @@ async def delete_user_by_id(db: db_dependency, user_id: int = Path(gt=0), curren
         status_code=200,
         content={"message": f"User with id {user_id} deleted"}
     )
+
+@app.get("/securia/user", response_model=list[schemas.User])
+async def get_users(db: db_dependency, skip: int = 0, limit: int = 100, current_user: dict = Depends(get_current_user)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
+    users = db.query(models.User).offset(skip).limit(limit).all()
+    if users is not None:
+        return [schemas.User.from_orm(user) for user in users]
+    if users is None:
+        raise HTTPException(status_code=404, detail='Users not found')
+    raise HTTPException(status_code=500, detail='CRUD issue')
 
 # Recorder APIs
 
