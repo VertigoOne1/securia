@@ -24,9 +24,17 @@ def fetch_users(token=None):
         logger.error(f"Failed to fetch data: {response.status_code}")
         return None
 
+def create_user(updated_user, token=None):
+    logger.debug(f"Creating user - {updated_user}")
+    response = requests.post(f"{config['api']['uri']}/user", json=updated_user, auth=BearerAuth(token))
+    return response
+
 def update_user(user_id, updated_user, token=None):
-    # Send POST request to update user data
     response = requests.post(f"{config['api']['uri']}/user/{user_id}", json=updated_user, auth=BearerAuth(token))
+    return response
+
+def delete_user(user_id, token=None):
+    response = requests.delete(f"{config['api']['uri']}/user/{user_id}", auth=BearerAuth(token))
     return response
 
 def fetch_recorders(token=None):

@@ -56,19 +56,12 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
 https://gha-cache-server.falcondev.io/getting-started
 
-- busy with a basic user management ui
-
-continue here in securia-ui , users.py
-
-this is currently being very naughty
-
-        # Update the dataframe with successful changes
-        print(st.session_state.ed)
-        for row_index in successful_updates:
-            st.session_state.users_df.iloc[row_index] = next(iter(st.session_state.ed['edited_rows']))
-
+- next up is recorder management and channel management
+- i think i have a decent baseline now on approaching streamlit ui
+- add ability to mark a user as disabled
 - bug - the kafka needs to be more "safe" on exit, the exit loop is just crashing it out.
 - develop image/psql pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
+- also develop out a image movement cluster analysis for lightweight, non-yolo based detection as first round
 - switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)
 - user driven recorder creation, attachment to collectors
 - collector registration system, which allows linking recorders to collectors
@@ -90,6 +83,7 @@ this is currently being very naughty
 
 ## DONE
 
+- busy with a basic user management ui - done
 - fixed bug with recorder_uuid and bulletproofed the db create on new
 - revamped the authentication for all services, and added ACL checks for get services as well to have a role of at least guest for GET, all other CRUD needs at least user, and user manipulation needs your user to be above any other user - done
 - cleaned up logger code and fixed scheduler code as well - done
