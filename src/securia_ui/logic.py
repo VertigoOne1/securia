@@ -72,6 +72,22 @@ def fetch_channels(recorder_id, token=None):
         logger.error(f"Failed to fetch details: {response.status_code}")
         return None
 
+def create_channel(updated_data, token=None):
+    logger.debug(f"Creating channel - {updated_data}")
+    response = requests.post(f"{config['api']['uri']}/channel", json=updated_data, auth=BearerAuth(token))
+    return response
+
+def update_channel(id, updated_data, token=None):
+    response = requests.post(f"{config['api']['uri']}/channel/{id}", json=updated_data, auth=BearerAuth(token))
+    return response
+
+def delete_channel(id, token=None):
+    response = requests.delete(f"{config['api']['uri']}/channel/{id}", auth=BearerAuth(token))
+    return response
+
+
+## Images Management
+
 def fetch_images_by_channel(channel_id, limit, sort, token=None):
     from urllib.parse import urlencode
     params = {
@@ -86,6 +102,8 @@ def fetch_images_by_channel(channel_id, limit, sort, token=None):
     else:
         logger.error(f"Failed to fetch details: {response.status_code}")
         return None
+
+## Detections
 
 def fetch_detections_by_channel(channel_id, limit, sort, token=None):
     from urllib.parse import urlencode

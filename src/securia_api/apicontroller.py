@@ -517,7 +517,7 @@ async def update_channel_by_id(db: db_dependency, channel: schemas.ChannelUpdate
         raise HTTPException(status_code=404, detail='Channel not found')
     raise HTTPException(status_code=509, detail='CRUD issue')
 
-@app.delete("/securia/channel/id/{channel_id}")
+@app.delete("/securia/channel/{channel_id}")
 async def delete_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')

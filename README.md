@@ -56,12 +56,12 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
 https://gha-cache-server.falcondev.io/getting-started
 
-- next up is recorder management and channel management
+- channel management
 - i think i have a decent baseline now on approaching streamlit ui
 - add ability to mark a user as disabled
 - bug - the kafka needs to be more "safe" on exit, the exit loop is just crashing it out.
 - develop image/psql pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
-- also develop out a image movement cluster analysis for lightweight, non-yolo based detection as first round
+- also develop out a image movement cluster analysis for lightweight, non-yolo based detection as first round identification in parallel
 - switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)
 - user driven recorder creation, attachment to collectors
 - collector registration system, which allows linking recorders to collectors
@@ -83,6 +83,7 @@ https://gha-cache-server.falcondev.io/getting-started
 
 ## DONE
 
+- next up is recorder management - done
 - busy with a basic user management ui - done
 - fixed bug with recorder_uuid and bulletproofed the db create on new
 - revamped the authentication for all services, and added ACL checks for get services as well to have a role of at least guest for GET, all other CRUD needs at least user, and user manipulation needs your user to be above any other user - done
