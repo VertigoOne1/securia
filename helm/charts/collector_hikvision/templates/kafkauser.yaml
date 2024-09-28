@@ -1,4 +1,3 @@
-{{- if not (lookup "kafka.strimzi.io/v1beta1" "KafkaUser" .Release.Namespace collector-hikvision ) -}}
 apiVersion: kafka.strimzi.io/v1beta1
 kind: KafkaUser
 metadata:
@@ -33,4 +32,3 @@ spec:
           patternType: literal
         operations:
           - Describe
-{{ end }}

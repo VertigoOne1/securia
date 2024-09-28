@@ -4,4 +4,4 @@ export $(grep -v '^#' ../src/.env | xargs -d '\n')
 sops -i -d --input-type dotenv --output-type dotenv ../src/.env.secrets
 export $(grep -v '^#' ../src/.env.secrets | xargs -d '\n')
 sops -i -e --input-type dotenv --output-type dotenv ../src/.env.secrets
-helmfile apply --kubecontext local
+helmfile apply --kubeconfig /etc/rancher/k3s/k3s.yaml
