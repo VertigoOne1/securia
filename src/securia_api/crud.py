@@ -34,9 +34,9 @@ def create_system_users(db: Session):
                 db.commit()
                 db.refresh(db_user)
                 logger.info(f"----- RECORD THE BELOW INFORMATION -----")
-                logger.info(f"Created initial account")
-                logger.info(f"Initial Superuser is: {db_user.username}")
-                logger.info(f"Initial Password is : {initial_password}")
+                logger.info(f"Created initial system user")
+                logger.info(f"Initial user is: {db_user.username}")
+                logger.info(f"Initial password is : {initial_password}")
                 logger.info(f"----- RECORD THE ABOVE INFORMATION -----")
     except Exception as e:
         logger.error(f"Error creating system users: {str(e)}")
