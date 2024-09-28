@@ -48,10 +48,6 @@ appConfig:
     enable_file_log_handler: False
     enable_stdout_log_handler: True
     enable_kafka_log_handler: False
-  api:
-    default_port: 8299
-    debug_level: debug
-    debug_enabled: False
 
 service:
   type: ClusterIP
