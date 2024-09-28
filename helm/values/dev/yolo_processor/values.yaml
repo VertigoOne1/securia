@@ -38,8 +38,8 @@ appConfig:
     image_filename_prefix: "predict"
     write_local_file: False
     temp_output_folder: yolo_tmp
-    save_predict_output: True
-    save_predict_crops: True
+    save_predict_output: False
+    save_predict_crops: False
   api:
     default_port: 8299
     debug_level: debug
