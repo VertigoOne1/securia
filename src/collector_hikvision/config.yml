@@ -8,7 +8,7 @@ collector:
   recorder_uuid: 8899051a-b0bb-4f05-a53a-31ef10588f4d
   recorder_fqdn: "10.0.0.61"
   recorder_friendly_name: "Home"
-  recorder_username: view
+  recorder_username: "view"
   recorder_password: "asdf1234"
   recorder_owner: "Home"
   recorder_type: "HikVision Turbo"
@@ -42,7 +42,7 @@ kafka:
   value_serialiser: lambda x:json.dumps(x).encode('utf-8')
 api:
   default_port: 8090
-  debug_level: INFO
+  debug_level: debug
   debug_enabled: False
 scheduler:
   enabled: True

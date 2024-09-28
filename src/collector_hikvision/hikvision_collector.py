@@ -14,11 +14,25 @@ def calculate_sha256(content):
     sha256_hash.update(content)
     return sha256_hash.hexdigest()
 
+
+# def capture_hikvision_image(channel):
+#     from hikvisionapi import Client
+
+#     cam = Client(f"http://{config['collector']['recorder_fqdn']}", config['collector']['recorder_username'], config['collector']['recorder_password'])
+
+#     # Get and save picture from camera
+#     response = cam.Streaming.channels[int(channel)].picture(method='get', type='opaque_data')
+#     with open('screen.jpg', 'wb') as f:
+#         for chunk in response.iter_content(chunk_size=1024):
+#             if chunk:
+#                 f.write(chunk)
+    
+
 def capture_hikvision_image(channel):
         snapshot_url = f"http://{config['collector']['recorder_fqdn']}/ISAPI/Streaming/channels/{channel}/picture"
         logger.debug(f"Capturing - {snapshot_url}")
         try:
-            response = requests.get(snapshot_url, auth=HTTPDigestAuth(config['collector']['recorder_username'], config['collector']['recorder_username']), timeout=config['collector']['collection_timeout'])
+            response = requests.get(snapshot_url, auth=HTTPDigestAuth(config['collector']['recorder_username'], config['collector']['recorder_password']), timeout=config['collector']['collection_timeout'])
             timestamp = datetime.now().strftime(config['collector']['time_format'])
             if response.status_code == 200:
                 logger.debug(f"Headers - {response.headers}")
@@ -65,6 +79,8 @@ def capture_hikvision_image(channel):
                     "status":f"recorder_error_response"
                 }
                 logger.debug(f"Returning: {image_data}")
+                time.sleep(5)
+                logger.info("Sleeping for 5 seconds because the collection failed")
                 return image_data
         except requests.RequestException as e:
             logger.error(f"Request Exception - Error capturing image: {e}")
@@ -80,6 +96,7 @@ def capture_hikvision_image(channel):
                 "recorder_status_data":f"{response.text or None}",
                 "status":f"recorder_request_exception"
             }
+            time.sleep(5)
             return image_data
         except:
             logger.error(f"General Exception")
@@ -96,6 +113,7 @@ def capture_hikvision_image(channel):
                 "recorder_status_data":f"{response.text or None}",
                 "status":f"general_exception"
             }
+            time.sleep(5)
             return image_data
         finally:
             time.sleep(config['collector']['channel_delay_time'])
