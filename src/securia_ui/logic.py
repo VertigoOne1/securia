@@ -16,6 +16,8 @@ class BearerAuth(requests.auth.AuthBase):
         r.headers["authorization"] = "Bearer " + self.token
         return r
 
+## User Management
+
 def fetch_users(token=None):
     response = requests.get(f"{config['api']['uri']}/user", auth=BearerAuth(token))
     if response.status_code == 200:
@@ -37,6 +39,8 @@ def delete_user(user_id, token=None):
     response = requests.delete(f"{config['api']['uri']}/user/{user_id}", auth=BearerAuth(token))
     return response
 
+## Recorder Management
+
 def fetch_recorders(token=None):
     response = requests.get(f"{config['api']['uri']}/recorder", auth=BearerAuth(token))
     if response.status_code == 200:
@@ -44,6 +48,21 @@ def fetch_recorders(token=None):
     else:
         logger.error(f"Failed to fetch data: {response.status_code}")
         return None
+
+def create_recorder(updated_recorder, token=None):
+    logger.debug(f"Creating recorder - {updated_recorder}")
+    response = requests.post(f"{config['api']['uri']}/recorder", json=updated_recorder, auth=BearerAuth(token))
+    return response
+
+def update_recorder(recorder_id, updated_recorder, token=None):
+    response = requests.post(f"{config['api']['uri']}/recorder/{recorder_id}", json=updated_recorder, auth=BearerAuth(token))
+    return response
+
+def delete_recorder(recorder_id, token=None):
+    response = requests.delete(f"{config['api']['uri']}/recorder/{recorder_id}", auth=BearerAuth(token))
+    return response
+
+## Channel Management
 
 def fetch_channels(recorder_id, token=None):
     response = requests.get(f"{config['api']['uri']}/channels_by_recorder/{recorder_id}", auth=BearerAuth(token))
