@@ -5,6 +5,8 @@ requests
 pyOpenSSL
 json2html
 fastapi
+cryptography
+uvicorn
 pydantic
 prometheus_client
 schedule
@@ -13,3 +15,4 @@ prometheus-client
 boto3
 # cv2
 pillow
+pyjwt

@@ -4,6 +4,8 @@ requests
 pyOpenSSL
 json2html
 fastapi
+cryptography
+uvicorn
 pydantic
 prometheus_client
 schedule
