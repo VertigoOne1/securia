@@ -46,7 +46,7 @@ def delete_user(user_id):
 with st.expander("Users", expanded=True):
     # Fetch users data
     users = get_users_dataset()
-    users_display_columns = ['id', 'username', 'email', 'first_name', 'last_name', 'role']
+    users_display_columns = ['id', 'username', 'email', 'first_name', 'last_name', 'company', 'role']
     users_event = st.dataframe(
         users[users_display_columns],
         # column_config=column_configuration,

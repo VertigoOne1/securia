@@ -26,6 +26,14 @@ def fetch_users(token=None):
         logger.error(f"Failed to fetch data: {response.status_code}")
         return None
 
+def fetch_logged_in_user(username, token=None):
+    response = requests.get(f"{config['api']['uri']}/user/username/{username}", auth=BearerAuth(token))
+    if response.status_code == 200:
+        return response.json()
+    else:
+        logger.error(f"Failed to fetch data: {response.status_code}")
+        return None
+
 def create_user(updated_user, token=None):
     logger.debug(f"Creating user - {updated_user}")
     response = requests.post(f"{config['api']['uri']}/user", json=updated_user, auth=BearerAuth(token))

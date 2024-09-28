@@ -82,6 +82,7 @@ https://gha-cache-server.falcondev.io/getting-started
 
 ## DONE
 
+- profile management - lightweight version done, yes i'm putting off the image stuff
 - channel management - done
 - next up is recorder management - done
 - busy with a basic user management ui - done

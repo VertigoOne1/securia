@@ -1,11 +1,14 @@
 import streamlit as st
 import requests
 from envyaml import EnvYAML
+import logic
 
 config = EnvYAML('config.yml')
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+    st.session_state.logged_in_user = "None"
+    st.session_state.logged_in_role = "guest"
 
 def login():
     st.set_page_config(page_title="Securia Login", layout="wide")
@@ -29,8 +32,11 @@ def login():
                 if response.status_code == 200:
                     # Successful login
                     token = response.json().get("access_token")
+                    userinfo = logic.fetch_logged_in_user(username, token)
                     st.session_state.token = token
                     st.session_state.logged_in = True
+                    st.session_state.logged_in_user = username
+                    st.session_state.logged_in_role = userinfo[0]['role']
                     st.success("Login successful!")
                     st.rerun()
                 else:
@@ -64,16 +70,17 @@ search = st.Page("tools/search.py", title="Search", icon=":material/search:")
 llm = st.Page("tools/llm.py", title="The Guard", icon=":material/guardian:")
 
 # Admin
-users = st.Page("admin/users.py", title="Users", icon=":material/construction:")
-recorders = st.Page("admin/recorders.py", title="Recorders", icon=":material/construction:")
-channels = st.Page("admin/channels.py", title="Channels", icon=":material/construction:")
-images = st.Page("admin/images.py", title="Images", icon=":material/construction:")
-detections = st.Page("admin/detections.py", title="Detections", icon=":material/construction:")
+users = st.Page("admin/users.py", title="Users", icon=":material/manage_accounts:")
+profile = st.Page("admin/profile.py", title="Profile", icon=":material/manage_accounts:")
+recorders = st.Page("admin/recorders.py", title="Recorders", icon=":material/folder_managed:")
+channels = st.Page("admin/channels.py", title="Channels", icon=":material/folder_managed:")
+images = st.Page("admin/images.py", title="Images TODO", icon=":material/construction:")
+detections = st.Page("admin/detections.py", title="Detections TODO", icon=":material/construction:")
 
 if st.session_state.logged_in:
     pg = st.navigation(
         {
-            "Account": [logout_page],
+            "Account": [profile, logout_page],
             "Live": [live_cams, live_detections],
             "Reports": [alerts, legacy_dashboard],
             "Tools": [search, llm],

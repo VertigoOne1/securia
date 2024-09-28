@@ -296,6 +296,24 @@ async def get_user_by_id(db: db_dependency, user_id: int = Path(gt=0), current_u
         raise HTTPException(status_code=404, detail='User not found')
     raise HTTPException(status_code=500, detail='CRUD issue')
 
+@app.get("/securia/user/username/{username}", response_model=list[schemas.User])
+async def get_user_by_username(db: db_dependency, username: str, current_user: dict = Depends(get_current_user)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    db_user = db.query(models.User).filter(models.User.username == username).all()
+    if AccessHierarchy.can_access_user(current_user['role'], "super"):
+        pass
+    elif AccessHierarchy.can_access_user(current_user['role'], db_user[0].role):
+        pass
+    else:
+        logger.error(f"{current_user['role']} < {db_user.role}")
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
+    if db_user is not None:
+        return db_user
+    if db_user is None:
+        raise HTTPException(status_code=404, detail='User not found')
+    raise HTTPException(status_code=500, detail='CRUD issue')
+
 @app.post("/securia/user/{user_id}")
 async def update_user_by_id(db: db_dependency, user: schemas.UserUpdate, user_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
