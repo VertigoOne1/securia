@@ -63,7 +63,6 @@ jobs:
             echo "Set $key"
           fi
         done < src/.env.secrets
-        export | grep CHART
       env:
         SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
 
