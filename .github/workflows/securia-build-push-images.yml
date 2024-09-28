@@ -26,10 +26,6 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Set Image version
-      run: |
-        echo "SECURIA_TAG=1.1.${{ github.run_number }}" >> $GITHUB_ENV
-
     - name: Setup AGE
       uses: alessiodionisi/setup-age-action@v1.3.0
 
@@ -59,6 +55,13 @@ jobs:
             echo "$key=$value" >> $GITHUB_ENV
             echo "Set $key"
           fi
+        done < heln/.env
+
+        while IFS='=' read -r key value; do
+          if [[ ! $key =~ ^# && -n $key ]]; then
+            echo "$key=$value" >> $GITHUB_ENV
+            echo "Set $key"
+          fi
         done < src/.env.secrets
       env:
         SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
@@ -77,5 +80,5 @@ jobs:
         files: "docker-compose.yaml"
         workdir: ./src
         push: true
-      # env:
-      #   SECURIA_TAG: ${{ env.SECURIA_TAG }}
+      env:
+        CHART_VERSION: ${{ env.CHART_VERSION }}

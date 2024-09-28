@@ -40,9 +40,9 @@ appConfig:
     temp_output_folder: yolo_tmp
     save_predict_output: True
     save_predict_crops: True
-  flask:
-    default_port: 8089
-    debug_level: INFO
+  api:
+    default_port: 8299
+    debug_level: debug
     debug_enabled: False
   scheduler:
     enabled: False

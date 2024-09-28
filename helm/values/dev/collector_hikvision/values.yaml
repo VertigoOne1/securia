@@ -41,9 +41,9 @@ appConfig:
       - 601
       - 701
       - 801
-  flask:
-    default_port: 8088
-    debug_level: INFO
+  api:
+    default_port: 8299
+    debug_level: debug
     debug_enabled: False
   scheduler:
     enabled: True

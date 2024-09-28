@@ -46,6 +46,13 @@ jobs:
             echo "$key=$value" >> $GITHUB_ENV
             echo "Set $key"
           fi
+        done < helm/.env
+
+        while IFS='=' read -r key value; do
+          if [[ ! $key =~ ^# && -n $key ]]; then
+            echo "$key=$value" >> $GITHUB_ENV
+            echo "Set $key"
+          fi
         done < src/.env
 
         while IFS='=' read -r key value; do
@@ -59,11 +66,6 @@ jobs:
         helm registry login -u ${REGISTRY_USERNAME} -p ${REGISTRY_PASSWORD} ${REGISTRY_HOST}
       env:
         SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
-
-    - name: Set Chart version
-      run: |
-        # echo "CHART_VERSION=1.1.${{ github.run_number }}" >> $GITHUB_ENV
-        echo "CHART_VERSION=1.1.0" >> $GITHUB_ENV
 
     - name: Deploy application
       uses: helmfile/helmfile-action@v1.9.1

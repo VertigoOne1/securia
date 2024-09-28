@@ -30,9 +30,9 @@ appConfig:
     temp_output_folder: /tmp/kafka
     time_format: "%Y%m%d_%H%M%S.%f%z"
     image_filename_prefix: "image_dict"
-  flask:
-    default_port: 8089
-    debug_level: INFO
+  api:
+    default_port: 8299
+    debug_level: debug
     debug_enabled: False
   scheduler:
     enabled: False

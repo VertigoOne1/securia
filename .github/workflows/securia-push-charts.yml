@@ -42,6 +42,7 @@ jobs:
         export $(grep -v '^#' src/.env | xargs -d '\n')
         sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
         export $(grep -v '^#' src/.env.secrets | xargs -d '\n')
+        export $(grep -v '^#' helm/.env | xargs -d '\n')
         cd helm
         helm registry login -u ${REGISTRY_USERNAME} -p ${REGISTRY_PASSWORD} ${REGISTRY_HOST}
         for dir in charts/*/; do
@@ -49,9 +50,9 @@ jobs:
             chart_name=$(basename "$dir")
             echo "Packaging chart: $chart_name"
             package_name=$(echo "${chart_name}" | tr '_' '-')
-            helm package "$dir" --version ${SECURIA_VERSION}
+            helm package "$dir" --version ${CHART_VERSION}
             echo "Pushing chart: $chart_name"
-            helm push $package_name-${SECURIA_VERSION}.tgz oci://${REGISTRY_HOST}/securia
+            helm push $package_name-${CHART_VERSION}.tgz oci://${REGISTRY_HOST}/securia
           fi
         done
         rm *tgz

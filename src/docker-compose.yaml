@@ -1,6 +1,6 @@
 services:
   collector-hikvision:
-    image: ${REGISTRY_HOST}/securia/collector-hikvision:${SECURIA_TAG:-latest}
+    image: ${REGISTRY_HOST}/securia/collector-hikvision:${CHART_VERSION}:-${SECURIA_TAG}}
     build:
       context: ./collector_hikvision
       cache_from:
@@ -9,7 +9,7 @@ services:
        - type=registry,ref=${REGISTRY_HOST}/securia/collector-hikvision:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
 
   collector-simulator:
-    image: ${REGISTRY_HOST}/securia/collector-simulator:${SECURIA_TAG:-latest}
+    image: ${REGISTRY_HOST}/securia/collector-simulator:${CHART_VERSION}:-${SECURIA_TAG}}
     build:
       context: ./collector_simulator
       cache_from:
@@ -18,7 +18,7 @@ services:
        - type=registry,ref=${REGISTRY_HOST}/securia/collector-simulator:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
 
   image-preprocessor:
-    image: ${REGISTRY_HOST}/securia/image-preprocessor:${SECURIA_TAG:-latest}
+    image: ${REGISTRY_HOST}/securia/image-preprocessor:${CHART_VERSION}:-${SECURIA_TAG}}
     build:
       context: ./image_preprocessor
       cache_from:
@@ -27,7 +27,7 @@ services:
        - type=registry,ref=${REGISTRY_HOST}/securia/image-preprocessor:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
 
   securia-api:
-    image: ${REGISTRY_HOST}/securia/securia-api:${SECURIA_TAG:-latest}
+    image: ${REGISTRY_HOST}/securia/securia-api:${CHART_VERSION}:-${SECURIA_TAG}}
     build:
       context: ./securia_api
       cache_from:
@@ -36,7 +36,7 @@ services:
        - type=registry,ref=${REGISTRY_HOST}/securia/securia-api:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
 
   securia-ui:
-    image: ${REGISTRY_HOST}/securia/securia-ui:${SECURIA_TAG:-latest}
+    image: ${REGISTRY_HOST}/securia/securia-ui:${CHART_VERSION}:-${SECURIA_TAG}}
     build:
       context: ./securia_ui
       cache_from:
@@ -45,7 +45,7 @@ services:
        - type=registry,ref=${REGISTRY_HOST}/securia/securia-ui:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
 
   yolo-processor:
-    image: ${REGISTRY_HOST}/securia/yolo-processor:${SECURIA_TAG:-latest}
+    image: ${REGISTRY_HOST}/securia/yolo-processor:${CHART_VERSION}:-${SECURIA_TAG}}
     build:
       context: ./yolo_processor
       cache_from:
