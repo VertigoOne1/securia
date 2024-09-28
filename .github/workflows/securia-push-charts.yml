@@ -44,7 +44,7 @@ jobs:
         export $(grep -v '^#' src/.env.secrets | xargs -d '\n')
         export $(grep -v '^#' helm/.env | xargs -d '\n')
         cd helm
-        helm registry login -u ${REGISTRY_USERNAME} -p ${REGISTRY_PASSWORD} ${REGISTRY_HOST}
+        echo "${REGISTRY_PASSWORD}" | helm registry login -u ${REGISTRY_USERNAME} --password-stdin ${REGISTRY_HOST}
         for dir in charts/*/; do
           if [ -d "$dir" ]; then
             chart_name=$(basename "$dir")

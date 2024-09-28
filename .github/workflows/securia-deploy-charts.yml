@@ -63,7 +63,7 @@ jobs:
         done < src/.env.secrets
 
         # Test Credentials
-        helm registry login -u ${REGISTRY_USERNAME} -p ${REGISTRY_PASSWORD} ${REGISTRY_HOST}
+        echo "${REGISTRY_PASSWORD}" | helm registry login -u ${REGISTRY_USERNAME} --password-stdin ${REGISTRY_HOST}
       env:
         SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
 
