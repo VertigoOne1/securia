@@ -50,6 +50,8 @@ jobs:
           fi
         done < src/.env
 
+        cat helm/.env
+
         while IFS='=' read -r key value; do
           if [[ ! $key =~ ^# && -n $key ]]; then
             echo "$key=$value" >> $GITHUB_ENV
@@ -66,25 +68,19 @@ jobs:
       env:
         SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
 
-    - name: what
-      run: |
-        export | grep CHART
+    - name: Login to Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY_HOST }}
+        username: ${{ env.REGISTRY_USERNAME }}
+        password: ${{ env.REGISTRY_PASSWORD }}
+
+    - name: Build and push images
+      uses: docker/bake-action@v5
+      with:
+        source: "."
+        files: "docker-compose.yaml"
+        workdir: ./src
+        push: true
       env:
         CHART_VERSION: ${{ env.CHART_VERSION }}
-
-    # - name: Login to Registry
-    #   uses: docker/login-action@v3
-    #   with:
-    #     registry: ${{ env.REGISTRY_HOST }}
-    #     username: ${{ env.REGISTRY_USERNAME }}
-    #     password: ${{ env.REGISTRY_PASSWORD }}
-
-    # - name: Build and push images
-    #   uses: docker/bake-action@v5
-    #   with:
-    #     source: "."
-    #     files: "docker-compose.yaml"
-    #     workdir: ./src
-    #     push: true
-    #   env:
-    #     CHART_VERSION: ${{ env.CHART_VERSION }}

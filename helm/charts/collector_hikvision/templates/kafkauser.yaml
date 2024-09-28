@@ -1,3 +1,4 @@
+{{- if not (lookup "kafka.strimzi.io/v1beta1" "KafkaUser" .Release.Namespace collector-hikvision ) -}}
 apiVersion: kafka.strimzi.io/v1beta1
 kind: KafkaUser
 metadata:
@@ -5,6 +6,8 @@ metadata:
   labels:
     strimzi.io/cluster: securia-kafka
     {{- include "app.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
 spec:
   type: allow
   authentication:
@@ -30,3 +33,4 @@ spec:
           patternType: literal
         operations:
           - Describe
+{{ end }}
