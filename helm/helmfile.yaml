@@ -16,6 +16,7 @@ releases:
       - name: registrypullsecret
   secrets:
     - values/dev/securia_api/values_secrets.yaml
+
 - name: securia-ui
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
@@ -27,6 +28,7 @@ releases:
       - name: registrypullsecret
   secrets:
     - values/dev/securia_ui/values_secrets.yaml
+
 - name: image-preprocessor
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
@@ -38,17 +40,31 @@ releases:
       - name: registrypullsecret
   secrets:
     - values/dev/image_preprocessor/values_secrets.yaml
-- name: collector-hikvision
+
+# - name: collector-hikvision
+#   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
+#   createNamespace: true
+#   chart: oci://harbor.marnus.com/securia/collector-hikvision
+#   version: {{ env "CHART_VERSION" | default "1.1.1" }}
+#   values:
+#     - values/dev/collector_hikvision/values.yaml
+#     - imagePullSecrets:
+#       - name: registrypullsecret
+#   secrets:
+#     - values/dev/collector_hikvision/values_secrets.yaml
+
+- name: collector-simulator
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
-  chart: oci://harbor.marnus.com/securia/collector-hikvision
+  chart: oci://harbor.marnus.com/securia/collector-simulator
   version: {{ env "CHART_VERSION" | default "1.1.1" }}
   values:
-    - values/dev/collector_hikvision/values.yaml
+    - values/dev/collector_simulator/values.yaml
     - imagePullSecrets:
       - name: registrypullsecret
   secrets:
-    - values/dev/collector_hikvision/values_secrets.yaml
+    - values/dev/collector_simulator/values_secrets.yaml
+
 - name: yolo-processor
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true

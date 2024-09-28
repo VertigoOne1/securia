@@ -51,12 +51,16 @@ An i7 compared against a laptop T500 with 2Gb RAM, the GPU can process an image 
 
 Thus, single channel is fine at 2-5s interval on CPU, but anything more will fall behind. It runs via eventing so it will just start lagging further and further. If you stop the cameras, it will catch up again.
 
+### Streamlit
+
+So here is how i approach streamlit after some hours, it probably a "duh" moment, but that is just me. Basically think of the code as a script that executes top to bottom that renders the page every time you interact or something else interacts with it, so if you want to control a thing, you would if it out and if it in, or use state variables to if them in and out. State variables are your friends, but also an enemy. Certain things like button states obviously "stick". so if you lets say have a workflow with multiple dataframes that click through, you need to be careful not to "reset" higher up code, or basically remember that the first dataframes needs to render again when you interact "anything" on the page, so you can get access to the lower levels again, thus your python "script" tree needs to exec through to the same paths you want, top to bottom every time anything happens on the page.
+
 ## TODO
 
 https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
 https://gha-cache-server.falcondev.io/getting-started
 
-- i think i have a decent baseline now on approaching streamlit ui
+- i think i have a decent baseline now on approaching streamlit ui development
 - add ability to mark a user as disabled
 - bug - the kafka needs to be more "safe" on exit, the exit loop is just crashing it out.
 - develop image/psql pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
