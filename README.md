@@ -56,7 +56,6 @@ Thus, single channel is fine at 2-5s interval on CPU, but anything more will fal
 https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
 https://gha-cache-server.falcondev.io/getting-started
 
-- channel management
 - i think i have a decent baseline now on approaching streamlit ui
 - add ability to mark a user as disabled
 - bug - the kafka needs to be more "safe" on exit, the exit loop is just crashing it out.
@@ -83,6 +82,7 @@ https://gha-cache-server.falcondev.io/getting-started
 
 ## DONE
 
+- channel management - done
 - next up is recorder management - done
 - busy with a basic user management ui - done
 - fixed bug with recorder_uuid and bulletproofed the db create on new
