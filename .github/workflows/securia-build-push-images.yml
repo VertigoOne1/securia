@@ -55,7 +55,7 @@ jobs:
             echo "$key=$value" >> $GITHUB_ENV
             echo "Set $key"
           fi
-        done < heln/.env
+        done < helm/.env
 
         while IFS='=' read -r key value; do
           if [[ ! $key =~ ^# && -n $key ]]; then
