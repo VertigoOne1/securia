@@ -124,14 +124,13 @@ with st.expander("Channels", expanded=True):
                 input11 = st.text_input(label='channel_id')
                 input22 = st.text_input(label='friendly_name')
                 input33 = st.text_input(label='description')
-                input44 = st.text_input(label='fid')
                 submit_button_add_channel = st.form_submit_button(label='Add Channel')
                 if submit_button_add_channel:
                     updated_channel = {}
                     updated_channel['channel_id'] = input11
                     updated_channel['friendly_name'] = input22
                     updated_channel['description'] = input33
-                    updated_channel['fid'] = input44
+                    updated_channel['fid'] = str(recorders_selected_id)
                     result = create_channel(updated_channel)
                     if result:
                         # st.write(f"{result.json()}")
