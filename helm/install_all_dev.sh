@@ -1,6 +1,9 @@
 #!/bin/bash
-VALUES_PATH=values/dev
-export SOPS_AGE_KEY_FILE=${HOME}/iot/securia/securia.key
+export $(grep -v '^#' .env | xargs -d '\n')
+export $(grep -v '^#' ../src/.env | xargs -d '\n')
+sops -i -d --input-type dotenv --output-type dotenv ../src/.env.secrets
+export $(grep -v '^#' ../src/.env.secrets | xargs -d '\n')
+sops -i -e --input-type dotenv --output-type dotenv ../src/.env.secrets
 helmfile apply --kubeconfig /etc/rancher/k3s/k3s.yaml
 # helm --kubeconfig /etc/rancher/k3s/k3s.yaml -n securia upgrade collector-hikvision charts/collector_hikvision -i -f ${VALUES_PATH}/collector_hikvision/values.yaml -f secrets://${VALUES_PATH}/collector_hikvision/values_secrets.yaml --create-namespace
 # helm --kubeconfig /etc/rancher/k3s/k3s.yaml -n securia upgrade image-preprocessor charts/image_preprocessor -i -f ${VALUES_PATH}/image_preprocessor/values.yaml -f secrets://${VALUES_PATH}/image_preprocessor/values_secrets.yaml --create-namespace
