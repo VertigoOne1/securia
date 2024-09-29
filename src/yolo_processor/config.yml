@@ -3,6 +3,7 @@
 general:
   app_name: yolo_processor
   default_debug_level: DEBUG
+  version: latest
   test_mode: False
 yolo:
   enabled: True

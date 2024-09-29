@@ -19,6 +19,8 @@ releases:
   set:
     - name: image.tag
       value: {{ env "CHART_VERSION" | default "latest" }}
+    - name: appConfig.general.version
+      value: {{ env "CHART_VERSION" | default "latest" }}
 
 - name: securia-ui
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
@@ -33,6 +35,8 @@ releases:
     - values/dev/securia_ui/values_secrets.yaml
   set:
     - name: image.tag
+      value: {{ env "CHART_VERSION" | default "latest" }}
+    - name: appConfig.general.version
       value: {{ env "CHART_VERSION" | default "latest" }}
 
 - name: image-preprocessor
@@ -49,6 +53,8 @@ releases:
   set:
     - name: image.tag
       value: {{ env "CHART_VERSION" | default "latest" }}
+    - name: appConfig.general.version
+      value: {{ env "CHART_VERSION" | default "latest" }}
 
 # - name: collector-hikvision
 #   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
@@ -64,6 +70,8 @@ releases:
 #   set:
 #     - name: image.tag
 #       value: {{ env "CHART_VERSION" | default "latest" }}
+      # - name: appConfig.general.version
+      #   value: {{ env "CHART_VERSION" | default "latest" }}
 
 - name: collector-simulator
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
@@ -79,6 +87,8 @@ releases:
   set:
     - name: image.tag
       value: {{ env "CHART_VERSION" | default "latest" }}
+    - name: appConfig.general.version
+      value: {{ env "CHART_VERSION" | default "latest" }}
 
 - name: yolo-processor
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
@@ -93,4 +103,6 @@ releases:
     - values/dev/yolo_processor/values_secrets.yaml
   set:
     - name: image.tag
+      value: {{ env "CHART_VERSION" | default "latest" }}
+    - name: appConfig.general.version
       value: {{ env "CHART_VERSION" | default "latest" }}

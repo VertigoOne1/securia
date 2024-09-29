@@ -3,6 +3,7 @@
 general:
   app_name: collector_simulator
   default_debug_level: DEBUG
+  version: latest
 collector:
   enabled: True
   recorder_uuid: 79981d14-7719-49b2-b6b5-f7996b73ba04

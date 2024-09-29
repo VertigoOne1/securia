@@ -3,6 +3,7 @@
 general:
   app_name: image_preprocessor
   default_debug_level: DEBUG
+  version: latest
   test_mode: False
 preprocessor:
   enabled: True

@@ -25,6 +25,7 @@ appConfig:
     default_debug_level: DEBUG
     auto_refresh_miliseconds: 5000
     dataframe_cache_expire_seconds: 30
+    version: dev
   api:
     default_port: 8088
     debug_level: debug

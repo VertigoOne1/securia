@@ -3,6 +3,7 @@
 general:
   app_name: collector_hikvision
   default_debug_level: DEBUG
+  version: latest
 collector:
   enabled: True
   recorder_uuid: 8899051a-b0bb-4f05-a53a-31ef10588f4d

@@ -30,6 +30,7 @@ appConfig:
     app_name: yolo_processor
     default_debug_level: DEBUG
     test_mode: False
+    version: dev
   yolo:
     enabled: True
     model: yolov8l.pt

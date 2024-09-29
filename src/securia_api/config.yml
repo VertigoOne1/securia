@@ -3,6 +3,7 @@
 general:
   app_name: securia_api
   default_debug_level: DEBUG
+  version: latest
 storage:
   bucket_name: test
   endpoint_hostname: 10.0.0.59

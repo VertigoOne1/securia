@@ -17,7 +17,7 @@ def login():
     with left:
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
-        if st.button("Log in", use_container_width=True):
+        if st.button("Log in", use_container_width=True) or password:
             try:
                 data = {
                     "grant_type": "password",

@@ -24,6 +24,7 @@ appConfig:
     app_name: image_preprocessor
     default_debug_level: DEBUG
     test_mode: False
+    version: dev
   preprocessor:
     enabled: True
     write_local_file: False

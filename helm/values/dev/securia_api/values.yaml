@@ -23,6 +23,7 @@ appConfig:
   general:
     app_name: securia_api
     default_debug_level: DEBUG
+    version: dev
   api:
     default_port: 8088
     debug_level: debug

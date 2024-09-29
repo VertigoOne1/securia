@@ -23,6 +23,7 @@ appConfig:
   general:
     app_name: collector-hikvision
     default_debug_level: DEBUG
+    version: dev
   collector:
     enabled: True
     capture_interval: 5
