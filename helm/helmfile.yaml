@@ -8,7 +8,7 @@ releases:
 - name: securia-api
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
-  chart: oci://harbor.marnus.com/securia/securia-api
+  chart: oci://harbor.marnus.com/securia/charts/securia-api
   version: {{ env "CHART_VERSION" | default "1.1.1" }}
   values:
     - values/dev/securia_api/values.yaml
@@ -23,7 +23,7 @@ releases:
 - name: securia-ui
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
-  chart: oci://harbor.marnus.com/securia/securia-ui
+  chart: oci://harbor.marnus.com/securia/charts/securia-ui
   version: {{ env "CHART_VERSION" | default "1.1.1" }}
   values:
     - values/dev/securia_ui/values.yaml
@@ -38,7 +38,7 @@ releases:
 - name: image-preprocessor
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
-  chart: oci://harbor.marnus.com/securia/image-preprocessor
+  chart: oci://harbor.marnus.com/securia/charts/image-preprocessor
   version: {{ env "CHART_VERSION" | default "1.1.1" }}
   values:
     - values/dev/image_preprocessor/values.yaml
@@ -53,7 +53,7 @@ releases:
 # - name: collector-hikvision
 #   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
 #   createNamespace: true
-#   chart: oci://harbor.marnus.com/securia/collector-hikvision
+#   chart: oci://harbor.marnus.com/securia/charts/collector-hikvision
 #   version: {{ env "CHART_VERSION" | default "1.1.1" }}
 #   values:
 #     - values/dev/collector_hikvision/values.yaml
@@ -68,7 +68,7 @@ releases:
 - name: collector-simulator
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
-  chart: oci://harbor.marnus.com/securia/collector-simulator
+  chart: oci://harbor.marnus.com/securia/charts/collector-simulator
   version: {{ env "CHART_VERSION" | default "1.1.1" }}
   values:
     - values/dev/collector_simulator/values.yaml
@@ -83,7 +83,7 @@ releases:
 - name: yolo-processor
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
-  chart: oci://harbor.marnus.com/securia/yolo-processor
+  chart: oci://harbor.marnus.com/securia/charts/yolo-processor
   version: {{ env "CHART_VERSION" | default "1.1.1" }}
   values:
     - values/dev/yolo_processor/values.yaml

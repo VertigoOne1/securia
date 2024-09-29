@@ -52,7 +52,7 @@ jobs:
             package_name=$(echo "${chart_name}" | tr '_' '-')
             helm package "$dir" --version ${CHART_VERSION}
             echo "Pushing chart: $chart_name"
-            helm push $package_name-${CHART_VERSION}.tgz oci://${REGISTRY_HOST}/securia
+            helm push $package_name-${CHART_VERSION}.tgz oci://${REGISTRY_HOST}/securia/charts
           fi
         done
         rm *tgz
