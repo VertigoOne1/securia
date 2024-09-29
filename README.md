@@ -64,6 +64,7 @@ https://gha-cache-server.falcondev.io/getting-started
 - add ability to mark a user as disabled
 - bug - the kafka needs to be more "safe" on exit, the exit loop is just crashing it out.
 - develop image/psql pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
+- also implement proper aging on the topics, were going to run out of space quickly in odd places.
 - also develop out a image movement cluster analysis for lightweight, non-yolo based detection as first round identification in parallel
 - switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)
 - user driven recorder creation, attachment to collectors

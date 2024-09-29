@@ -7,5 +7,7 @@ schedule
 kafka-python-ng
 prometheus-client
 fastapi
+cryptography
+uvicorn
 pydantic
 pyjwt
