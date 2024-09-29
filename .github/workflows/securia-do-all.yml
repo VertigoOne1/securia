@@ -12,7 +12,7 @@ on: workflow_dispatch
 
 jobs:
   build-images:
-    uses: ./.github/workflows/securia-build-build-images.yml
+    uses: ./.github/workflows/securia-build-push-images.yml
   push-charts:
     uses: ./.github/workflows/securia-push-charts.yml
   deploy-charts:
