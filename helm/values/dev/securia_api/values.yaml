@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   name: "securia-api"
-  tag: ":latest"
+  tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""

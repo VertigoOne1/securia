@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   name: "image-preprocessor"
-  tag: ":latest"
+  tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""

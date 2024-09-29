@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   name: "collector-simulator"
-  tag: ":latest"
+  tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""

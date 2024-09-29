@@ -8,7 +8,7 @@ image:
   registry: "10.0.0.59:32419"
   path: "/securia"
   name: "collector-simulator"
-  tag: ":latest"
+  tag: "latest"
 
 imagePullSecrets:
   - name: testtest
