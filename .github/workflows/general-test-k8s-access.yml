@@ -1,4 +1,4 @@
-name: Test K8s Access
+name: General - Test K8s
 
 on: workflow_dispatch
 

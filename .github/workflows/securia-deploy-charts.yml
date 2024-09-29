@@ -1,4 +1,4 @@
-name: Deploy Securia
+name: Securia - Deploy
 
 on: workflow_dispatch
   # push:

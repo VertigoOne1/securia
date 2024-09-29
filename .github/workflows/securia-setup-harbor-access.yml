@@ -1,4 +1,4 @@
-name: Securia Registry pull secret
+name: Securia - Setup Registry Secret
 
 on: workflow_dispatch
   # push:

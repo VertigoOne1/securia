@@ -1,4 +1,4 @@
-name: Securia Push Charts
+name: Securia - Push Charts
 
 on: workflow_dispatch
   # push:

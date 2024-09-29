@@ -1,4 +1,4 @@
-name: Securia Build Images
+name: Securia - Build Images
 
 on: workflow_dispatch
   # push:

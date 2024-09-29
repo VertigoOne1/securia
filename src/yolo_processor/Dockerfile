@@ -1,4 +1,5 @@
-FROM ultralytics/ultralytics:8.2.99-python
+FROM ultralytics/ultralytics:8.2.99
+# FROM ultralytics/ultralytics:8.2.99-python # Does not include CUDA, that is why it is so big
 
 WORKDIR /app
 

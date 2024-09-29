@@ -53,6 +53,10 @@ def logout():
         st.session_state.logged_in = False
         st.rerun()
 
+def about():
+    st.set_page_config(page_title="About Securia", layout="wide")
+    st.write(f"Version: {config['general']['version']}")
+
 # Authentication
 login_page = st.Page(login, title="Log in", icon=":material/login:")
 logout_page = st.Page(logout, title="Log out", icon=":material/logout:")
@@ -77,6 +81,9 @@ channels = st.Page("admin/channels.py", title="Channels", icon=":material/folder
 images = st.Page("admin/images.py", title="Images TODO", icon=":material/construction:")
 detections = st.Page("admin/detections.py", title="Detections TODO", icon=":material/construction:")
 
+# Info
+about = st.Page(about, title="About", icon=":material/info:")
+
 if st.session_state.logged_in:
     pg = st.navigation(
         {
@@ -84,7 +91,8 @@ if st.session_state.logged_in:
             "Live": [live_cams, live_detections],
             "Reports": [alerts, legacy_dashboard],
             "Tools": [search, llm],
-            "Admin": [users, recorders, channels, images, detections]
+            "Admin": [users, recorders, channels, images, detections],
+            "About": [about]
         }
     )
 else:

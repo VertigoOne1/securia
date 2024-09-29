@@ -1,0 +1,19 @@
+name: Securia - Build, Push, Deploy
+
+on: workflow_dispatch
+  # push:
+  #   branches: [ "main" ]
+  #   # paths-ignore:
+  #   #   - 'docs/**'
+  #   # paths:
+  #   #   - '**.js'
+  # pull_request:
+  #   branches: [ "main" ]
+
+jobs:
+  build-images:
+    uses: ./.github/workflows/securia-build-build-images.yml
+  push-charts:
+    uses: ./.github/workflows/securia-push-charts.yml
+  deploy-charts:
+    uses: ./.github/workflows/securia-deploy-charts.yml
