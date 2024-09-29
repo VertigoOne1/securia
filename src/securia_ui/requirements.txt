@@ -1,3 +1,4 @@
+s3fs==2024.9.0
 envyaml
 requests
 prometheus_client
@@ -7,4 +8,3 @@ streamlit
 streamlit-extras
 streamlit-autorefresh
 pandas
-s3fs
