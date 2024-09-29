@@ -57,37 +57,43 @@ So here is how i approach streamlit after some hours, it probably a "duh" moment
 
 ## TODO
 
-https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
-https://gha-cache-server.falcondev.io/getting-started
+stop messing around and start focusing on the detection system
 
-- i think i have a decent baseline now on approaching streamlit ui development
-- add ability to mark a user as disabled
-- bug - the kafka needs to be more "safe" on exit, the exit loop is just crashing it out.
 - develop image/psql pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
-- also implement proper aging on the topics, were going to run out of space quickly in odd places.
-- also develop out a image movement cluster analysis for lightweight, non-yolo based detection as first round identification in parallel
-- switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)
-- user driven recorder creation, attachment to collectors
-- collector registration system, which allows linking recorders to collectors
-- video stream server for live dash?
-- metric system development, start getting that together
-- kafkaadmin routine to create topics with the correct partition count based on channel and recorder creation
 - ui development - in progress (FOCUS HERE)
 - ui dev - detections and filters
 - ui dev - multipage navigator, build out pages
-- bug - increase partition counts to at least 5 per topic to allow better balancing to processors - will be rolled into kafkadmin routines
-- check if transaction-id is not mis-used in our case, there was a future purpose to it, but it might need to to be re-engineered already.
+- llm RAG from pydantic, tool use to run user queries dynamically
+- context stuffing data to answer questions from current events
+
+https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
+https://gha-cache-server.falcondev.io/getting-started
+
+- user create api is missing the optional fields, i think their just not mapped
+- metric system development, start getting that together
+- implement "remember me" cookies, and expiry notifications for ui
 - test crop extraction and population
 - test crop storage and repopulation (to reduce storage/transfer costs by only storing the crops and no event backgrounds by overlaying the crops)
-- configure securia charts to use the secrets from percona operator via secret injection, then database user management is automated
-- expand api auth to keycloak and social auth
-- long term, were going to be multi-tenant.. that requires federated auth and social auth.
 - Turn gpustat --json into prometheus metrics (will need to watch temps)
-- implement "remember me" cookies, and expiry notifications for ui
+- bug - the kafka needs to be more "safe" on exit, the exit loop is just crashing it out.
+- also implement proper aging on the topics, were going to run out of space quickly in odd places.
+- video stream server for live dash? (grab latest images, collage them and display?)
+- switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)
+- add ability to mark a user as disabled
+- expand api auth to keycloak and social auth
+- user driven recorder creation and attachment to collectors
+- also develop out a image movement cluster analysis for lightweight, non-yolo based detection as first round identification in parallel
+- collector registration system, which allows linking recorders to collectors
+- kafkaadmin routine to create topics with the correct partition count based on channel and recorder creation
+- bug - increase partition counts to at least 5 per topic to allow better balancing to processors - will be rolled into kafkadmin routines
+- check if transaction-id is not mis-used in our case, there was a future purpose to it, but it might need to to be re-engineered already.
+- configure securia charts to use the secrets from percona operator via secret injection, then database user management is automated, same for kafkauser
+- longer term, were going to be multi-tenant.. that requires federated auth and social auth.
 
 ## DONE
 
-- profile management - lightweight version done, yes i'm putting off the image stuff
+- i think i have a decent baseline now on approaching streamlit ui development - done
+- profile management - lightweight version done, yes i'm putting off the image stuff - done
 - channel management - done
 - next up is recorder management - done
 - busy with a basic user management ui - done
