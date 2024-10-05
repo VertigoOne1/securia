@@ -287,3 +287,21 @@ class HealthCheck(BaseModel):
     """Response model to validate and return when performing a health check."""
 
     status: str = "OK"
+
+class DetectionObjectUpdate(BaseModel):
+    fid: Optional[int] = None
+    detection_class: Optional[str] = None
+    detection_name: Optional[str] = None
+    confidence: Optional[float] = None
+    xyxy: Optional[Json[Any]] = None
+    crop_s3_path: Optional[str] = None
+
+class GlobalDetectionSummary(BaseModel):
+    collected_timestamp: datetime = None
+    detection_name: Optional[str] = None
+    confidence: Optional[float] = None
+    s3_path: Optional[str] = None
+    channel_id: Optional[str] = None
+    channel_friendly_name: Optional[str] = None
+    channel_description: Optional[str] = None
+    recorder_friendly_name: Optional[str] = None

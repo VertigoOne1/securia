@@ -1037,6 +1037,140 @@ async def delete_detection_object_by_id(db: db_dependency, detectionobject_id: i
         content={"message": f"Detection object with id {detectionobject_id} deleted"}
     )
 
+# Special requests
+
+@app.get("/securia/summary", response_model=list[schemas.GlobalDetectionSummary])
+async def get_summary(db: db_dependency,
+                      skip: int = 0,
+                      limit: int = 100,
+                      sort_by: str = Query("collected_timestamp", description="Field to sort by"),
+                      sort_order: SortOrder = Query(SortOrder.desc, description="Sort order (asc or desc)"),
+                      current_user: dict = Depends(get_current_user)):
+    from sqlalchemy import select, join, desc
+    from sqlalchemy.orm import aliased
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
+    try:
+        o = aliased(models.DetectionObject)
+        d = aliased(models.Detection)
+        i = aliased(models.Image)
+        c = aliased(models.Channel)
+        r = aliased(models.Recorder)
+
+        query = (
+            select(
+                i.collected_timestamp,
+                o.detection_name,
+                o.confidence,
+                i.s3_path,
+                c.channel_id,
+                c.friendly_name.label('channel_friendly_name'),
+                c.description.label('channel_description'),
+                r.friendly_name.label('recorder_friendly_name')
+            )
+            .select_from(o)
+            .join(d, o.fid == d.id)
+            .join(i, d.fid == i.id)
+            .join(c, i.fid == c.id)
+            .join(r, c.fid == r.id)
+        )
+
+        # Get the attribute to sort by
+        sort_attribute = getattr(i, sort_by, None)
+        if sort_attribute is None:
+            raise HTTPException(status_code=400, detail=f"Invalid sort field: {sort_by}")
+
+        # Apply sorting
+        if sort_order == SortOrder.desc:
+            query = query.order_by(desc(sort_attribute))
+        else:
+            query = query.order_by(sort_attribute)
+
+        # Apply pagination
+        query = query.offset(skip).limit(limit)
+
+        result = db.execute(query)
+        recent_detections_summary = result.fetchall()
+
+        if not recent_detections_summary:
+            raise HTTPException(status_code=404, detail='Detections not found')
+
+        return recent_detections_summary
+    except Exception as e:
+        logger.error(f"{e}")
+        raise HTTPException(status_code=500, detail=f'Server error: {str(e)}')
+
+@app.get("/securia/summary/{recorder_id}", response_model=list[schemas.GlobalDetectionSummary])
+async def get_summary_by_recorder(db: db_dependency,
+                      recorder_id: int = Path(gt=0),
+                      skip: int = 0,
+                      limit: int = 100,
+                      sort_by: str = Query("collected_timestamp", description="Field to sort by"),
+                      sort_order: SortOrder = Query(SortOrder.desc, description="Sort order (asc or desc)"),
+                      current_user: dict = Depends(get_current_user)):
+    from sqlalchemy import select, join, desc
+    from sqlalchemy.orm import aliased
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
+    try:
+        o = aliased(models.DetectionObject)
+        d = aliased(models.Detection)
+        i = aliased(models.Image)
+        c = aliased(models.Channel)
+        r = aliased(models.Recorder)
+
+        query = (
+            select(
+                i.collected_timestamp,
+                o.detection_name,
+                o.confidence,
+                i.s3_path,
+                c.channel_id,
+                c.friendly_name.label('channel_friendly_name'),
+                c.description.label('channel_description'),
+                r.friendly_name.label('recorder_friendly_name')
+            )
+            .select_from(o)
+            .join(d, o.fid == d.id)
+            .join(i, d.fid == i.id)
+            .join(c, i.fid == c.id)
+            .join(r, c.fid == r.id)
+            .filter(r.id == recorder_id)
+        )
+
+        # Get the attribute to sort by
+        sort_attribute = getattr(i, sort_by, None)
+        if sort_attribute is None:
+            raise HTTPException(status_code=400, detail=f"Invalid sort field: {sort_by}")
+
+        # Apply sorting
+        if sort_order == SortOrder.desc:
+            query = query.order_by(desc(sort_attribute))
+        else:
+            query = query.order_by(sort_attribute)
+
+        # Apply pagination
+        query = query.offset(skip).limit(limit)
+
+        result = db.execute(query)
+        recent_detections_summary = result.fetchall()
+
+        if not recent_detections_summary:
+            raise HTTPException(status_code=404, detail='Detections not found')
+
+        return recent_detections_summary
+    except Exception as e:
+        logger.error(f"{e}")
+        raise HTTPException(status_code=500, detail=f'Server error: {str(e)}')
+
 # Health
 
 @app.get(

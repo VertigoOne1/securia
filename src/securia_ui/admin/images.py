@@ -37,7 +37,7 @@ def get_channels_dataset(id) -> pd.DataFrame:
 
 # @st.cache_data(ttl=config['general']['dataframe_cache_expire_seconds'])
 def get_images_dataset(id) -> pd.DataFrame:
-    images_data = logic.fetch_images(id, token=st.session_state.token)
+    images_data = logic.fetch_images_by_channel(id, token=st.session_state.token)
     if images_data:
         df = pd.DataFrame(images_data)
         return df

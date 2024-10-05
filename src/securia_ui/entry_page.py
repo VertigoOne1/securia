@@ -69,9 +69,10 @@ alerts = st.Page("reports/alerts.py", title="Alerts", icon=":material/notificati
 live_cams = st.Page("views/live_cams.py", title="Cameras", icon=":material/live_tv:")
 live_detections = st.Page("views/live_detections.py", title="Detections", icon=":material/detection_and_zone:")
 
-# Tools
-search = st.Page("tools/search.py", title="Search", icon=":material/search:")
-llm = st.Page("tools/llm.py", title="The Guard", icon=":material/guardian:")
+# AI Tools
+search = st.Page("ai_tools/search.py", title="Search", icon=":material/search:")
+the_guard = st.Page("ai_tools/the_guard.py", title="The Guard", icon=":material/guardian:")
+the_analyst = st.Page("ai_tools/the_analyst.py", title="The Analyst", icon=":material/eyeglasses:")
 
 # Admin
 users = st.Page("admin/users.py", title="Users", icon=":material/manage_accounts:")
@@ -91,7 +92,7 @@ if st.session_state.logged_in:
             "Account": [profile, logout_page],
             "Live": [live_cams, live_detections],
             "Reports": [alerts, legacy_dashboard],
-            "Tools": [search, llm],
+            "AI Tools": [search, the_guard, the_analyst],
             "Admin": [users, recorders, channels, images, detections],
             "About": [about]
         }

@@ -7,5 +7,3 @@ target "app" {
   dockerfile = "Dockerfile"
   builder = "container"
 }
-
-NOT IN USE AT THE MOMENT, might be useful in future

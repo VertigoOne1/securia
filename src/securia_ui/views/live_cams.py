@@ -94,9 +94,9 @@ with left:
             st.header("Detections")
             detections = get_detections_by_channel_dataset(channel_selected_id, 10, "desc")
 
-            detections_display_columns = ['friendly_name', 'channel_id']
+            detections_display_columns = ['detections_count', 'processing_time_ms']
             detections_event = st.dataframe(
-                detections,
+                detections[detections_display_columns],
                 # column_config=column_configuration,
                 use_container_width=True,
                 hide_index=True,

@@ -1,0 +1,102 @@
+[
+  {
+    "collected_timestamp": "2024-10-05T17:11:36.250587Z",
+    "detection_name": "car",
+    "confidence": 0.48549,
+    "s3_path": "test/657c8102-e8eb-4f4c-b8a8-b9123cedeed7",
+    "channel_id": "2",
+    "channel_friendly_name": "outside",
+    "channel_description": "north boundry wall",
+    "recorder_friendly_name": "Simulator2"
+  },
+  {
+    "collected_timestamp": "2024-10-05T17:11:36.250587Z",
+    "detection_name": "car",
+    "confidence": 0.7684,
+    "s3_path": "test/657c8102-e8eb-4f4c-b8a8-b9123cedeed7",
+    "channel_id": "2",
+    "channel_friendly_name": "outside",
+    "channel_description": "north boundry wall",
+    "recorder_friendly_name": "Simulator2"
+  },
+  {
+    "collected_timestamp": "2024-10-05T17:11:36.250587Z",
+    "detection_name": "car",
+    "confidence": 0.77445,
+    "s3_path": "test/657c8102-e8eb-4f4c-b8a8-b9123cedeed7",
+    "channel_id": "2",
+    "channel_friendly_name": "outside",
+    "channel_description": "north boundry wall",
+    "recorder_friendly_name": "Simulator2"
+  },
+  {
+    "collected_timestamp": "2024-10-05T17:11:36.250587Z",
+    "detection_name": "car",
+    "confidence": 0.61113,
+    "s3_path": "test/657c8102-e8eb-4f4c-b8a8-b9123cedeed7",
+    "channel_id": "2",
+    "channel_friendly_name": "outside",
+    "channel_description": "north boundry wall",
+    "recorder_friendly_name": "Simulator2"
+  },
+  {
+    "collected_timestamp": "2024-10-05T17:11:36.250587Z",
+    "detection_name": "truck",
+    "confidence": 0.89463,
+    "s3_path": "test/657c8102-e8eb-4f4c-b8a8-b9123cedeed7",
+    "channel_id": "2",
+    "channel_friendly_name": "outside",
+    "channel_description": "north boundry wall",
+    "recorder_friendly_name": "Simulator2"
+  },
+  {
+    "collected_timestamp": "2024-10-05T17:11:36.250587Z",
+    "detection_name": "truck",
+    "confidence": 0.37485,
+    "s3_path": "test/657c8102-e8eb-4f4c-b8a8-b9123cedeed7",
+    "channel_id": "2",
+    "channel_friendly_name": "outside",
+    "channel_description": "north boundry wall",
+    "recorder_friendly_name": "Simulator2"
+  },
+  {
+    "collected_timestamp": "2024-10-05T17:11:36.250587Z",
+    "detection_name": "car",
+    "confidence": 0.87852,
+    "s3_path": "test/657c8102-e8eb-4f4c-b8a8-b9123cedeed7",
+    "channel_id": "2",
+    "channel_friendly_name": "outside",
+    "channel_description": "north boundry wall",
+    "recorder_friendly_name": "Simulator2"
+  },
+  {
+    "collected_timestamp": "2024-10-05T17:11:36.250587Z",
+    "detection_name": "truck",
+    "confidence": 0.87596,
+    "s3_path": "test/657c8102-e8eb-4f4c-b8a8-b9123cedeed7",
+    "channel_id": "2",
+    "channel_friendly_name": "outside",
+    "channel_description": "north boundry wall",
+    "recorder_friendly_name": "Simulator2"
+  },
+  {
+    "collected_timestamp": "2024-10-05T17:11:35.584280Z",
+    "detection_name": "car",
+    "confidence": 0.61113,
+    "s3_path": "test/5aba7aa3-baf3-471d-a085-298a3451042f",
+    "channel_id": "2",
+    "channel_friendly_name": "outside",
+    "channel_description": "north boundry wall",
+    "recorder_friendly_name": "Simulator2"
+  },
+  {
+    "collected_timestamp": "2024-10-05T17:11:35.584280Z",
+    "detection_name": "car",
+    "confidence": 0.48549,
+    "s3_path": "test/5aba7aa3-baf3-471d-a085-298a3451042f",
+    "channel_id": "2",
+    "channel_friendly_name": "outside",
+    "channel_description": "north boundry wall",
+    "recorder_friendly_name": "Simulator2"
+  }
+]

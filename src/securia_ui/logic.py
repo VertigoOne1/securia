@@ -96,7 +96,7 @@ def delete_channel(id, token=None):
 
 ## Images Management
 
-def fetch_images(channel_id, limit=100, sort="desc", token=None):
+def fetch_images_by_channel(channel_id, limit=100, sort="desc", token=None):
     from urllib.parse import urlencode
     params = {
             "sort_by": 'id',
@@ -122,6 +122,36 @@ def fetch_detections(image_id, limit=100, sort="desc", token=None):
             "skip": 0
         }
     response = requests.get(f"{config['api']['uri']}/detection/image/{image_id}?{urlencode(params)}", auth=BearerAuth(token))
+    if response.status_code == 200:
+        return response.json()
+    else:
+        logger.error(f"Failed to fetch details: {response.status_code}")
+        return None
+
+def fetch_detections_by_channel(channel_id, limit, sort, token=None):
+    from urllib.parse import urlencode
+    params = {
+            "sort_by": 'id',
+            "sort_order": sort,
+            "limit": limit,
+            "skip": 0
+        }
+    response = requests.get(f"{config['api']['uri']}/detection/channel/{channel_id}?{urlencode(params)}", auth=BearerAuth(token))
+    if response.status_code == 200:
+        return response.json()
+    else:
+        logger.error(f"Failed to fetch details: {response.status_code}")
+        return None
+
+def fetch_detections_summary(recorder_id, limit=100, sort="desc", token=None):
+    from urllib.parse import urlencode
+    params = {
+            "sort_by": 'id',
+            "sort_order": sort,
+            "limit": limit,
+            "skip": 0
+        }
+    response = requests.get(f"{config['api']['uri']}/summary/{recorder_id}?{urlencode(params)}", auth=BearerAuth(token))
     if response.status_code == 200:
         return response.json()
     else:
