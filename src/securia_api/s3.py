@@ -60,7 +60,6 @@ def fetch_image(bucket, key):
     return im
 
 def delete_image(bucket, key):
-    from PIL import Image
     s3_context = create_s3_context(config['storage']['endpoint_hostname'],
                                    config['storage']['endpoint_method'],
                                    config['storage']['port'],
