@@ -82,4 +82,4 @@ jobs:
         workdir: ./src
         push: true
       env:
-        CHART_VERSION: ${{ env.CHART_VERSION }}
+        CHART_VERSION: ${{ env.CHART_VERSION }}-${{github.run_number}}

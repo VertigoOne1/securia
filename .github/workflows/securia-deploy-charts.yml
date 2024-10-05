@@ -74,6 +74,6 @@ jobs:
           https://github.com/jkroepke/helm-secrets
         helmfile-auto-init: "true"
       env:
-        CHART_VERSION: ${{ env.CHART_VERSION }}
+        CHART_VERSION: ${{ env.CHART_VERSION }}-${{github.run_number}}
         SECURIA_NAMESPACE: ${{ env.SECURIA_NAMESPACE }}
         SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}

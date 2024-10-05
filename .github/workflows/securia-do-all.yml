@@ -82,7 +82,7 @@ jobs:
         workdir: ./src
         push: true
       env:
-        CHART_VERSION: ${{ env.CHART_VERSION }}
+        CHART_VERSION: ${{ env.CHART_VERSION }}-${{github.run_number}}
 
   package-push-charts:
 
@@ -122,9 +122,9 @@ jobs:
             chart_name=$(basename "$dir")
             echo "Packaging chart: $chart_name"
             package_name=$(echo "${chart_name}" | tr '_' '-')
-            helm package "$dir" --version ${CHART_VERSION}
+            helm package "$dir" --version ${CHART_VERSION}-${{github.run_number}}
             echo "Pushing chart: $chart_name"
-            helm push $package_name-${CHART_VERSION}.tgz oci://${REGISTRY_HOST}/securia/charts
+            helm push $package_name-${CHART_VERSION}-${{github.run_number}}.tgz oci://${REGISTRY_HOST}/securia/charts
           fi
         done
         rm *tgz
@@ -193,6 +193,6 @@ jobs:
           https://github.com/jkroepke/helm-secrets
         helmfile-auto-init: "true"
       env:
-        CHART_VERSION: ${{ env.CHART_VERSION }}
+        CHART_VERSION: ${{ env.CHART_VERSION }}-${{github.run_number}}
         SECURIA_NAMESPACE: ${{ env.SECURIA_NAMESPACE }}
         SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
