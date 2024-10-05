@@ -9,7 +9,7 @@ releases:
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/charts/securia-api
-  version: {{ env "CHART_VERSION" | default "1.1.1" }}
+  version: {{ env "CHART_VERSION" | default "1.2.3" }}
   values:
     - values/dev/securia_api/values.yaml
     - imagePullSecrets:
@@ -26,7 +26,7 @@ releases:
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/charts/securia-ui
-  version: {{ env "CHART_VERSION" | default "1.1.1" }}
+  version: {{ env "CHART_VERSION" | default "1.2.3" }}
   values:
     - values/dev/securia_ui/values.yaml
     - imagePullSecrets:
@@ -43,7 +43,7 @@ releases:
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/charts/image-preprocessor
-  version: {{ env "CHART_VERSION" | default "1.1.1" }}
+  version: {{ env "CHART_VERSION" | default "1.2.3" }}
   values:
     - values/dev/image_preprocessor/values.yaml
     - imagePullSecrets:
@@ -56,28 +56,28 @@ releases:
     - name: appConfig.general.version
       value: {{ env "CHART_VERSION" | default "latest" }}
 
-# - name: collector-hikvision
-#   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
-#   createNamespace: true
-#   chart: oci://harbor.marnus.com/securia/charts/collector-hikvision
-#   version: {{ env "CHART_VERSION" | default "1.1.1" }}
-#   values:
-#     - values/dev/collector_hikvision/values.yaml
-#     - imagePullSecrets:
-#       - name: registrypullsecret
-#   secrets:
-#     - values/dev/collector_hikvision/values_secrets.yaml
-#   set:
-#     - name: image.tag
-#       value: {{ env "CHART_VERSION" | default "latest" }}
-      # - name: appConfig.general.version
-      #   value: {{ env "CHART_VERSION" | default "latest" }}
+- name: collector-hikvision
+  namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
+  createNamespace: true
+  chart: oci://harbor.marnus.com/securia/charts/collector-hikvision
+  version: {{ env "CHART_VERSION" | default "1.2.3" }}
+  values:
+    - values/dev/collector_hikvision/values.yaml
+    - imagePullSecrets:
+      - name: registrypullsecret
+  secrets:
+    - values/dev/collector_hikvision/values_secrets.yaml
+  set:
+    - name: image.tag
+      value: {{ env "CHART_VERSION" | default "latest" }}
+      - name: appConfig.general.version
+        value: {{ env "CHART_VERSION" | default "latest" }}
 
 - name: collector-simulator
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/charts/collector-simulator
-  version: {{ env "CHART_VERSION" | default "1.1.1" }}
+  version: {{ env "CHART_VERSION" | default "1.2.3" }}
   values:
     - values/dev/collector_simulator/values.yaml
     - imagePullSecrets:
@@ -94,7 +94,7 @@ releases:
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/charts/yolo-processor
-  version: {{ env "CHART_VERSION" | default "1.1.1" }}
+  version: {{ env "CHART_VERSION" | default "1.2.3" }}
   values:
     - values/dev/yolo_processor/values.yaml
     - imagePullSecrets:
