@@ -110,38 +110,50 @@ def recorder_process(image_dict):
         return None
 
 def channel_process(image_dict, recorder_id):
+    # Check if a valid recorder_id is provided
     if recorder_id is not None:
         try:
+            # Construct the URL for channel search
             url = f"{config['api']['uri']}/channel/search/"
+            # Prepare the request body with recorder_id and channel_id
             request_body = {'fid': recorder_id, 'channel_id': image_dict['channel']}
             logger.debug(f"Finding channel and recorder - {request_body}")
+            # Send POST request to search for the channel
             resp = requests.post(url, json = request_body, auth=auth)
             data = resp.json()
             logger.debug(f"Channel search resp - {data}")
-            if resp.status_code == 404: ## Create it
+
+            # If channel is not found (404), create a new one
+            if resp.status_code == 404:
                 logger.debug("Channel not found, creating it")
                 url = f"{config['api']['uri']}/channel"
+                # Prepare request body for creating a new channel
                 request_body = {
                     'fid': recorder_id,
                     'channel_id': image_dict['channel'],
-                    'friendly_name': f"{image_dict.get('friendly_name') or None}",
+                    'friendly_name': f"defaulted_{image_dict.get('friendly_name') or None}",
                     'description': f"{image_dict.get('description') or None}"
                     }
                 logger.debug(f"Request Body - {request_body}")
+                # Send POST request to create the channel
                 resp = requests.post(url, json = request_body, auth=auth)
                 data = resp.json()
                 logger.debug(f"Create Channnel Response - {data}")
                 logger.debug(f"Channel ID is {data['id']}")
+            # If channel is found (200), return its ID
             elif resp.status_code == 200:
                 return data['id']
+            # For any other status code, log an error and return None
             else:
                 logger.error(f"Respose status: {resp.status_code}")
                 return None
         except:
+            # Log any exceptions that occur during the process
             logger.error("channel search request exception")
             logger.error(traceback.format_exc())
             return None
     else:
+        # Log an error if no valid recorder_id is provided
         logger.error("Did not receive a valid recorder_id")
         return None
 

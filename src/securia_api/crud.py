@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import inspect
+from sqlalchemy.exc import SQLAlchemyError
 import models, schemas
 from typing import Annotated, Optional
 import logger, bcrypt
@@ -146,24 +147,34 @@ def create_recorder(db: Session,
         return None
 
 def update_recorder(db: Session, id: int, recorder: schemas.RecorderUpdate):
-    db_recorder = db.query(models.Recorder).filter(models.Recorder.id == id).first()
-
-    if db_recorder is None:
-        logger.debug(f"Recorder - {id} not found")
-        return None
-
-    # Update the attributes
-    recorder_data = recorder.dict(exclude_unset=True)
-    for key, value in recorder_data.items():
-        setattr(db_recorder, key, value)
-
-    # Commit the changes
-    db.commit()
-
-    # Refresh the object
-    db.refresh(db_recorder)
-
-    return db_recorder
+    try:
+        db_recorder = db.query(models.Recorder).filter(models.Recorder.id == id).first()
+        if db_recorder is None:
+            logger.debug(f"Recorder - {id} not found")
+            return None
+        # Update the attributes
+        recorder_data = recorder.dict(exclude_unset=True)
+        for key, value in recorder_data.items():
+            setattr(db_recorder, key, value)
+        # Commit the changes
+        db.commit()
+        # Refresh the object
+        db.refresh(db_recorder)
+        return db_recorder
+    except SQLAlchemyError as e:
+        # Log the error
+        logger.error(f"Error updating recorder - {id}: {str(e)}")
+        # Rollback the transaction
+        db.rollback()
+        # Re-raise the exception or handle it as needed
+        raise
+    except Exception as e:
+        # Log any other unexpected errors
+        logger.error(f"Unexpected error updating recorder - {id}: {str(e)}")
+        # Rollback the transaction
+        db.rollback()
+        # Re-raise the exception or handle it as needed
+        raise
 
 def delete_recorder(db: Session, id: int):
     db_recorder = db.query(models.Recorder).filter(models.Recorder.id == id).first()
@@ -210,7 +221,12 @@ def update_channel(db: Session, id: int, channel: schemas.ChannelUpdate):
         setattr(db_channel, key, value)
 
     # Commit the changes
-    db.commit()
+    try:
+        db.commit()
+    except Exception as e:
+        logger.error(f"Error committing changes for channel - {id}: {str(e)}")
+        db.rollback()  # Rollback the transaction in case of error
+        return None
 
     # Refresh the object
     db.refresh(db_channel)
@@ -263,11 +279,13 @@ def update_image(db: Session, id: int, image: schemas.ImageUpdate):
         setattr(db_image, key, value)
 
     # Commit the changes
-    db.commit()
-
-    # Refresh the object
+    try:
+        db.commit()
+    except Exception as e:
+        logger.error(f"Error committing changes for image - {id}: {str(e)}")
+        db.rollback()  # Rollback the transaction in case of error
+        return None
     db.refresh(db_image)
-
     return db_image
 
 def delete_image(db: Session, id: int):
@@ -316,7 +334,12 @@ def update_detection(db: Session, id: int, detection: schemas.DetectionUpdate):
         setattr(db_det, key, value)
 
     # Commit the changes
-    db.commit()
+    try:
+        db.commit()
+    except Exception as e:
+        logger.error(f"Error committing changes for detection - {id}: {str(e)}")
+        db.rollback()  # Rollback the transaction in case of error
+        return None
 
     # Refresh the object
     db.refresh(db_det)
@@ -366,7 +389,12 @@ def update_detection_object(db: Session, id: int, detection_object: schemas.Dete
         setattr(db_deto, key, value)
 
     # Commit the changes
-    db.commit()
+    try:
+        db.commit()
+    except Exception as e:
+        logger.error(f"Error committing changes for detection object - {id}: {str(e)}")
+        db.rollback()  # Rollback the transaction in case of error
+        return None
 
     # Refresh the object
     db.refresh(db_deto)

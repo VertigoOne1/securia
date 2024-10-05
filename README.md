@@ -389,3 +389,8 @@ yolov8l.pt
 - login with the superuser on api/docs and create the necessary users for the other services
 - create your own admin user if you want
 - restart services
+
+
+## Further research
+
+https://github.com/defog-ai/sqlcoder

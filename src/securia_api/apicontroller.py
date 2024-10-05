@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from enum import Enum
 from typing import Annotated, Optional
 from prometheus_client import make_asgi_app
@@ -838,6 +838,25 @@ async def delete_detection_by_id(db: db_dependency, detection_id: int = Path(gt=
         status_code=200,
         content={"message": f"Detection with id {detection_id} deleted"}
     )
+
+@app.get("/securia/detection/recorder_total/{recorder_id}/{days}")
+async def detection_count_by_recorder_id(db: db_dependency, recorder_id: int = Path(gt=0), days: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
+    from datetime import datetime, timedelta
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_get_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
+    yesterday = datetime.now() - timedelta(days=days)
+    logger.debug(yesterday)
+    return db.query(func.count(models.Detection.id).label('total_detections'))\
+        .join(models.Image, models.Detection.fid == models.Image.id)\
+        .join(models.Channel, models.Image.fid == models.Channel.id)\
+        .join(models.Recorder, models.Channel.fid == models.Recorder.id)\
+        .filter(models.Recorder.id == recorder_id)\
+        .filter(models.Detection.detections_timestamp >= yesterday)\
+        .scalar()
 
 # Detection Objects APIs CRUD
 
