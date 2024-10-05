@@ -5,3 +5,4 @@ dashboard_token
 **/__pycache__
 src/**/*.pyc
 **/*.decrypted*
+**/securia_llm/config.yml
