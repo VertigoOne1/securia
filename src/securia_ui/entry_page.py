@@ -78,8 +78,9 @@ users = st.Page("admin/users.py", title="Users", icon=":material/manage_accounts
 profile = st.Page("admin/profile.py", title="Profile", icon=":material/manage_accounts:")
 recorders = st.Page("admin/recorders.py", title="Recorders", icon=":material/folder_managed:")
 channels = st.Page("admin/channels.py", title="Channels", icon=":material/folder_managed:")
-images = st.Page("admin/images.py", title="Images TODO", icon=":material/construction:")
-detections = st.Page("admin/detections.py", title="Detections TODO", icon=":material/construction:")
+images = st.Page("admin/images.py", title="Image Explorer", icon=":material/construction:")
+detections = st.Page("admin/detections.py", title="Detection Explorer", icon=":material/construction:")
+# detection_objects = st.Page("admin/detection_objects.py", title="Detection Objects", icon=":material/construction:")
 
 # Info
 about = st.Page(about, title="About", icon=":material/info:")

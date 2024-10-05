@@ -96,7 +96,7 @@ def delete_channel(id, token=None):
 
 ## Images Management
 
-def fetch_images_by_channel(channel_id, limit, sort, token=None):
+def fetch_images(channel_id, limit=100, sort="desc", token=None):
     from urllib.parse import urlencode
     params = {
             "sort_by": 'id',

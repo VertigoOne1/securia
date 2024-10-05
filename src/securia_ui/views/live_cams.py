@@ -125,6 +125,6 @@ with middle:
                     for index, row in images.iterrows():
                         st.write(f"{row['s3_path']} - {row['collected_timestamp']}")
                         if "NO_IMAGE" in row['s3_path']:
-                            st.image('http://localhost:8501/app/static/no_image.png')
+                            st.image(f"{config['api']['static_content_root']}/no_image.png")
                         else:
                             st.image(fs.open(row['s3_path'], mode='rb').read())
