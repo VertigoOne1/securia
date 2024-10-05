@@ -246,7 +246,7 @@ class Detection(DetectionBase):
     @classmethod
     def parse_detections(cls, value: Any)-> str:
         if value is not None:
-            return "{}"
+            return json.dumps(value)
         return "{}"
 
     class Config:
@@ -260,6 +260,13 @@ class DetectionObjectBase(BaseModel):
     confidence: float
     xyxy: Json[Any]
     crop_s3_path: str
+
+    @field_validator('xyxy', mode="before")
+    @classmethod
+    def parse_xyxy(cls, value: Any)-> str:
+        if value is not None:
+            return json.dumps(value)
+        return "{}"
 
     class Config:
         from_attributes = True

@@ -14,8 +14,8 @@ if 'delete_channel' not in st.session_state:
 if 'add_channel' not in st.session_state:
     st.session_state['add_channel'] = 'false'
 
-st.set_page_config(page_title="Securia - Image", layout="wide")
-st.title("Image management")
+st.set_page_config(page_title="Securia - Image Explorer", layout="wide")
+st.title("Image Explorer")
 
 # @st.cache_data(ttl=config['general']['dataframe_cache_expire_seconds'])
 def get_recorders_dataset() -> pd.DataFrame:
@@ -44,12 +44,11 @@ def get_images_dataset(id) -> pd.DataFrame:
     else:
         return pd.DataFrame()
 
-def update_image(image_id, updated_data):
-    logger.info(f"Updating image with ID: {image_id}")
-    logger.debug("Updated data:", updated_data)
-    response = logic.update_image(image_id, updated_data, token=st.session_state.token)
-    return response
-
+# def update_image(image_id, updated_data):
+#     logger.info(f"Updating image with ID: {image_id}")
+#     logger.debug("Updated data:", updated_data)
+#     response = logic.update_image(image_id, updated_data, token=st.session_state.token)
+#     return response
 
 with st.expander("Recorders", expanded=True):
     # Fetch Recorder data

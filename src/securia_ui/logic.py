@@ -113,7 +113,7 @@ def fetch_images(channel_id, limit=100, sort="desc", token=None):
 
 ## Detections
 
-def fetch_detections_by_channel(channel_id, limit, sort, token=None):
+def fetch_detections(image_id, limit=100, sort="desc", token=None):
     from urllib.parse import urlencode
     params = {
             "sort_by": 'id',
@@ -121,7 +121,7 @@ def fetch_detections_by_channel(channel_id, limit, sort, token=None):
             "limit": limit,
             "skip": 0
         }
-    response = requests.get(f"{config['api']['uri']}/detection/channel/{channel_id}?{urlencode(params)}", auth=BearerAuth(token))
+    response = requests.get(f"{config['api']['uri']}/detection/image/{image_id}?{urlencode(params)}", auth=BearerAuth(token))
     if response.status_code == 200:
         return response.json()
     else:
