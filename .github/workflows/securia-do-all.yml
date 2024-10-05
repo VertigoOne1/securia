@@ -71,16 +71,12 @@ jobs:
         username: ${{ env.REGISTRY_USERNAME }}
         password: ${{ env.REGISTRY_PASSWORD }}
 
-    - name: tests
-      run: |
-        ls -la
-        ls -la ~/.docker
-        cat ~/.docker/config.json
-
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-      env:
-        DOCKER_CONFIG: .docker/config.json
+
+    - name: Wait a bit?
+      run: |
+        sleep 30
 
     - name: Build and push images
       uses: docker/bake-action@v5
