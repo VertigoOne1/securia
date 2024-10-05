@@ -1,0 +1,118 @@
+# Default values for secmaint.
+# This is a YAML-formatted file.
+# Declare variables to be passed into the templates.
+
+replicaCount: 1
+
+image:
+  name: "securia-maintenance"
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+postfix: "secmaint"
+
+app:
+  general:
+    app_name: securia-maintenance
+    app_debug_level: INFO
+
+appConfig:
+    general:
+        app_name: securia_maintenance
+        default_debug_level: DEBUG
+        version: latest
+    maintenance:
+        enabled: True
+        prune_data_older_than_days: 7 # prunes all metadata and related images from object storage
+        prune_images_older_than_days: 3 # prunes only images from object storage leaving the meta
+        prune_data_check_interval_seconds: 13
+        prune_images_check_interval_seconds: 17
+    api:
+        default_port: 8191
+        debug_level: info
+        debug_enabled: False
+    scheduler:
+        enabled: True
+    metrics:
+        enabled: True
+    logging:
+        enable_file_log_handler: False
+        enable_stdout_log_handler: True
+        enable_kafka_log_handler: False
+
+service:
+  type: ClusterIP
+  port: 8088
+  name: secmaint
+
+serviceAccount:
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "secmaint-sa"
+  bindingPostfix: "-crb"
+
+persistence:
+  # -- use a PVC to persist data
+  enabled: False
+  # -- the desired access modes the volume should have.
+  accessModes:
+    - ReadWriteOnce
+  # -- Annotations to be added to the PersistentVolumeClaim
+  annotations: {}
+  # -- provide an existing PersistentVolumeClaim
+  existingClaim: ""
+  # -- Name of the StorageClass required by the claim.
+  storageClassName: "local-path"
+  # -- represents the minimum and maximum resources the volume should have.
+  resources:
+    requests:
+      storage: 16Gi
+
+ingress:
+  # -- Enable ingress record generation
+  enabled: false
+  # -- IngressClass that will be be used to implement the Ingress
+  className: ""
+  # -- Additional annotations for the Ingress resource
+  annotations: {}
+    # cert-manager.io/cluster-issuer: cluster-issuer-name
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- An array with hosts and paths
+  # @default -- see [values.yaml](./values.yaml)
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  # -- An array with the tls configuration
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 64Mi
+  requests:
+    cpu: 50m
+    memory: 32Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

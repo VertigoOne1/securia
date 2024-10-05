@@ -664,6 +664,74 @@ async def delete_image_by_id(db: db_dependency, image_id: int = Path(gt=0), curr
         content={"message": f"Image with id {image_id} deleted"}
     )
 
+@app.delete("/securia/image/recursive/{image_id}")
+async def delete_image_by_id(db: db_dependency, image_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
+    db_image = crud.prune_image(db, image_id)
+    if db_image is None:
+        raise HTTPException(status_code=404, detail='Not Found')
+    logger.debug(f"Image with id: {image_id} and all related objects pruned")
+    return responses.JSONResponse(
+        status_code=200,
+        content={"message": f"Image with id {image_id} pruned"}
+    )
+
+@app.delete("/securia/image/recursive/days/{older_than}")
+async def delete_images_older_than(db: db_dependency, older_than: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
+    db_days = crud.prune_all_images_older_than(db, older_than)
+    if db_days is None:
+        raise HTTPException(status_code=404, detail='Not Found')
+    logger.debug(f"Images older than: {older_than} and all related objects pruned")
+    return responses.JSONResponse(
+        status_code=200,
+        content={"message": f"Images older than {older_than} pruned"}
+    )
+
+@app.delete("/securia/data_maintenance/recursive/{image_id}")
+async def delete_image_and_metadata_by_id(db: db_dependency, image_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
+    db_image = crud.prune_all_data(db, image_id)
+    if db_image is None:
+        raise HTTPException(status_code=404, detail='Not Found')
+    logger.debug(f"Image with id: {image_id} and all related objects pruned")
+    return responses.JSONResponse(
+        status_code=200,
+        content={"message": f"Image with id {image_id} pruned"}
+    )
+
+@app.delete("/securia/data_maintenance/recursive/days/{older_than}")
+async def delete_images_and_metadata_older_than(db: db_dependency, older_than: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
+    if config['api']['maintenance_mode']:
+        raise HTTPException(status_code=422, detail='Maintenance Mode')
+    if AccessHierarchy.can_create_update_delete_object(current_user['role']):
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied by hierarchy")
+    db_days = crud.prune_all_data_older_than(db, older_than)
+    if db_days is None:
+        raise HTTPException(status_code=404, detail='Not Found')
+    logger.debug(f"Images older than: {older_than} and all related objects pruned")
+    return responses.JSONResponse(
+        status_code=200,
+        content={"message": f"Images older than {older_than} pruned"}
+    )
+
 @app.get("/securia/image/channel/{fid_id}",response_model=list[schemas.Image])
 async def get_image_by_channel_fid(db: db_dependency,
                                    fid_id: int = Path(gt=0),

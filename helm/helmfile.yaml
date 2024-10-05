@@ -22,6 +22,23 @@ releases:
     - name: appConfig.general.version
       value: {{ env "CHART_VERSION" | default "latest" }}
 
+- name: securia-maintenance
+  namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
+  createNamespace: true
+  chart: oci://harbor.marnus.com/securia/charts/securia-maintenance
+  version: {{ env "CHART_VERSION" | default "1.2.3" }}
+  values:
+    - values/dev/securia_maintenance/values.yaml
+    - imagePullSecrets:
+      - name: registrypullsecret
+  secrets:
+    - values/dev/securia_maintenance/values_secrets.yaml
+  set:
+    - name: image.tag
+      value: {{ env "CHART_VERSION" | default "latest" }}
+    - name: appConfig.general.version
+      value: {{ env "CHART_VERSION" | default "latest" }}
+
 - name: securia-ui
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
   createNamespace: true
@@ -70,8 +87,8 @@ releases:
   set:
     - name: image.tag
       value: {{ env "CHART_VERSION" | default "latest" }}
-      - name: appConfig.general.version
-        value: {{ env "CHART_VERSION" | default "latest" }}
+    - name: appConfig.general.version
+      value: {{ env "CHART_VERSION" | default "latest" }}
 
 - name: collector-simulator
   namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}

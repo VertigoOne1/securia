@@ -1,0 +1,11 @@
+envyaml
+requests
+pyOpenSSL
+json2html
+prometheus_client
+schedule
+fastapi
+cryptography
+uvicorn
+pydantic
+pyjwt

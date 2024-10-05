@@ -59,7 +59,6 @@ So here is how i approach streamlit after some hours, it probably a "duh" moment
 
 stop messing around and start focusing on the detection system
 
-- develop image/psql pruning system, it gets out of control pretty quick, also needed to be able to delete anyway.
 - ui development - in progress (FOCUS HERE)
 - ui dev - detections and filters
 - ui dev - multipage navigator, build out pages
@@ -92,6 +91,7 @@ https://gha-cache-server.falcondev.io/getting-started
 
 ## DONE
 
+- develop image/psql pruning system, it gets out of control pretty quick, also needed to be able to delete anyway - done, images and metadata staggered pruning
 - i think i have a decent baseline now on approaching streamlit ui development - done
 - profile management - lightweight version done, yes i'm putting off the image stuff - done
 - channel management - done

@@ -54,6 +54,13 @@ docker buildx build securia_api/ -t ${REGISTRY_HOST}/securia/securia-api:latest
 docker push ${REGISTRY_HOST}/securia/securia-api:latest
 ```
 
+### Maintenance
+
+```bash
+docker buildx build securia_maintenance/ -t ${REGISTRY_HOST}/securia/securia-maintenance:latest
+docker push ${REGISTRY_HOST}/securia/securia-maintenance:latest
+```
+
 ### YOLO Processor
 
 ```bash

@@ -58,3 +58,17 @@ def fetch_image(bucket, key):
     file_stream = response['Body']
     im = Image.open(file_stream)
     return im
+
+def delete_image(bucket, key):
+    from PIL import Image
+    s3_context = create_s3_context(config['storage']['endpoint_hostname'],
+                                   config['storage']['endpoint_method'],
+                                   config['storage']['port'],
+                                   config['storage']['access_key'],
+                                   config['storage']['secret_access_key'])
+    response = s3_context.delete_object(
+        Bucket=bucket,
+        Key=key,
+    )
+    logger.debug(f"{response}")
+    return response

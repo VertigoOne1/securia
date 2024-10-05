@@ -35,6 +35,16 @@ services:
       cache_to:
        - type=registry,ref=${REGISTRY_HOST}/securia/securia-api:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
 
+  securia-maintenance:
+    image: ${REGISTRY_HOST}/securia/securia-maintenace:${CHART_VERSION}
+    build:
+      context: ./securia_maintenance
+      cache_from:
+       - type=registry,ref=${REGISTRY_HOST}/securia/securia-maintenance:buildcache
+      cache_to:
+       - type=registry,ref=${REGISTRY_HOST}/securia/securia-maintenance:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+
+
   securia-ui:
     image: ${REGISTRY_HOST}/securia/securia-ui:${CHART_VERSION}
     build:

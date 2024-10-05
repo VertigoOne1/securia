@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import inspect
+from sqlalchemy import inspect, select, delete
 from sqlalchemy.exc import SQLAlchemyError
 import models, schemas
 from typing import Annotated, Optional
 import logger, bcrypt
 from envyaml import EnvYAML
+import s3
 
 logger = logger.setup_custom_logger(__name__)
 
@@ -415,3 +416,137 @@ def delete_detection_object(db: Session, id: int):
         return None
 
 # Add other CRUD operations as needed
+
+def prune_all_data(db: Session, image_id: int):
+    # Step 1: Retrieve the image
+    image = db.get(models.Image, image_id)
+    if not image:
+        logger.info(f"Image with id {image_id} not found.")
+        return None
+
+    # Step 2: Delete the image from S3
+    if image.s3_path != "NO_IMAGE":
+        try:
+            image_path = image.s3_path.split('/')
+            logger.debug(f'Bucket is {image_path[0]}, key is {image_path[1]}')
+            s3.delete_image(image_path[0], image_path[1])
+            logger.info(f"Deleted S3 object: {image.s3_path}")
+        except Exception as e:
+            logger.error(f"Failed to delete S3 object: {image.s3_path}. Error: {str(e)}")
+            return None
+    else:
+        logger.debug("Image was never added to S3")
+
+    try:
+        # Step 3: Delete all related DetectionObjects
+        deleted_objects = db.execute(delete(models.DetectionObject).where(
+            models.DetectionObject.fid.in_(
+                db.query(models.Detection.id).filter_by(fid=image.id)
+            )
+        ))
+        logger.debug(f"Deleted {deleted_objects.rowcount} DetectionObjects")
+
+        # Step 4: Delete all related Detections
+        deleted_detections = db.execute(delete(models.Detection).filter_by(fid=image.id))
+        logger.debug(f"Deleted {deleted_detections.rowcount} Detections")
+
+        # Step 5: Delete the Image
+        db.delete(image)
+
+        # Step 6: Commit the changes
+        db.commit()
+
+        logger.info(f"Successfully deleted Image {image_id} and all related Detections and DetectionObjects.")
+        return {"response": "image deleted"}
+
+    except Exception as e:
+        logger.error(f"Failed to delete image and related data: {str(e)}")
+        db.rollback()
+        return None
+
+def prune_image(db: Session, image_id: int):
+    # Step 1: Retrieve the image
+    image = db.get(models.Image, image_id)
+    if not image:
+        logger.info(f"Image with id {image_id} not found.")
+        return None
+    try:
+        # Step 2: Delete the image from S3
+        if image.s3_path != "NO_IMAGE":
+            try:
+                image_path = image.s3_path.split('/')
+                logger.debug(f'Bucket is {image_path[0]}, key is {image_path[1]}')
+                s3.delete_image(image_path[0], image_path[1])
+                logger.info(f"Deleted S3 object: {image.s3_path}")
+            except Exception as e:
+                logger.error(f"Failed to delete S3 object: {image.s3_path}. Error: {str(e)}")
+                return None
+            # Update the image attribute to a NO_IMAGE
+            image_update = {}
+            image_update['s3_path'] = "NO_IMAGE"
+            for key, value in image_update.items():
+                setattr(image, key, value)
+
+            # Commit the changes
+            try:
+                db.commit()
+            except Exception as e:
+                logger.error(f"Error committing changes for image object - {id}: {str(e)}")
+                db.rollback()  # Rollback the transaction in case of error
+                return None
+
+            # Refresh the object
+            db.refresh(image)
+        else:
+            logger.debug("Image was never added to S3")
+
+    except Exception as e:
+        logger.error(f"Failed to delete image and related data: {str(e)}")
+        db.rollback()
+        return None
+
+def prune_all_data_older_than(db: Session, days: int):
+    from datetime import datetime, timedelta, timezone
+    """Delete images and metadata older than a specified number of days."""
+
+    # Calculate the cutoff date
+    cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+    logger.info(f"Deleting all images and metadata data older than {cutoff_date}")
+    # Query for images older than the cutoff date
+    old_images = db.query(models.Image).filter(models.Image.created_at < cutoff_date).all()
+    if len(old_images) > 0:
+        logger.info(f"Deleting {len(old_images)} images and metadata")
+        for img in old_images:
+            logger.debug(f"Pruning {img.id}")
+            prune_all_data(db, img.id)
+    else:
+        logger.info(f"there are no data older than {cutoff_date}")
+        return None
+
+    response = {}
+    response['response'] = f"{len(old_images)} images and their metadata were pruned"
+
+    return response
+
+def prune_all_images_older_than(db: Session, days: int):
+    from datetime import datetime, timedelta, timezone
+    """Delete images older than a specified number of days."""
+
+    # Calculate the cutoff date
+    cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+    logger.info(f"Removing images from content storage older than {cutoff_date}")
+    # Query for images older than the cutoff date
+    old_images = db.query(models.Image).filter(models.Image.created_at < cutoff_date).all()
+    if len(old_images) > 0:
+        logger.info(f"Deleting {len(old_images)} images")
+        for img in old_images:
+            logger.debug(f"Pruning {img.id}")
+            prune_image(db, img.id)
+    else:
+        logger.info(f"there are no images older than {cutoff_date}")
+        return None
+
+    response = {}
+    response['response'] = f"{len(old_images)} images were pruned"
+
+    return response
