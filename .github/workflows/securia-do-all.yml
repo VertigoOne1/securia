@@ -23,9 +23,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
     - name: Setup AGE
       uses: alessiodionisi/setup-age-action@v1.3.0
 
@@ -83,7 +80,7 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
       with:
-        buildkitd-config: src/.buildkitd.toml
+        buildkitd-config: src/buildkitd.toml
       env:
         DOCKER_CONFIG: .docker/config.json
 
