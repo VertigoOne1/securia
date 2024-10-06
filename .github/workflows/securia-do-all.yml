@@ -89,7 +89,7 @@ jobs:
         CHART_VERSION: ${{ env.CHART_VERSION }}-${{github.run_number}}
 
   package-push-charts:
-
+    needs: [build-push-images]
     environment:
       name: dev
 
@@ -136,7 +136,7 @@ jobs:
         SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
 
   deploy-securia:
-
+    needs: [build-push-images, package-push-charts]
     environment:
       name: dev
 
