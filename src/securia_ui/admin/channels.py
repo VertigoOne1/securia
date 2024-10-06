@@ -35,6 +35,15 @@ def get_channels_dataset(id) -> pd.DataFrame:
     else:
         return pd.DataFrame()
 
+@st.cache_data(ttl=10)
+def get_images_by_channel_dataset(channel_id, limit, sort) -> pd.DataFrame:
+    image_data = logic.fetch_images_by_channel(channel_id, limit, sort, token=st.session_state.token)
+    if image_data:
+        df = pd.DataFrame(image_data)
+        return df
+    else:
+        return pd.DataFrame()
+
 def create_channel(updated_data):
     logger.info(f"Create channel: {updated_data['channel_id']}")
     logger.debug("Updated data:", updated_data)
@@ -117,7 +126,7 @@ with st.expander("Channels", expanded=True):
                 st.session_state['delete_channel'] = 'true'
             if update_channel_pane:
                 st.session_state['update_channel'] = 'true'
-        st.write(f"{st.session_state['add_channel']} - {st.session_state['update_channel']} - {st.session_state['delete_channel']}")
+        # st.write(f"{st.session_state['add_channel']} - {st.session_state['update_channel']} - {st.session_state['delete_channel']}")
         if st.session_state['add_channel'] == 'true':
             st.header("Add Channel")
             with st.form(key=f"addchannel"):
@@ -206,3 +215,19 @@ with st.expander("Channels", expanded=True):
                 st.session_state['add_channel'] = "false"
                 st.session_state['delete_channel'] = "false"
                 st.session_state['update_channel'] = "false"
+try:
+    if channels_event is not None:
+        st.write("Preview to assist with descriptions and friendly name configuration")
+        if len(channels_event.selection.rows) > 0:
+            import s3fs
+            images = get_images_by_channel_dataset(channels_selected_id, limit=1, sort="desc")
+            endpoint_url = f"{config['storage']['endpoint_method']}://{config['storage']['endpoint_hostname']}:{config['storage']['port']}"
+            fs = s3fs.S3FileSystem(anon=False, key=config['storage']['access_key'], secret=config['storage']['secret_access_key'], endpoint_url=endpoint_url)
+            for index, row in images.iterrows():
+                # st.write(f"{row['s3_path']} - {row['collected_timestamp']}")
+                if "NO_IMAGE" in row['s3_path']:
+                    st.image(f"{config['api']['static_content_root']}/no_image.png")
+                else:
+                    st.image(fs.open(row['s3_path'], mode='rb').read())
+except:
+    pass

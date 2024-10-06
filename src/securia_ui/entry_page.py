@@ -66,8 +66,9 @@ legacy_dashboard = st.Page("reports/explorer.py", title="Dashboard", icon=":mate
 alerts = st.Page("reports/alerts.py", title="Alerts", icon=":material/notification_important:")
 
 # Live (focus on the last 30 minutes?)
-live_cams = st.Page("views/live_cams.py", title="Cameras", icon=":material/live_tv:")
-live_detections = st.Page("views/live_detections.py", title="Detections", icon=":material/detection_and_zone:")
+cameras_live = st.Page("views/cameras_live.py", title="Cameras", icon=":material/live_tv:")
+cameras_old = st.Page("views/cams_old.py", title="Cameras OLD", icon=":material/live_tv:")
+view_detections = st.Page("views/view_detections.py", title="Detections", icon=":material/detection_and_zone:")
 
 # AI Tools
 search = st.Page("ai_tools/search.py", title="Search", icon=":material/search:")
@@ -90,9 +91,9 @@ if st.session_state.logged_in:
     pg = st.navigation(
         {
             "Account": [profile, logout_page],
-            "Live": [live_cams, live_detections],
-            "Reports": [alerts, legacy_dashboard],
-            "AI Tools": [search, the_guard, the_analyst],
+            "Quick Views": [cameras_live, cameras_old, view_detections],
+            "Reports": [alerts],
+            "AI Tools (Coming Soon)": [search, the_guard, the_analyst],
             "Admin": [users, recorders, channels, images, detections],
             "About": [about]
         }

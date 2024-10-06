@@ -115,7 +115,7 @@ if recorders_selected_id is None:
         st.session_state['update_recorder'] = 'true'
     if link_recorder_pane:
         st.session_state['link_recorder'] = 'true'
-st.write(f"{st.session_state['add_recorder']} - {st.session_state['update_recorder']} - {st.session_state['delete_recorder']} - {st.session_state['link_recorder']}")
+# st.write(f"{st.session_state['add_recorder']} - {st.session_state['update_recorder']} - {st.session_state['delete_recorder']} - {st.session_state['link_recorder']}")
 
     # recorder_uuid: UUID
     # uri: str

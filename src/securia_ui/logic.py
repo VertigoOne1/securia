@@ -111,6 +111,31 @@ def fetch_images_by_channel(channel_id, limit=100, sort="desc", token=None):
         logger.error(f"Failed to fetch details: {response.status_code}")
         return None
 
+# Live view
+def cameras_view(recorder_id, limit=100, sort="desc", token=None):
+    print(f"{token}")
+    import json
+    grid = []
+    channels = (fetch_channels(recorder_id, token=token))
+    print(f"Channels - {channels}")
+    for channel in channels:
+        print(f"Channel - {channel['id']}")
+        image = fetch_images_by_channel(channel_id=channel['id'], limit=1, sort="desc", token=token)
+        print(f"Image - {image}")
+        if image is None:
+            combine = {}
+            combine['channel_id'] = channel['channel_id']
+            combine['image_s3'] = "NO_IMAGE"
+            grid.append(combine)
+        else:
+            print(f"Image - {image}")
+            combine = {}
+            combine['channel_id'] = channel['channel_id']
+            combine['image_s3'] = image[0]['s3_path']
+            grid.append(combine)
+    print(f'Final dict - {grid}')
+    return json.dumps(grid)
+
 ## Detections
 
 def fetch_detections(image_id, limit=100, sort="desc", token=None):

@@ -60,10 +60,11 @@ So here is how i approach streamlit after some hours, it probably a "duh" moment
 stop messing around and start focusing on the detection system
 
 - ui development - in progress (FOCUS HERE)
+- ui dev - llm - implement image description
+extraction into channel description with edits
 - ui dev - detections and filters
-- ui dev - multipage navigator, build out pages
-- llm RAG from pydantic, tool use to run user queries dynamically
-- context stuffing data to answer questions from current events
+- llm RAG from pydantic, tool use to run user queries dynamically (see drawio)
+- context stuffing data to answer questions from current events. summary
 
 https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
 https://gha-cache-server.falcondev.io/getting-started
@@ -91,6 +92,9 @@ https://gha-cache-server.falcondev.io/getting-started
 
 ## DONE
 
+- channel descriptions and friendly names are vital for LLM integration, make it easier to do by providing a preview image
+- ui dev - multipage navigator, build out pages - done
+- ui dev - a bit more fleshed out - done
 - develop image/psql pruning system, it gets out of control pretty quick, also needed to be able to delete anyway - done, images and metadata staggered pruning
 - i think i have a decent baseline now on approaching streamlit ui development - done
 - profile management - lightweight version done, yes i'm putting off the image stuff - done
