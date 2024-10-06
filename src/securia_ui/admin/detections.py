@@ -60,7 +60,6 @@ def update_image(image_id, updated_data):
     response = logic.update_image(image_id, updated_data, token=st.session_state.token)
     return response
 
-
 with st.expander("Recorders", expanded=True):
     # Fetch Recorder data
     recorders = get_recorders_dataset()
@@ -122,7 +121,7 @@ with st.expander("Images", expanded=True):
         images_selected_id = None
         if len(images_event.selection.rows) > 0:
             selected_image = images_event.selection.rows
-            images_filtered_df = images.iloc[selected_channel]
+            images_filtered_df = images.iloc[selected_image]
             images_selected_id = images_filtered_df['id'].values[0]
             selected_image_index = list(images_event.selection.rows)[0]
             images_selected_row = images.iloc[selected_image_index]
@@ -161,7 +160,6 @@ with st.expander("Detections", expanded=True):
             st.image(fs.open(images_selected_row['s3_path'], mode='rb').read())
       else:
           pass
-
             # # This is done because the state of the buttons is "sticky", which results in multiple edit panes
             # if channels_selected_id is not None:
             #     if update_channel_pane:

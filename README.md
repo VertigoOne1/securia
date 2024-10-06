@@ -43,44 +43,35 @@ Local dev is k3s + strimzi + kdashboard + percona pstgresql + s3ninja
 
 Dev is k3s + strimzi + rancher + harbor + percona + s3ninja + github actions
 
-## Some lessons
-
-CPU vs GPU
-
-An i7 compared against a laptop T500 with 2Gb RAM, the GPU can process an image is about 60ms, while the CPU takes 1200ms.
-
-Thus, single channel is fine at 2-5s interval on CPU, but anything more will fall behind. It runs via eventing so it will just start lagging further and further. If you stop the cameras, it will catch up again.
-
-### Streamlit
-
-So here is how i approach streamlit after some hours, it probably a "duh" moment, but that is just me. Basically think of the code as a script that executes top to bottom that renders the page every time you interact or something else interacts with it, so if you want to control a thing, you would if it out and if it in, or use state variables to if them in and out. State variables are your friends, but also an enemy. Certain things like button states obviously "stick". so if you lets say have a workflow with multiple dataframes that click through, you need to be careful not to "reset" higher up code, or basically remember that the first dataframes needs to render again when you interact "anything" on the page, so you can get access to the lower levels again, thus your python "script" tree needs to exec through to the same paths you want, top to bottom every time anything happens on the page.
-
 ## TODO
 
 stop messing around and start focusing on the detection system
 
 - ui development - in progress (FOCUS HERE)
-- ui dev - llm - implement image description
-extraction into channel description with edits
-- ui dev - detections and filters
-- llm RAG from pydantic, tool use to run user queries dynamically (see drawio)
-- context stuffing data to answer questions from current events. summary
+- ui dev - llm - implement image description extraction into channel description with edits
+- llm dev - implement the guard, collection of recent events -> context -> response
+- llm dev - implement the analyst, function -> llm -> pydantic -> dataset -> llm -> response
+- ui dev - detections, xyxy overlays
+- ui dev - per recorder configuration of yolo and llm settings, ignored objects, static objects
 
-https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
-https://gha-cache-server.falcondev.io/getting-started
+- builds current take about 8 minutes, which is not bad, but i can get it lower
+  - https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
+  - https://gha-cache-server.falcondev.io/getting-started
 
-- user create api is missing the optional fields, i think their just not mapped
+- user create api is missing the optional fields, i think they are just not mapped
 - metric system development, start getting that together
+- Turn gpustat --json into prometheus metrics (will need to watch temps)
+- training and xyxy overlays
 - implement "remember me" cookies, and expiry notifications for ui
 - test crop extraction and population
 - test crop storage and repopulation (to reduce storage/transfer costs by only storing the crops and no event backgrounds by overlaying the crops)
-- Turn gpustat --json into prometheus metrics (will need to watch temps)
+- expand api auth to keycloak and social auth
+
 - bug - the kafka needs to be more "safe" on exit, the exit loop is just crashing it out.
 - also implement proper aging on the topics, were going to run out of space quickly in odd places.
 - video stream server for live dash? (grab latest images, collage them and display?)
-- switch collectors to central driven enrollment style (collector api polling for what to collect, with scaling)
+- switch collectors to central driven enrolment style (collector api polling for what to collect, with scaling)
 - add ability to mark a user as disabled
-- expand api auth to keycloak and social auth
 - user driven recorder creation and attachment to collectors
 - also develop out a image movement cluster analysis for lightweight, non-yolo based detection as first round identification in parallel
 - collector registration system, which allows linking recorders to collectors
@@ -88,7 +79,7 @@ https://gha-cache-server.falcondev.io/getting-started
 - bug - increase partition counts to at least 5 per topic to allow better balancing to processors - will be rolled into kafkadmin routines
 - check if transaction-id is not mis-used in our case, there was a future purpose to it, but it might need to to be re-engineered already.
 - configure securia charts to use the secrets from percona operator via secret injection, then database user management is automated, same for kafkauser
-- longer term, were going to be multi-tenant.. that requires federated auth and social auth.
+- longer term, were going to be multi-tenant, this requires ownership and membership systems
 
 ## DONE
 
@@ -141,6 +132,18 @@ https://gha-cache-server.falcondev.io/getting-started
 - deploy postgresql to dev cluster - done
 - move s3 to nfs provisioner eventually for more storage - done
 - redeploy keycloak - done
+
+## Some lessons
+
+### CPU vs GPU
+
+An i7 compared against a laptop T500 with 2Gb RAM, the GPU can process an image is about 60ms, while the CPU takes 1200ms.
+
+Thus, single channel is fine at 2-5s interval on CPU, but anything more will fall behind. It runs via eventing so it will just start lagging further and further. If you stop the cameras, it will catch up again.
+
+### Streamlit
+
+So here is how i approach streamlit after some hours, it probably a "duh" moment, but that is just me. Basically think of the code as a script that executes top to bottom that renders the page every time you interact or something else interacts with it, so if you want to control a thing, you would if it out and if it in, or use state variables to if them in and out. State variables are your friends, but also an enemy. Certain things like button states obviously "stick". so if you lets say have a workflow with multiple dataframes that click through, you need to be careful not to "reset" higher up code, or basically remember that the first dataframes needs to render again when you interact "anything" on the page, so you can get access to the lower levels again, thus your python "script" tree needs to exec through to the same paths you want, top to bottom every time anything happens on the page.
 
 ## Building and Deployment Pipeline
 
