@@ -116,12 +116,15 @@ jobs:
 
     - name: Package and push charts
       run: |
-        export $(grep -v '^#' src/.env | xargs -d '\n')
+        # export $(grep -v '^#' src/.env | xargs -d '\n')
         sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
         export $(grep -v '^#' src/.env.secrets | xargs -d '\n')
         export $(grep -v '^#' helm/.env | xargs -d '\n')
         cd helm
         echo "${REGISTRY_PASSWORD}" | helm registry login -u ${REGISTRY_USERNAME} --password-stdin ${REGISTRY_HOST}
+        echo "Versioning:"
+        echo ${BASE_VERSION}
+        echo ${PIPELINE_VERSION}
         for dir in charts/*/; do
           if [ -d "$dir" ]; then
             chart_name=$(basename "$dir")
@@ -137,13 +140,13 @@ jobs:
         rm *tgz
       env:
         SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
-        PIPELINE_VERSION: ${{ env.BASE_VERSION }}-${{github.run_number}}
+        PIPELINE_VERSION: ${{ env.BASE_VERSION }}-${{ github.run_number }}
         BASE_VERSION: ${{ env.BASE_VERSION }}
 
     - name: Update env run number
       run: |
         cd helm
-        sed -i 's|RUN_NUMBER:.*|RUN_NUMBER: '${{github.run_number}}'|' helm/.env
+        sed -i 's|RUN_NUMBER=.*|RUN_NUMBER='${{github.run_number}}'|' helm/.env
         git config --global user.name 'GitHub Actions'
         git config --global user.email 'actions@github.com'
         git add  helm/.env
