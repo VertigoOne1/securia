@@ -20,7 +20,11 @@ spec:
         - name: HELMFILE_GLOBAL_OPTIONS
           value: "--environment dev"
         - name: HELMFILE_ENV_FILE # Contains BASE_VERSION and RUN_NUMBER
-          value: helm/.env
+          value: .env
+        # - name: BASE_VERSION
+        #   value: "1.2.8"
+        # - name: RUN_NUMBER
+        #   value: "24"
   syncPolicy:
     syncOptions:
       - CreateNamespace=true

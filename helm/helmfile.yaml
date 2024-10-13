@@ -14,7 +14,8 @@ environments:
         # - yolo-processor
         # - collector-hikvision
       - destination_namespace: securia-dev
-      - deployed_version: '{{ env "BASE_VERSION" }}-{{ env "RUN_NUMBER" }}'
+      - chart_version: '{{ env "BASE_VERSION" }}-{{ env "RUN_NUMBER" }}'
+
   prod:
     values:
       - environment: prod
@@ -26,8 +27,7 @@ environments:
         # - collector-simulator
         # - yolo-processor
         # - collector-hikvision
-      - destination_namespace: securia-prod
-      - deployed_version: {{ env "BASE_VERSION" }}
+      - chart_version: '{{ env "BASE_VERSION" }}-{{ env "RUN_NUMBER" }}'
 ---
 releases:
 {{ range $component := .Environment.Values.components }}
@@ -35,7 +35,7 @@ releases:
   namespace: "{{ `{{ .Environment.Values.destination_namespace }}` }}"
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/charts/{{ $component }}
-  version: "{{ `{{ .Environment.Values.deployed_version }}` }}"
+  version: "{{ `{{ .Environment.Values.chart_version }}` }}"
   values:
     - values/{{ `{{ .Environment.Name }}` }}/{{ $component | replace "-" "_" }}/values.yaml
     - imagePullSecrets:
@@ -44,7 +44,7 @@ releases:
     - values/{{ `{{ .Environment.Name }}` }}/{{ $component | replace "-" "_" }}/values_secrets.yaml
   set:
     - name: image.tag
-      value: "{{ `{{ .Environment.Values.deployed_version }}` }}"
+      value: '{{ env "BASE_VERSION" }}-{{ env "RUN_NUMBER" }}'
     - name: appConfig.general.version
-      value: "{{ `{{ .Environment.Values.deployed_version }}` }}"
+      value: '{{ env "BASE_VERSION" }}-{{ env "RUN_NUMBER" }}'
 {{ end }}
