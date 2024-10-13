@@ -8,34 +8,34 @@ environments:
       - components:
         - securia-api
         - securia-maintenance
-        # - collector-hikvision
         - securia-ui
         # - image-preprocessor
-        - collector-simulator
+        # - collector-simulator
         # - yolo-processor
-      - destination_namespace: securia
-      - default_version: "1.2.8"
+        # - collector-hikvision
+      - destination_namespace: securia-dev
+      - deployed_version: '{{ env "BASE_VERSION" }}-{{ env "RUN_NUMBER" }}'
   prod:
     values:
       - environment: prod
       - components:
         - securia-api
         - securia-maintenance
-        - collector-hikvision
         - securia-ui
-        - image-preprocessor
+        # - image-preprocessor
         # - collector-simulator
         # - yolo-processor
-      - destination_namespace: securia-v2
-      - default_version: "1.2.8"
+        # - collector-hikvision
+      - destination_namespace: securia-prod
+      - deployed_version: {{ env "BASE_VERSION" }}
 ---
 releases:
-  {{ range $component := .Environment.Values.components }}
+{{ range $component := .Environment.Values.components }}
 - name: {{ $component }}
   namespace: "{{ `{{ .Environment.Values.destination_namespace }}` }}"
   createNamespace: true
   chart: oci://harbor.marnus.com/securia/charts/{{ $component }}
-  version: {{ env "CHART_VERSION" | default "1.2.3" }}
+  version: "{{ `{{ .Environment.Values.deployed_version }}` }}"
   values:
     - values/{{ `{{ .Environment.Name }}` }}/{{ $component | replace "-" "_" }}/values.yaml
     - imagePullSecrets:
@@ -44,7 +44,7 @@ releases:
     - values/{{ `{{ .Environment.Name }}` }}/{{ $component | replace "-" "_" }}/values_secrets.yaml
   set:
     - name: image.tag
-      value: {{ env "CHART_VERSION" | default "latest" }}
+      value: "{{ `{{ .Environment.Values.deployed_version }}` }}"
     - name: appConfig.general.version
-      value: {{ env "CHART_VERSION" | default "latest" }}
+      value: "{{ `{{ .Environment.Values.deployed_version }}` }}"
 {{ end }}

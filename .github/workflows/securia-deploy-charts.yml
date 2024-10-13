@@ -20,60 +20,63 @@ jobs:
     runs-on: homelab
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup AGE
-      uses: alessiodionisi/setup-age-action@v1.3.0
+    - name: Note to Self
+      run: eliminated
 
-    - name: Check AGE version
-      run: age --version
+    # - uses: actions/checkout@v4
+    # - name: Setup AGE
+    #   uses: alessiodionisi/setup-age-action@v1.3.0
 
-    - name: Setup SOPS
-      uses: nhedger/setup-sops@v2
+    # - name: Check AGE version
+    #   run: age --version
 
-    - name: Check SOPS version
-      run: sops --version
+    # - name: Setup SOPS
+    #   uses: nhedger/setup-sops@v2
 
-    - name: Install Helm
-      uses: azure/setup-helm@v4.2.0
+    # - name: Check SOPS version
+    #   run: sops --version
 
-    - name: populate dotenvs
-      run: |
-        sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
+    # - name: Install Helm
+    #   uses: azure/setup-helm@v4.2.0
 
-        while IFS='=' read -r key value; do
-          if [[ ! $key =~ ^# && -n $key ]]; then
-            echo "$key=$value" >> $GITHUB_ENV
-            echo "Set $key"
-          fi
-        done < helm/.env
+    # - name: populate dotenvs
+    #   run: |
+    #     sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
 
-        while IFS='=' read -r key value; do
-          if [[ ! $key =~ ^# && -n $key ]]; then
-            echo "$key=$value" >> $GITHUB_ENV
-            echo "Set $key"
-          fi
-        done < src/.env
+    #     while IFS='=' read -r key value; do
+    #       if [[ ! $key =~ ^# && -n $key ]]; then
+    #         echo "$key=$value" >> $GITHUB_ENV
+    #         echo "Set $key"
+    #       fi
+    #     done < helm/.env
 
-        while IFS='=' read -r key value; do
-          if [[ ! $key =~ ^# && -n $key ]]; then
-            echo "$key=$value" >> $GITHUB_ENV
-            echo "Set $key"
-          fi
-        done < src/.env.secrets
+    #     # while IFS='=' read -r key value; do
+    #     #   if [[ ! $key =~ ^# && -n $key ]]; then
+    #     #     echo "$key=$value" >> $GITHUB_ENV
+    #     #     echo "Set $key"
+    #     #   fi
+    #     # done < src/.env
 
-      env:
-        SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+    #     while IFS='=' read -r key value; do
+    #       if [[ ! $key =~ ^# && -n $key ]]; then
+    #         echo "$key=$value" >> $GITHUB_ENV
+    #         echo "Set $key"
+    #       fi
+    #     done < src/.env.secrets
 
-    - name: Deploy application
-      uses: helmfile/helmfile-action@v1.9.1
-      with:
-        helmfile-args: apply
-        helmfile-workdirectory: helm
-        helm-plugins: >
-          https://github.com/databus23/helm-diff,
-          https://github.com/jkroepke/helm-secrets
-        helmfile-auto-init: "true"
-      env:
-        CHART_VERSION: ${{ env.CHART_VERSION }}-${{github.run_number}}
-        SECURIA_NAMESPACE: ${{ env.SECURIA_NAMESPACE }}
-        SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+    #   env:
+    #     SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+
+    # - name: Deploy application
+    #   uses: helmfile/helmfile-action@v1.9.1
+    #   with:
+    #     helmfile-args: apply
+    #     helmfile-workdirectory: helm
+    #     helm-plugins: >
+    #       https://github.com/databus23/helm-diff,
+    #       https://github.com/jkroepke/helm-secrets
+    #     helmfile-auto-init: "true"
+    #   env:
+    #     CHART_VERSION: ${{ env.CHART_VERSION }}-${{github.run_number}}
+    #     SECURIA_NAMESPACE: ${{ env.SECURIA_NAMESPACE }}
+    #     SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}

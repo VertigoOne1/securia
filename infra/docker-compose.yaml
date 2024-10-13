@@ -1,0 +1,9 @@
+services:
+  helmfile-sops-age:
+    image: ${REGISTRY_HOST}/infra/helmfile-sops-age:latest
+    build:
+      context: ./argocd/sidecars/helmfile_sops_age
+      cache_from:
+       - type=registry,ref=${REGISTRY_HOST}/infra/helmfile-sops-age:buildcache
+      cache_to:
+       - type=registry,ref=${REGISTRY_HOST}/infra/helmfile-sops-age:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true

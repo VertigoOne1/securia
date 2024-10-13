@@ -1,64 +1,112 @@
+x-collector-hikvision:
+  &default-collector-hikvision
+  image: ${REGISTRY_HOST}/securia/collector-hikvision:${PIPELINE_VERSION}
+  build:
+    context: ./collector_hikvision
+    cache_from:
+      - type=registry,ref=${REGISTRY_HOST}/securia/collector-hikvision:buildcache
+    cache_to:
+      - type=registry,ref=${REGISTRY_HOST}/securia/collector-hikvision:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+
+x-collector-simulator:
+  &default-collector-simulator
+  image: ${REGISTRY_HOST}/securia/collector-simulator:${PIPELINE_VERSION}
+  build:
+    context: ./collector_simulator
+    cache_from:
+      - type=registry,ref=${REGISTRY_HOST}/securia/collector-simulator:buildcache
+    cache_to:
+      - type=registry,ref=${REGISTRY_HOST}/securia/collector-simulator:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+
+x-image-preprocessor:
+  &default-image-preprocessor
+  image: ${REGISTRY_HOST}/securia/image-preprocessor:${PIPELINE_VERSION}
+  build:
+    context: ./image_preprocessor
+    cache_from:
+      - type=registry,ref=${REGISTRY_HOST}/securia/image-preprocessor:buildcache
+    cache_to:
+      - type=registry,ref=${REGISTRY_HOST}/securia/image-preprocessor:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+
+x-securia-api:
+  &default-securia-api
+  image: ${REGISTRY_HOST}/securia/securia-api:${PIPELINE_VERSION}
+  build:
+    context: ./securia_api
+    cache_from:
+      - type=registry,ref=${REGISTRY_HOST}/securia/securia-api:buildcache
+    cache_to:
+      - type=registry,ref=${REGISTRY_HOST}/securia/securia-api:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+
+x-securia-maintenance:
+  &default-securia-maintenance
+  image: ${REGISTRY_HOST}/securia/securia-maintenance:${PIPELINE_VERSION}
+  build:
+    context: ./securia_maintenance
+    cache_from:
+      - type=registry,ref=${REGISTRY_HOST}/securia/securia-maintenance:buildcache
+    cache_to:
+      - type=registry,ref=${REGISTRY_HOST}/securia/securia-maintenance:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+
+x-securia-ui:
+  &default-securia-ui
+  image: ${REGISTRY_HOST}/securia/securia-ui:${PIPELINE_VERSION}
+  build:
+    context: ./securia_ui
+    cache_from:
+      - type=registry,ref=${REGISTRY_HOST}/securia/securia-ui:buildcache
+    cache_to:
+      - type=registry,ref=${REGISTRY_HOST}/securia/securia-ui:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+
+x-yolo-processor:
+  &default-yolo-processor
+  image: ${REGISTRY_HOST}/securia/yolo-processor:${PIPELINE_VERSION}
+  build:
+    context: ./yolo_processor
+    cache_from:
+      - type=registry,ref=${REGISTRY_HOST}/securia/yolo-processor:buildcache
+    cache_to:
+      - type=registry,ref=${REGISTRY_HOST}/securia/yolo-processor:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+
 services:
-  collector-hikvision:
-    image: ${REGISTRY_HOST}/securia/collector-hikvision:${CHART_VERSION}
-    build:
-      context: ./collector_hikvision
-      cache_from:
-       - type=registry,ref=${REGISTRY_HOST}/securia/collector-hikvision:buildcache
-      cache_to:
-       - type=registry,ref=${REGISTRY_HOST}/securia/collector-hikvision:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+  collector-hikvision-default:
+    *default-collector-hikvision
+  collector-hikvision-base:
+    << : *default-collector-hikvision
+    image: ${REGISTRY_HOST}/securia/collector-hikvision:${BASE_VERSION}
 
-  collector-simulator:
-    image: ${REGISTRY_HOST}/securia/collector-simulator:${CHART_VERSION}
-    build:
-      context: ./collector_simulator
-      cache_from:
-       - type=registry,ref=${REGISTRY_HOST}/securia/collector-simulator:buildcache
-      cache_to:
-       - type=registry,ref=${REGISTRY_HOST}/securia/collector-simulator:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+  collector-simulator-default:
+    *default-collector-simulator
+  collector-simulator-base:
+    << : *default-collector-simulator
+    image: ${REGISTRY_HOST}/securia/collector-simulator:${BASE_VERSION}
 
-  image-preprocessor:
-    image: ${REGISTRY_HOST}/securia/image-preprocessor:${CHART_VERSION}
-    build:
-      context: ./image_preprocessor
-      cache_from:
-       - type=registry,ref=${REGISTRY_HOST}/securia/image-preprocessor:buildcache
-      cache_to:
-       - type=registry,ref=${REGISTRY_HOST}/securia/image-preprocessor:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+  image-preprocessor-default:
+    *default-image-preprocessor
+  image-preprocessor-base:
+    << : *default-image-preprocessor
+    image: ${REGISTRY_HOST}/securia/image-preprocessor:${BASE_VERSION}
 
-  securia-api:
-    image: ${REGISTRY_HOST}/securia/securia-api:${CHART_VERSION}
-    build:
-      context: ./securia_api
-      cache_from:
-       - type=registry,ref=${REGISTRY_HOST}/securia/securia-api:buildcache
-      cache_to:
-       - type=registry,ref=${REGISTRY_HOST}/securia/securia-api:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+  securia-api-default:
+    *default-securia-api
+  securia-api-base:
+    << : *default-securia-api
+    image: ${REGISTRY_HOST}/securia/securia-api:${BASE_VERSION}
 
-  securia-maintenance:
-    image: ${REGISTRY_HOST}/securia/securia-maintenance:${CHART_VERSION}
-    build:
-      context: ./securia_maintenance
-      cache_from:
-       - type=registry,ref=${REGISTRY_HOST}/securia/securia-maintenance:buildcache
-      cache_to:
-       - type=registry,ref=${REGISTRY_HOST}/securia/securia-maintenance:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+  securia-maintenance-default:
+    *default-securia-maintenance
+  securia-maintenance-base:
+    << : *default-securia-maintenance
+    image: ${REGISTRY_HOST}/securia/securia-maintenance:${BASE_VERSION}
 
+  securia-ui-default:
+    *default-securia-ui
+  securia-ui-base:
+    << : *default-securia-ui
+    image: ${REGISTRY_HOST}/securia/securia-ui:${BASE_VERSION}
 
-  securia-ui:
-    image: ${REGISTRY_HOST}/securia/securia-ui:${CHART_VERSION}
-    build:
-      context: ./securia_ui
-      cache_from:
-       - type=registry,ref=${REGISTRY_HOST}/securia/securia-ui:buildcache
-      cache_to:
-       - type=registry,ref=${REGISTRY_HOST}/securia/securia-ui:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
-
-  yolo-processor:
-    image: ${REGISTRY_HOST}/securia/yolo-processor:${CHART_VERSION}
-    build:
-      context: ./yolo_processor
-      cache_from:
-       - type=registry,ref=${REGISTRY_HOST}/securia/yolo-processor:buildcache
-      cache_to:
-       - type=registry,ref=${REGISTRY_HOST}/securia/yolo-processor:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+  yolo-processor-default:
+    *default-yolo-processor
+  yolo-processor-base:
+    << : *default-yolo-processor
+    image: ${REGISTRY_HOST}/securia/yolo-processor:${BASE_VERSION}

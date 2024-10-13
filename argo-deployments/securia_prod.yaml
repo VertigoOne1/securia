@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: securia-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: securia-prod
+  source:
+    repoURL: https://github.com/VertigoOne1/securia.git
+    path: helm
+    targetRevision: HEAD
+    plugin:
+      name: helmfile
+      env:
+        - name: BASE_VERSION
+          value: "1.2.8"
+        - name: HELMFILE_GLOBAL_OPTIONS
+          value: "--environment prod"
+        - name: HELMFILE_ENV_FILE
+          value: helm/.env
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    manual: {}
+
+  info:
+    - name: 'Securia - Prod'
+      value: 'https://securia.marnus.com'

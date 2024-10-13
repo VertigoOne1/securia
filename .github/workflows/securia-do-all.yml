@@ -1,4 +1,4 @@
-name: Securia - Build, Push, Deploy
+name: Securia - Build, Push (CI)
 
 on: workflow_dispatch
   # push:
@@ -39,12 +39,12 @@ jobs:
       run: |
         sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
 
-        while IFS='=' read -r key value; do
-          if [[ ! $key =~ ^# && -n $key ]]; then
-            echo "$key=$value" >> $GITHUB_ENV
-            echo "Set $key"
-          fi
-        done < src/.env
+        # while IFS='=' read -r key value; do
+        #   if [[ ! $key =~ ^# && -n $key ]]; then
+        #     echo "$key=$value" >> $GITHUB_ENV
+        #     echo "Set $key"
+        #   fi
+        # done < src/.env
 
         cat helm/.env
 
@@ -86,7 +86,8 @@ jobs:
         workdir: ./src
         push: true
       env:
-        CHART_VERSION: ${{ env.CHART_VERSION }}-${{github.run_number}}
+        BASE_VERSION: ${{ env.BASE_VERSION }}
+        PIPELINE_VERSION: ${{ env.BASE_VERSION }}-${{github.run_number}}
 
   package-push-charts:
     needs: [build-push-images]
@@ -126,77 +127,25 @@ jobs:
             chart_name=$(basename "$dir")
             echo "Packaging chart: $chart_name"
             package_name=$(echo "${chart_name}" | tr '_' '-')
-            helm package "$dir" --version ${CHART_VERSION}-${{github.run_number}}
+            helm package "$dir" --version ${BASE_VERSION}
+            helm package "$dir" --version ${PIPELINE_VERSION}
             echo "Pushing chart: $chart_name"
-            helm push $package_name-${CHART_VERSION}-${{github.run_number}}.tgz oci://${REGISTRY_HOST}/securia/charts
+            helm push $package_name-${PIPELINE_VERSION}.tgz oci://${REGISTRY_HOST}/securia/charts
+            helm push $package_name-${BASE_VERSION}.tgz oci://${REGISTRY_HOST}/securia/charts
           fi
         done
         rm *tgz
       env:
         SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+        PIPELINE_VERSION: ${{ env.BASE_VERSION }}-${{github.run_number}}
+        BASE_VERSION: ${{ env.BASE_VERSION }}
 
-  deploy-securia:
-    needs: [build-push-images, package-push-charts]
-    environment:
-      name: dev
-
-    runs-on: homelab
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Setup AGE
-      uses: alessiodionisi/setup-age-action@v1.3.0
-
-    - name: Check AGE version
-      run: age --version
-
-    - name: Setup SOPS
-      uses: nhedger/setup-sops@v2
-
-    - name: Check SOPS version
-      run: sops --version
-
-    - name: Install Helm
-      uses: azure/setup-helm@v4.2.0
-
-    - name: populate dotenvs
+    - name: Update env run number
       run: |
-        sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
-
-        while IFS='=' read -r key value; do
-          if [[ ! $key =~ ^# && -n $key ]]; then
-            echo "$key=$value" >> $GITHUB_ENV
-            echo "Set $key"
-          fi
-        done < helm/.env
-
-        while IFS='=' read -r key value; do
-          if [[ ! $key =~ ^# && -n $key ]]; then
-            echo "$key=$value" >> $GITHUB_ENV
-            echo "Set $key"
-          fi
-        done < src/.env
-
-        while IFS='=' read -r key value; do
-          if [[ ! $key =~ ^# && -n $key ]]; then
-            echo "$key=$value" >> $GITHUB_ENV
-            echo "Set $key"
-          fi
-        done < src/.env.secrets
-
-      env:
-        SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
-
-    - name: Deploy application
-      uses: helmfile/helmfile-action@v1.9.1
-      with:
-        helmfile-args: apply
-        helmfile-workdirectory: helm
-        helm-plugins: >
-          https://github.com/databus23/helm-diff,
-          https://github.com/jkroepke/helm-secrets
-        helmfile-auto-init: "true"
-      env:
-        CHART_VERSION: ${{ env.CHART_VERSION }}-${{github.run_number}}
-        SECURIA_NAMESPACE: ${{ env.SECURIA_NAMESPACE }}
-        SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+        cd helm
+        sed -i 's|RUN_NUMBER:.*|RUN_NUMBER: '${{github.run_number}}'|' helm/.env
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        git add  helm/.env
+        git commit -m "Update run-number [skip ci]"
+        git push

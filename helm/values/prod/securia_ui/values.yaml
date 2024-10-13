@@ -1,0 +1,91 @@
+# Default values for securia-api.
+# This is a YAML-formatted file.
+# Declare variables to be passed into the templates.
+
+replicaCount: 1
+
+image:
+  name: "securia-ui"
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+postfix: "ui"
+
+app:
+  general:
+    app_name: securia-ui
+    app_debug_level: DEBUG
+
+appConfig:
+  general:
+    app_name: securia_ui
+    default_debug_level: DEBUG
+    auto_refresh_miliseconds: 5000
+    dataframe_cache_expire_seconds: 30
+    version: dev
+  api:
+    default_port: 8088
+    debug_level: debug
+    time_format: "%Y%m%d_%H%M%S.%f"
+    maintenance_mode: False
+  scheduler:
+    enabled: False
+  metrics:
+    enabled: True
+  logging:
+    enable_file_log_handler: False
+    enable_stdout_log_handler: True
+    enable_kafka_log_handler: False
+service:
+  type: ClusterIP
+  port: 8501
+  name: ui
+
+serviceAccount:
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "securiaui-sa"
+  bindingPostfix: "-crb"
+
+persistence:
+  # -- use a PVC to persist data
+  enabled: False
+  # -- the desired access modes the volume should have.
+  accessModes:
+    - ReadWriteOnce
+  # -- Annotations to be added to the PersistentVolumeClaim
+  annotations: {}
+  # -- provide an existing PersistentVolumeClaim
+  existingClaim: ""
+  # -- Name of the StorageClass required by the claim.
+  storageClassName: "local-path"
+  # -- represents the minimum and maximum resources the volume should have.
+  resources:
+    requests:
+      storage: 16Gi
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+resources:
+  limits:
+    cpu: '4'
+    memory: 256Mi
+  requests:
+    cpu: 200m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

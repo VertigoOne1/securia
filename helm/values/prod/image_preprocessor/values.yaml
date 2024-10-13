@@ -1,0 +1,119 @@
+# Default values for preproc.
+# This is a YAML-formatted file.
+# Declare variables to be passed into the templates.
+
+replicaCount: 1
+
+image:
+  name: "image-preprocessor"
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+postfix: "preproc"
+
+app:
+  general:
+    app_name: image-preprocessor
+    app_debug_level: INFO
+
+appConfig:
+  general:
+    app_name: image_preprocessor
+    default_debug_level: DEBUG
+    test_mode: False
+    version: dev
+  preprocessor:
+    enabled: True
+    write_local_file: False
+    temp_output_folder: /tmp/kafka
+    time_format: "%Y%m%d_%H%M%S.%f%z"
+    image_filename_prefix: "image_dict"
+  api:
+    default_port: 8299
+    debug_level: debug
+    debug_enabled: False
+  scheduler:
+    enabled: False
+  metrics:
+    enabled: True
+  logging:
+    enable_file_log_handler: False
+    enable_stdout_log_handler: True
+    enable_kafka_log_handler: False
+
+service:
+  type: ClusterIP
+  port: 8088
+  name: preproc
+
+serviceAccount:
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "preproc-sa"
+  bindingPostfix: "-crb"
+
+persistence:
+  # -- use a PVC to persist data
+  enabled: False
+  # -- the desired access modes the volume should have.
+  accessModes:
+    - ReadWriteOnce
+  # -- Annotations to be added to the PersistentVolumeClaim
+  annotations: {}
+  # -- provide an existing PersistentVolumeClaim
+  existingClaim: ""
+  # -- Name of the StorageClass required by the claim.
+  storageClassName: "local-path"
+  # -- represents the minimum and maximum resources the volume should have.
+  resources:
+    requests:
+      storage: 16Gi
+
+ingress:
+  # -- Enable ingress record generation
+  enabled: false
+  # -- IngressClass that will be be used to implement the Ingress
+  className: ""
+  # -- Additional annotations for the Ingress resource
+  annotations: {}
+    # cert-manager.io/cluster-issuer: cluster-issuer-name
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- An array with hosts and paths
+  # @default -- see [values.yaml](./values.yaml)
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  # -- An array with the tls configuration
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 96Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
