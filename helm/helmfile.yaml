@@ -1,125 +1,50 @@
 helmDefaults:
   cleanupOnFail: false
 
-# environments:
-#   dev: {}
-
+environments:
+  dev:
+    values:
+      - environment: dev
+      - components:
+        - securia-api
+        - securia-maintenance
+        # - collector-hikvision
+        - securia-ui
+        # - image-preprocessor
+        - collector-simulator
+        # - yolo-processor
+      - destination_namespace: securia
+      - default_version: "1.2.8"
+  prod:
+    values:
+      - environment: prod
+      - components:
+        - securia-api
+        - securia-maintenance
+        - collector-hikvision
+        - securia-ui
+        - image-preprocessor
+        # - collector-simulator
+        # - yolo-processor
+      - destination_namespace: securia-v2
+      - default_version: "1.2.8"
+---
 releases:
-- name: securia-api
-  namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
+  {{ range $component := .Environment.Values.components }}
+- name: {{ $component }}
+  namespace: "{{ `{{ .Environment.Values.destination_namespace }}` }}"
   createNamespace: true
-  chart: oci://harbor.marnus.com/securia/charts/securia-api
+  chart: oci://harbor.marnus.com/securia/charts/{{ $component }}
   version: {{ env "CHART_VERSION" | default "1.2.3" }}
   values:
-    - values/dev/securia_api/values.yaml
+    - values/{{ `{{ .Environment.Name }}` }}/{{ $component | replace "-" "_" }}/values.yaml
     - imagePullSecrets:
       - name: registrypullsecret
   secrets:
-    - values/dev/securia_api/values_secrets.yaml
+    - values/{{ `{{ .Environment.Name }}` }}/{{ $component | replace "-" "_" }}/values_secrets.yaml
   set:
     - name: image.tag
       value: {{ env "CHART_VERSION" | default "latest" }}
     - name: appConfig.general.version
       value: {{ env "CHART_VERSION" | default "latest" }}
-
-- name: securia-maintenance
-  namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
-  createNamespace: true
-  chart: oci://harbor.marnus.com/securia/charts/securia-maintenance
-  version: {{ env "CHART_VERSION" | default "1.2.3" }}
-  values:
-    - values/dev/securia_maintenance/values.yaml
-    - imagePullSecrets:
-      - name: registrypullsecret
-  secrets:
-    - values/dev/securia_maintenance/values_secrets.yaml
-  set:
-    - name: image.tag
-      value: {{ env "CHART_VERSION" | default "latest" }}
-    - name: appConfig.general.version
-      value: {{ env "CHART_VERSION" | default "latest" }}
-
-- name: securia-ui
-  namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
-  createNamespace: true
-  chart: oci://harbor.marnus.com/securia/charts/securia-ui
-  version: {{ env "CHART_VERSION" | default "1.2.3" }}
-  values:
-    - values/dev/securia_ui/values.yaml
-    - imagePullSecrets:
-      - name: registrypullsecret
-  secrets:
-    - values/dev/securia_ui/values_secrets.yaml
-  set:
-    - name: image.tag
-      value: {{ env "CHART_VERSION" | default "latest" }}
-    - name: appConfig.general.version
-      value: {{ env "CHART_VERSION" | default "latest" }}
-
-- name: image-preprocessor
-  namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
-  createNamespace: true
-  chart: oci://harbor.marnus.com/securia/charts/image-preprocessor
-  version: {{ env "CHART_VERSION" | default "1.2.3" }}
-  values:
-    - values/dev/image_preprocessor/values.yaml
-    - imagePullSecrets:
-      - name: registrypullsecret
-  secrets:
-    - values/dev/image_preprocessor/values_secrets.yaml
-  set:
-    - name: image.tag
-      value: {{ env "CHART_VERSION" | default "latest" }}
-    - name: appConfig.general.version
-      value: {{ env "CHART_VERSION" | default "latest" }}
-
-- name: collector-hikvision
-  namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
-  createNamespace: true
-  chart: oci://harbor.marnus.com/securia/charts/collector-hikvision
-  version: {{ env "CHART_VERSION" | default "1.2.3" }}
-  values:
-    - values/dev/collector_hikvision/values.yaml
-    - imagePullSecrets:
-      - name: registrypullsecret
-  secrets:
-    - values/dev/collector_hikvision/values_secrets.yaml
-  set:
-    - name: image.tag
-      value: {{ env "CHART_VERSION" | default "latest" }}
-    - name: appConfig.general.version
-      value: {{ env "CHART_VERSION" | default "latest" }}
-
-- name: collector-simulator
-  namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
-  createNamespace: true
-  chart: oci://harbor.marnus.com/securia/charts/collector-simulator
-  version: {{ env "CHART_VERSION" | default "1.2.3" }}
-  values:
-    - values/dev/collector_simulator/values.yaml
-    - imagePullSecrets:
-      - name: registrypullsecret
-  secrets:
-    - values/dev/collector_simulator/values_secrets.yaml
-  set:
-    - name: image.tag
-      value: {{ env "CHART_VERSION" | default "latest" }}
-    - name: appConfig.general.version
-      value: {{ env "CHART_VERSION" | default "latest" }}
-
-- name: yolo-processor
-  namespace: {{ env "SECURIA_NAMESPACE" | default "securia" }}
-  createNamespace: true
-  chart: oci://harbor.marnus.com/securia/charts/yolo-processor
-  version: {{ env "CHART_VERSION" | default "1.2.3" }}
-  values:
-    - values/dev/yolo_processor/values.yaml
-    - imagePullSecrets:
-      - name: registrypullsecret
-  secrets:
-    - values/dev/yolo_processor/values_secrets.yaml
-  set:
-    - name: image.tag
-      value: {{ env "CHART_VERSION" | default "latest" }}
-    - name: appConfig.general.version
-      value: {{ env "CHART_VERSION" | default "latest" }}
+{{ end }}

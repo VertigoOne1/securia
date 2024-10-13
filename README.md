@@ -47,8 +47,15 @@ Dev is k3s + strimzi + rancher + harbor + percona + s3ninja + github actions
 
 stop messing around and start focusing on the detection system
 
-- ui development - in progress (FOCUS HERE)
+- working on improved deployment pipeline
+- create additional tables to manage user preferences to detection filters, confidence levels and recorders and channels
+- user_preferences, user_recorder_attachment, recorder_preferences, channel_preferences, detection_preferences. basically a preference management overlay
+- seen_detections table to manage which detections are "interesting"
+- add sqlalchemy preferrence filter query stacking where possible... eeeish
+- ui development
 - ui dev - llm - implement image description extraction into channel description with edits
+- detection filtering and ignore list
+- detection summaries across recorder
 - llm dev - implement the guard, collection of recent events -> context -> response
 - llm dev - implement the analyst, function -> llm -> pydantic -> dataset -> llm -> response
 - ui dev - detections, xyxy overlays
@@ -58,7 +65,6 @@ stop messing around and start focusing on the detection system
   - https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
   - https://gha-cache-server.falcondev.io/getting-started
 
-- user create api is missing the optional fields, i think they are just not mapped
 - metric system development, start getting that together
 - Turn gpustat --json into prometheus metrics (will need to watch temps)
 - training and xyxy overlays
@@ -83,6 +89,8 @@ stop messing around and start focusing on the detection system
 
 ## DONE
 
+- user create api is missing the optional fields, i think they are just not mapped - fixed
+- simplify the ACL checker into something oneliny to reduce the code duplication for the api controller - don't think it is possible yet
 - channel descriptions and friendly names are vital for LLM integration, make it easier to do by providing a preview image
 - ui dev - multipage navigator, build out pages - done
 - ui dev - a bit more fleshed out - done

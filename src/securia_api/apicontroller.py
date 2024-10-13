@@ -270,49 +270,46 @@ async def create_user(db: db_dependency, user: schemas.UserCreate, current_user:
     elif AccessHierarchy.can_access_user(current_user['role'], user.role):
         pass
     else:
-        logger.error(f"{current_user['role']} < {db_user.role}")
+        logger.error(f"{current_user['role']} < {user.role}")
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    db_user = crud.create_user(db, user)
-    if db_user is None:
+    logger.debug(f"{user}")
+    data = crud.create_user(db, user)
+    if data is None:
         raise HTTPException(status_code=509, detail='CRUD issue')
-    logger.debug(f"Created user with id: {db_user.id}")
-    return db_user
+    logger.debug(f"Created user with id: {data.id}")
+    return data
 
 @app.get("/securia/user/{user_id}")
 async def get_user_by_id(db: db_dependency, user_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    data = db.query(models.User).filter(models.User.id == user_id).first()
     if AccessHierarchy.can_access_user(current_user['role'], "super"):
         pass
-    elif AccessHierarchy.can_access_user(current_user['role'], db_user.role):
+    elif AccessHierarchy.can_access_user(current_user['role'], data.role):
         pass
     else:
-        logger.error(f"{current_user['role']} < {db_user.role}")
+        logger.error(f"{current_user['role']} < {data.role}")
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    if db_user is not None:
-        return db_user
-    if db_user is None:
-        raise HTTPException(status_code=404, detail='User not found')
-    raise HTTPException(status_code=500, detail='CRUD issue')
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 @app.get("/securia/user/username/{username}", response_model=list[schemas.User])
 async def get_user_by_username(db: db_dependency, username: str, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
-    db_user = db.query(models.User).filter(models.User.username == username).all()
+    data = db.query(models.User).filter(models.User.username == username).all()
     if AccessHierarchy.can_access_user(current_user['role'], "super"):
         pass
-    elif AccessHierarchy.can_access_user(current_user['role'], db_user[0].role):
+    elif AccessHierarchy.can_access_user(current_user['role'], data[0].role):
         pass
     else:
-        logger.error(f"{current_user['role']} < {db_user.role}")
+        logger.error(f"{current_user['role']} < {data.role}")
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    if db_user is not None:
-        return db_user
-    if db_user is None:
-        raise HTTPException(status_code=404, detail='User not found')
-    raise HTTPException(status_code=500, detail='CRUD issue')
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 @app.post("/securia/user/{user_id}")
 async def update_user_by_id(db: db_dependency, user: schemas.UserUpdate, user_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
@@ -332,12 +329,10 @@ async def update_user_by_id(db: db_dependency, user: schemas.UserUpdate, user_id
         else:
             logger.error("You cannot update users to have higher access than your own")
             raise HTTPException(status_code=403, detail="You cannot update users to have higher access than your own")
-    db_user = crud.update_user(db, id=user_id, user=user)
-    if db_user is not None:
-        return db_user
-    if db_user is None:
-        raise HTTPException(status_code=404, detail='User not found')
-    raise HTTPException(status_code=509, detail='CRUD issue')
+    data = crud.update_user(db, id=user_id, user=user)
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 @app.delete("/securia/user/{user_id}")
 async def delete_user_by_id(db: db_dependency, user_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
@@ -370,12 +365,10 @@ async def get_users(db: db_dependency, skip: int = 0, limit: int = 100, current_
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    users = db.query(models.User).offset(skip).limit(limit).all()
-    if users is not None:
-        return [schemas.User.from_orm(user) for user in users]
-    if users is None:
-        raise HTTPException(status_code=404, detail='Users not found')
-    raise HTTPException(status_code=500, detail='CRUD issue')
+    data = db.query(models.User).offset(skip).limit(limit).all()
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 # Recorder APIs
 
@@ -387,11 +380,11 @@ async def create_recorder(db: db_dependency, recorder: schemas.RecorderCreate, c
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    db_recorder = crud.create_recorder(db, recorder)
-    if db_recorder is None:
+    data = crud.create_recorder(db, recorder)
+    if data is None:
         raise HTTPException(status_code=509, detail='CRUD issue')
-    logger.debug(f"Created recorder with id: {db_recorder.id}")
-    return db_recorder
+    logger.debug(f"Created recorder with id: {data.id}")
+    return data
 
 @app.get("/securia/recorder/{recorder_id}")
 async def get_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
@@ -401,12 +394,10 @@ async def get_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0), c
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    recorder = db.query(models.Recorder).filter(models.Recorder.id == recorder_id).first()
-    if recorder is not None:
-        return recorder
-    if recorder is None:
-        raise HTTPException(status_code=404, detail='Recorder not found')
-    raise HTTPException(status_code=500, detail='CRUD issue')
+    data = db.query(models.Recorder).filter(models.Recorder.id == recorder_id).first()
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 @app.get("/securia/recorder/uuid/{recorder_uuid}")
 async def get_recorder_by_uuid(db: db_dependency, recorder_uuid: UUID = Path(..., description="The recorder's UUID4"), skip: int = 0, limit: int = 1, current_user: dict = Depends(get_current_user)):
@@ -417,13 +408,10 @@ async def get_recorder_by_uuid(db: db_dependency, recorder_uuid: UUID = Path(...
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    recorder = db.query(models.Recorder).filter(models.Recorder.recorder_uuid == recorder_uuid).first()
-    if recorder is not None:
-        return recorder
-    elif recorder is None:
-        logger.debug("Recorder not found")
-        raise HTTPException(status_code=404, detail='Recorder not found')
-    raise HTTPException(status_code=500, detail='CRUD issue')
+    data = db.query(models.Recorder).filter(models.Recorder.recorder_uuid == recorder_uuid).first()
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 @app.post("/securia/recorder/{recorder_id}")
 async def update_recorder_by_id(db: db_dependency, recorder: schemas.RecorderUpdate, recorder_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
@@ -433,12 +421,10 @@ async def update_recorder_by_id(db: db_dependency, recorder: schemas.RecorderUpd
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    updated_recorder = crud.update_recorder(db, id=recorder_id, recorder=recorder)
-    if updated_recorder is not None:
-        return updated_recorder
-    if updated_recorder is None:
-        raise HTTPException(status_code=404, detail='Recorder not found')
-    raise HTTPException(status_code=509, detail='CRUD issue')
+    data = crud.update_recorder(db, id=recorder_id, recorder=recorder)
+    if data is None:
+        raise HTTPException(status_code=509, detail='Create issue')
+    return data
 
 @app.delete("/securia/recorder/{recorder_id}")
 async def delete_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
@@ -448,8 +434,8 @@ async def delete_recorder_by_id(db: db_dependency, recorder_id: int = Path(gt=0)
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    db_recorder = crud.delete_recorder(db, recorder_id)
-    if db_recorder is None:
+    data = crud.delete_recorder(db, recorder_id)
+    if data is None:
         raise HTTPException(status_code=404, detail='Not Found')
     logger.debug(f"Deleted recorder with id: {recorder_id}")
     return responses.JSONResponse(
@@ -465,14 +451,10 @@ async def search_recorder(db: db_dependency, recorder: schemas.RecorderSearch, c
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    recorder = db.query(models.Recorder).filter(models.Recorder.uri == recorder.uri).first()
-    if recorder is not None:
-        logger.debug(f"Found recorder uri - {recorder.uri} : {recorder.id}")
-        return recorder
-    if recorder is None:
-        logger.debug(f"Recorder not found")
-        raise HTTPException(status_code=404, detail='Recorder not found')
-    raise HTTPException(status_code=509, detail='CRUD issue')
+    data = db.query(models.Recorder).filter(models.Recorder.uri == recorder.uri).first()
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 @app.get("/securia/recorder", response_model=list[schemas.Recorder])
 async def get_recorder_by_id(db: db_dependency, skip: int = 0, limit: int = 100, current_user: dict = Depends(get_current_user)):
@@ -482,12 +464,19 @@ async def get_recorder_by_id(db: db_dependency, skip: int = 0, limit: int = 100,
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    recorders = db.query(models.Recorder).offset(skip).limit(limit).all()
-    if recorders is not None:
-        return [schemas.Recorder.from_orm(recorder) for recorder in recorders]
-    if recorders is None:
-        raise HTTPException(status_code=404, detail='Recorders not found')
-    raise HTTPException(status_code=500, detail='CRUD issue')
+
+    # Query to find recorders based on the user's preferences
+    user_recorder_ids = db.query(models.UserRecorderPreference.recorder_id).filter_by(user_id=current_user['id']).subquery()
+
+    # Fetching recorders that match user preferences
+    data = db.query(models.Recorder).filter(models.Recorder.id.in_(user_recorder_ids)).all()
+
+    # return recorders if recorders else []
+
+    data = db.query(models.Recorder).offset(skip).limit(limit).all()
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 # Channel APIs
 
@@ -499,11 +488,10 @@ async def create_channel(db: db_dependency, channel: schemas.ChannelCreate, curr
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    db_channel = crud.create_channel(db, channel)
-    if db_channel is None:
-        raise HTTPException(status_code=509, detail='CRUD issue')
-    logger.debug(f"Created channel with id: {db_channel.id}")
-    return db_channel
+    data = crud.create_channel(db, channel)
+    if data is None:
+        raise HTTPException(status_code=509, detail='create issue')
+    return data
 
 @app.get("/securia/channel/id/{channel_id}")
 async def get_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
@@ -513,12 +501,10 @@ async def get_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0), cur
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    channel = db.query(models.Channel).filter(models.Channel.id == channel_id).first()
-    if channel is not None:
-        return channel
-    if channel is None:
-        raise HTTPException(status_code=404, detail='Channel not found')
-    raise HTTPException(status_code=509, detail='CRUD issue')
+    data = db.query(models.Channel).filter(models.Channel.id == channel_id).first()
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 @app.post("/securia/channel/{channel_id}")
 async def update_channel_by_id(db: db_dependency, channel: schemas.ChannelUpdate, channel_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
@@ -528,12 +514,10 @@ async def update_channel_by_id(db: db_dependency, channel: schemas.ChannelUpdate
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    updated_channel = crud.update_channel(db, id=channel_id, channel=channel)
-    if updated_channel is not None:
-        return updated_channel
-    if updated_channel is None:
-        raise HTTPException(status_code=404, detail='Channel not found')
-    raise HTTPException(status_code=509, detail='CRUD issue')
+    data = crud.update_channel(db, id=channel_id, channel=channel)
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 @app.delete("/securia/channel/{channel_id}")
 async def delete_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
@@ -543,8 +527,8 @@ async def delete_channel_by_id(db: db_dependency, channel_id: int = Path(gt=0), 
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    db_channel = crud.delete_channel(db, channel_id)
-    if db_channel is None:
+    data = crud.delete_channel(db, channel_id)
+    if data is None:
         raise HTTPException(status_code=404, detail='Not Found')
     logger.debug(f"Channel with id: {channel_id} deleted")
     return responses.JSONResponse(
@@ -560,14 +544,11 @@ async def search_channel(db: db_dependency, channel: schemas.ChannelSearch, curr
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    channel = db.query(models.Channel).filter(models.Channel.fid == channel.fid,
+    data = db.query(models.Channel).filter(models.Channel.fid == channel.fid,
                                               models.Channel.channel_id == channel.channel_id).first()
-    if channel is not None:
-        logger.debug(f"Found Channel - {channel.channel_id} : {channel.id}")
-        return channel
-    if channel is None:
-        raise HTTPException(status_code=404, detail='Channel not found')
-    raise HTTPException(status_code=500, detail='CRUD issue')
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 
 @app.get("/securia/channels_by_recorder/{recorder_id}", response_model=list[schemas.Channel])
@@ -578,27 +559,23 @@ async def get_channels_by_recorder(db: db_dependency, recorder_id: int = Path(gt
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    channels = db.query(models.Channel).filter(models.Channel.fid == recorder_id).offset(skip).limit(limit).all()
-    if channels is not None:
-        return [schemas.Channel.from_orm(channel) for channel in channels]
-    if channels is None:
-        raise HTTPException(status_code=404, detail='Channels not found')
-    raise HTTPException(status_code=509, detail='CRUD issue')
+    data = db.query(models.Channel).filter(models.Channel.fid == recorder_id).offset(skip).limit(limit).all()
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return [schemas.Channel.from_orm(d) for d in data]
 
 @app.get("/securia/channel/name/{channel_name}")
-async def get_channels_by_name(db: db_dependency, channel_name: str = Path(gt=0), current_user: dict = Depends(get_current_user)):
+async def get_channels_by_name(db: db_dependency, channel_name: str, current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     if AccessHierarchy.can_get_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    channel = db.query(models.Channel).filter(models.Channel.channel_id == channel_name).first()
-    if channel is not None:
-        return channel
-    if channel is None:
-        raise HTTPException(status_code=404, detail='Channel not found')
-    raise HTTPException(status_code=509, detail='CRUD issue')
+    data = db.query(models.Channel).filter(models.Channel.channel_id == channel_name).first()
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 # Image APIs
 
@@ -611,11 +588,10 @@ async def create_image(db: db_dependency, image: schemas.ImageCreate, current_us
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
     logger.trace(f"received {image}")
-    db_image = crud.create_image(db, image)
-    if db_image is None:
-        raise HTTPException(status_code=509, detail='CRUD issue')
-    logger.debug(f"Created image with id: {db_image.id}")
-    return db_image
+    data = crud.create_image(db, image)
+    if data is None:
+        raise HTTPException(status_code=509, detail='create issue')
+    return data
 
 @app.get("/securia/image/{image_id}")
 async def get_image_by_id(db: db_dependency, image_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
@@ -625,12 +601,10 @@ async def get_image_by_id(db: db_dependency, image_id: int = Path(gt=0), current
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    image = db.query(models.Image).filter(models.Image.id == image_id).first()
-    if image is not None:
-        return image
-    if image is None:
-        raise HTTPException(status_code=404, detail='Channel not found')
-    raise HTTPException(status_code=509, detail='CRUD issue')
+    data = db.query(models.Image).filter(models.Image.id == image_id).first()
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 @app.post("/securia/image/{image_id}")
 async def update_image_by_id(db: db_dependency, image: schemas.ImageUpdate, image_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
@@ -640,12 +614,10 @@ async def update_image_by_id(db: db_dependency, image: schemas.ImageUpdate, imag
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    updated_image = crud.update_image(db, id=image_id, image=image)
-    if updated_image is not None:
-        return updated_image
-    if updated_image is None:
-        raise HTTPException(status_code=404, detail='Image not found')
-    raise HTTPException(status_code=509, detail='CRUD issue')
+    data = crud.update_image(db, id=image_id, image=image)
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 @app.delete("/securia/image/{image_id}")
 async def delete_image_by_id(db: db_dependency, image_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
@@ -655,8 +627,8 @@ async def delete_image_by_id(db: db_dependency, image_id: int = Path(gt=0), curr
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    db_image = crud.delete_image(db, image_id)
-    if db_image is None:
+    data = crud.delete_image(db, image_id)
+    if data is None:
         raise HTTPException(status_code=404, detail='Not Found')
     logger.debug(f"Image with id: {image_id} deleted")
     return responses.JSONResponse(
@@ -672,8 +644,8 @@ async def delete_image_by_id(db: db_dependency, image_id: int = Path(gt=0), curr
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    db_image = crud.prune_image(db, image_id)
-    if db_image is None:
+    data = crud.prune_image(db, image_id)
+    if data is None:
         raise HTTPException(status_code=404, detail='Not Found')
     logger.debug(f"Image with id: {image_id} and all related objects pruned")
     return responses.JSONResponse(
@@ -689,8 +661,8 @@ async def delete_images_older_than(db: db_dependency, older_than: int = Path(gt=
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    db_days = crud.prune_all_images_older_than(db, older_than)
-    if db_days is None:
+    data = crud.prune_all_images_older_than(db, older_than)
+    if data is None:
         raise HTTPException(status_code=404, detail='Not Found')
     logger.debug(f"Images older than: {older_than} and all related objects pruned")
     return responses.JSONResponse(
@@ -706,8 +678,8 @@ async def delete_image_and_metadata_by_id(db: db_dependency, image_id: int = Pat
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    db_image = crud.prune_all_data(db, image_id)
-    if db_image is None:
+    data = crud.prune_all_data(db, image_id)
+    if data is None:
         raise HTTPException(status_code=404, detail='Not Found')
     logger.debug(f"Image with id: {image_id} and all related objects pruned")
     return responses.JSONResponse(
@@ -723,8 +695,8 @@ async def delete_images_and_metadata_older_than(db: db_dependency, older_than: i
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    db_days = crud.prune_all_data_older_than(db, older_than)
-    if db_days is None:
+    data = crud.prune_all_data_older_than(db, older_than)
+    if data is None:
         raise HTTPException(status_code=404, detail='Not Found')
     logger.debug(f"Images older than: {older_than} and all related objects pruned")
     return responses.JSONResponse(
@@ -808,10 +780,11 @@ async def get_detection_by_channel_fid(db: db_dependency,
             query = query.order_by(sort_attribute)
 
         # Apply pagination
-        detections = query.offset(skip).limit(limit).all()
+        data = query.offset(skip).limit(limit).all()
 
-        if not detections:
-            raise HTTPException(status_code=404, detail='Detections not found')
+        if data is None:
+            raise HTTPException(status_code=404, detail='no data found')
+        return data
 
         return detections
     except Exception as e:
@@ -855,7 +828,11 @@ async def get_detections_by_image_fid(db: db_dependency,
             query = query.order_by(sort_attribute)
 
         # Apply pagination
-        detections = query.offset(skip).limit(limit).all()
+        data = query.offset(skip).limit(limit).all()
+
+        if data is None:
+            raise HTTPException(status_code=404, detail='no data found')
+        return data
 
         return detections
     except Exception as e:
@@ -871,9 +848,9 @@ async def get_image_file_by_id(db: db_dependency, image_id: int = Path(gt=0), cu
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    image = db.query(models.Image).filter(models.Image.id == image_id).first()
-    if image is not None:
-        image_path = image.s3_path.split('/')
+    data = db.query(models.Image).filter(models.Image.id == image_id).first()
+    if data is not None:
+        image_path = data.s3_path.split('/')
         logger.debug(f'Bucket is {image_path[0]}, key is {image_path[1]}')
         image = s3.fetch_image(image_path[0], image_path[1])
         img_byte_arr = io.BytesIO()
@@ -881,9 +858,9 @@ async def get_image_file_by_id(db: db_dependency, image_id: int = Path(gt=0), cu
         img_byte_arr.seek(0)
         return responses.StreamingResponse(img_byte_arr, media_type="image/jpeg")  # or "image/png"
 
-    if image is None:
-        raise HTTPException(status_code=404, detail='Image issue')
-    raise HTTPException(status_code=509, detail='CRUD issue')
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 # Detection APIs CRUD
 
@@ -901,7 +878,7 @@ async def create_detection(db: db_dependency, detection: schemas.DetectionCreate
             raise HTTPException(status_code=509, detail='CRUD issue')
         logger.debug(f"Created Detections with id: {db_detection.id}")
     except:
-        logger.error("Issue somewhere")
+        logger.error("create issue")
     return db_detection
 
 @app.get("/securia/detection/{detection_id}")
@@ -912,12 +889,10 @@ async def get_detection_by_id(db: db_dependency, detection_id: int = Path(gt=0),
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    detection = db.query(models.Detection).filter(models.Detection.id == detection_id).first()
-    if detection is not None:
-        return detection
-    if detection is None:
-        HTTPException(status_code=404, detail='Detection not found')
-    raise HTTPException(status_code=509, detail='CRUD issue')
+    data = db.query(models.Detection).filter(models.Detection.id == detection_id).first()
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 @app.post("/securia/detection/{detection_id}")
 async def update_detection_by_id(db: db_dependency, detection: schemas.DetectionUpdate, detection_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
@@ -927,12 +902,10 @@ async def update_detection_by_id(db: db_dependency, detection: schemas.Detection
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    updated_detection = crud.update_detection(db, id=detection_id, detection=detection)
-    if updated_detection is not None:
-        return updated_detection
-    if updated_detection is None:
-        raise HTTPException(status_code=404, detail='Detection not found')
-    raise HTTPException(status_code=509, detail='CRUD issue')
+    data = crud.update_detection(db, id=detection_id, detection=detection)
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 @app.delete("/securia/detection/{detection_id}")
 async def delete_detection_by_id(db: db_dependency, detection_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
@@ -960,15 +933,18 @@ async def detection_count_by_recorder_id(db: db_dependency, recorder_id: int = P
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    yesterday = datetime.now() - timedelta(days=days)
-    logger.debug(yesterday)
-    return db.query(func.count(models.Detection.id).label('total_detections'))\
+    start_day = datetime.now() - timedelta(days=days)
+    logger.debug(f"Start day - {start_day}")
+    data = db.query(func.count(models.Detection.id).label('total_detections'))\
         .join(models.Image, models.Detection.fid == models.Image.id)\
         .join(models.Channel, models.Image.fid == models.Channel.id)\
         .join(models.Recorder, models.Channel.fid == models.Recorder.id)\
         .filter(models.Recorder.id == recorder_id)\
-        .filter(models.Detection.detections_timestamp >= yesterday)\
+        .filter(models.Detection.detections_timestamp >= start_day)\
         .scalar()
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 # Detection Objects APIs CRUD
 
@@ -998,12 +974,10 @@ async def get_detection_object_by_id(db: db_dependency, detectionobject_id: int 
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    detection = db.query(models.DetectionObjects).filter(models.DetectionObjects.id == detectionobject_id).first()
-    if detection is not None:
-        return detection
-    if detection is None:
-        raise HTTPException(status_code=404, detail='Detection not found')
-    raise HTTPException(status_code=509, detail='CRUD issue')
+    data = db.query(models.DetectionObjects).filter(models.DetectionObjects.id == detectionobject_id).first()
+    if data is None:
+        raise HTTPException(status_code=404, detail='no data found')
+    return data
 
 @app.post("/securia/detection_object/{detectionobject_id}")
 async def update_detection_object_by_id(db: db_dependency, detectionobject: schemas.DetectionObjectUpdate, detectionobject_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
@@ -1013,12 +987,10 @@ async def update_detection_object_by_id(db: db_dependency, detectionobject: sche
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    updated_detectionobject = crud.update_detection_object(db, id=detectionobject_id, detectionobject=detectionobject)
-    if updated_detectionobject is not None:
-        return updated_detectionobject
-    if updated_detectionobject is None:
-        raise HTTPException(status_code=404, detail='Detection not found')
-    raise HTTPException(status_code=509, detail='CRUD issue')
+    data = crud.update_detection_object(db, id=detectionobject_id, detectionobject=detectionobject)
+    if data is None:
+        raise HTTPException(status_code=509, detail='update issue')
+    return data
 
 @app.delete("/securia/detection_object/{detectionobject_id}")
 async def delete_detection_object_by_id(db: db_dependency, detectionobject_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):

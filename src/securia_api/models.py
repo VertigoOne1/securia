@@ -18,6 +18,8 @@ class User(Base):
     email = Column(String, nullable=False, comment="User email address")
     role = Column(String, nullable=False, comment="User role in the system")
 
+    recorder_preferences = relationship("UserRecorderPreference", back_populates="user")
+
 Index("idx_users_email", User.id, User.email)
 Index("idx_users_username", User.id, User.username)
 
@@ -35,9 +37,23 @@ class Recorder(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=text('now()'), comment="")
     owner_user_id = Column(Integer,nullable=True, comment="the id of the user this recorder belongs to")
 
+    user_preferences = relationship("UserRecorderPreference", back_populates="recorder")
     channels = relationship("Channel", back_populates="recorder")
 
+
 Index("idx_recorder_uri", Recorder.id, Recorder.uri)
+
+class UserRecorderPreference(Base):
+    __tablename__ = 'user_recorder_preferences'
+
+    user_id = Column(Integer, ForeignKey('securia_users.id'), primary_key=True)
+    recorder_id = Column(Integer, ForeignKey('recorders.id'), primary_key=True)
+
+    user = relationship("User", back_populates="recorder_preferences")
+    recorder = relationship("Recorder", back_populates="user_preferences")
+
+    User.recorder_preferences = relationship("UserRecorderPreference", back_populates="user")
+    Recorder.user_preferences = relationship("UserRecorderPreference", back_populates="recorder")
 
 class Channel(Base):
     __tablename__ = 'channels'

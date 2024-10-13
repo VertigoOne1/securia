@@ -49,17 +49,18 @@ with st.expander("Recorders", expanded=True):
 if recorders_selected_id is not None:
     # Fetch channels data
     detections_summary = get_detections_summary_dataset(recorders_selected_id)
-    df = pd.DataFrame(detections_summary)
-    df['collected_timestamp'] = pd.to_datetime(df['collected_timestamp']).dt.strftime('%Y-%m-%d %H:%M:%S')
-    df['confidence'] = df['confidence'].apply(lambda x: f"{x:.2%}")
-    if not detections_summary.empty:
-        detections_summary_display_columns = ['collected_timestamp', 'detection_name', 'confidence', 'channel_friendly_name', 'channel_description', 'channel_id']
-        channels_event = st.dataframe(
-            df[detections_summary_display_columns],
-            # detections_summary,
-            # column_config=column_configuration,
-            use_container_width=True,
-            hide_index=True,
-            on_select="rerun",
-            selection_mode="single-row",
-        )
+    if len(detections_summary) > 0:
+        df = pd.DataFrame(detections_summary)
+        df['collected_timestamp'] = pd.to_datetime(df['collected_timestamp']).dt.strftime('%Y-%m-%d %H:%M:%S')
+        df['confidence'] = df['confidence'].apply(lambda x: f"{x:.2%}")
+        if not detections_summary.empty:
+            detections_summary_display_columns = ['collected_timestamp', 'detection_name', 'confidence', 'channel_friendly_name', 'channel_description', 'channel_id']
+            channels_event = st.dataframe(
+                df[detections_summary_display_columns],
+                # detections_summary,
+                # column_config=column_configuration,
+                use_container_width=True,
+                hide_index=True,
+                on_select="rerun",
+                selection_mode="single-row",
+            )

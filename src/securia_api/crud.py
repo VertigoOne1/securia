@@ -54,12 +54,15 @@ def create_user(db: Session, user: schemas.UserCreate):
         db_user = models.User(
             email=user.email,
             username=user.username,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            company=user.company,
             role=user.role,
             password=hashed_password.decode('utf-8')  # Store the hash as a string
         )
 
         logger.debug(f"New User - {user.email}")
-        logger.debug(f"{db_user}")
+        logger.debug(f"{db_user.__dict__}")
 
         db.add(db_user)
         db.commit()
