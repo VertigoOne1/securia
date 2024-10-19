@@ -15,36 +15,38 @@ def login():
     st.title("Securia Login")
     left, right = st.columns(2)
     with left:
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        if st.button("Log in", use_container_width=True) or password:
-            try:
-                data = {
-                    "grant_type": "password",
-                    "username": username,
-                    "password": password,
-                    "scope": "api",
-                    "client_id": "client_id",
-                    "client_secret": "client_secret"
-                }
-                response = requests.post(f"{config['api']['uri']}/token", data=data)
+        with st.form("my_form"):
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            login = st.form_submit_button("Log in", use_container_width=True)
+            if login or password:
+                try:
+                    data = {
+                        "grant_type": "password",
+                        "username": username,
+                        "password": password,
+                        "scope": "api",
+                        "client_id": "client_id",
+                        "client_secret": "client_secret"
+                    }
+                    response = requests.post(f"{config['api']['uri']}/token", data=data)
 
-                if response.status_code == 200:
-                    # Successful login
-                    token = response.json().get("access_token")
-                    userinfo = logic.fetch_logged_in_user(username, token)
-                    st.session_state.token = token
-                    st.session_state.logged_in = True
-                    st.session_state.logged_in_user = username
-                    st.session_state.logged_in_role = userinfo[0]['role']
-                    st.success("Login successful!")
-                    st.rerun()
-                else:
-                    st.error("Invalid username or password. Please try again.")
-            except requests.exceptions.RequestException as e:
-                st.error(f"An error occurred: {e}")
+                    if response.status_code == 200:
+                        # Successful login
+                        token = response.json().get("access_token")
+                        userinfo = logic.fetch_logged_in_user(username, token)
+                        st.session_state.token = token
+                        st.session_state.logged_in = True
+                        st.session_state.logged_in_user = username
+                        st.session_state.logged_in_role = userinfo[0]['role']
+                        st.success("Login successful!")
+                        st.rerun()
+                    else:
+                        st.error("Invalid username or password. Please try again.")
+                except requests.exceptions.RequestException as e:
+                    st.error(f"An error occurred: {e}")
         if st.button("Register"):
-            pass
+            st.warning("Not implemented")
     with right:
         st.image(f"{config['api']['static_content_root']}/login_logo-min.png")
 
