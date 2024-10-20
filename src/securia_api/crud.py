@@ -517,13 +517,16 @@ def prune_all_data_older_than(db: Session, days: int):
     logger.info(f"Deleting all images and metadata data older than {cutoff_date}")
     # Query for images older than the cutoff date
     old_images = db.query(models.Image).filter(models.Image.created_at < cutoff_date).all()
-    if len(old_images) > 0:
-        logger.info(f"Deleting {len(old_images)} images and metadata")
-        for img in old_images:
-            logger.debug(f"Pruning {img.id}")
+    if old_images:
+        logger.info(f"Pruning old data for {len(old_images)} images")
+        index = 0
+        while index < len(old_images):
+            img = old_images[index]
+            logger.debug(f"Pruning data and image - {img.id}")
             prune_all_data(db, img.id)
+            index += 1
     else:
-        logger.info(f"there are no data older than {cutoff_date}")
+        logger.info(f"there are no pruneable data older than {cutoff_date}")
         return None
 
     response = {}
@@ -540,16 +543,18 @@ def prune_all_images_older_than(db: Session, days: int):
     logger.info(f"Removing images from content storage older than {cutoff_date}")
     # Query for images older than the cutoff date
     old_images = db.query(models.Image).filter(models.Image.created_at < cutoff_date).all()
-    if len(old_images) > 0:
+    if old_images:
         logger.info(f"Deleting {len(old_images)} images")
-        for img in old_images:
-            logger.debug(f"Pruning {img.id}")
+        index = 0
+        while index < len(old_images):
+            img = old_images[index]
+            logger.debug(f"Pruning image - {img.id}")
             prune_image(db, img.id)
+            index += 1
     else:
-        logger.info(f"there are no images older than {cutoff_date}")
-        return None
+        logger.info(f"There are no images older than {cutoff_date}")
 
-    response = {}
-    response['response'] = f"{len(old_images)} images were pruned"
+        response = {}
+        response['response'] = f"{len(old_images)} images were pruned"
 
-    return response
+        return response

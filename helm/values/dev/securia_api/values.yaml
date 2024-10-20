@@ -38,7 +38,7 @@ appConfig:
     enable_stdout_log_handler: True
     enable_kafka_log_handler: False
 service:
-  type: NodePort
+  type: ClusterIP
   port: 8088
   name: api
 
