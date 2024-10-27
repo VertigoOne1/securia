@@ -1,12 +1,12 @@
 import uvicorn
-from fastapi import FastAPI, Depends, HTTPException, Path, responses, Query, WebSocket
+from fastapi import FastAPI, Depends, HTTPException, Path, responses, Query, WebSocket, BackgroundTasks
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
 from enum import Enum
-from typing import Annotated, Optional
+from typing import Annotated, Optional, Callable
 from prometheus_client import make_asgi_app
 from envyaml import EnvYAML
 from logger import setup_custom_logger
@@ -17,6 +17,7 @@ import threading
 import signal
 import sys
 import faulthandler
+from contextlib import contextmanager
 
 import logger, logic, models, schemas, crud
 from database import engine, SessionLocal
@@ -143,6 +144,40 @@ class AccessHierarchy:
     def get_all_roles() -> list[str]:
         return [role.name.lower() for role in Role]
 
+class BackgroundTaskManager:
+    def __init__(self):
+        self._task_count = 0
+        self._lock = threading.Lock()
+
+    def _wrap_task(self, task: Callable, *args, **kwargs):
+        """Wrapper to properly track task completion"""
+        try:
+            task(*args, **kwargs)
+        finally:
+            with self._lock:
+                self._task_count -= 1
+            logger.debug(f"Background task completed. Active tasks: {self._task_count}")
+
+    def schedule_task(self, background_tasks: BackgroundTasks, task: Callable, *args, **kwargs) -> bool:
+        """
+        Attempts to schedule a task if no other tasks are running.
+        Returns True if successfully scheduled, False otherwise.
+        """
+        with self._lock:
+            logger.debug(f"Running tasks: {self._task_count}")
+            if self._task_count > 0:
+                logger.debug(f"Cannot schedule task. Running: {self._task_count}")
+                return False
+            else:
+                self._task_count += 1
+                logger.debug(f"Scheduling new task. Active tasks: {self._task_count}")
+                background_tasks.add_task(self._wrap_task, task, *args, **kwargs)
+                return True
+
+# Create a global instance
+task_manager = BackgroundTaskManager()
+
+@contextmanager
 def get_db():
     db = SessionLocal()
     try:
@@ -150,7 +185,23 @@ def get_db():
     finally:
         db.close()
 
-db_dependency = Annotated[Session, Depends(get_db)]
+# Dependency for regular routes
+def get_db_dependency():
+    with get_db() as db:
+        yield db
+
+# Separate db function for background tasks
+def prune_data_background(older_than: int):
+    with get_db() as db:
+        crud.prune_all_data_older_than(db, older_than)
+        logger.debug(f"Completed pruning of data older than {older_than} days")
+
+def prune_images_background(older_than: int):
+    with get_db() as db:
+        crud.prune_all_images_older_than(db, older_than)
+        logger.debug(f"Completed pruning of data older than {older_than} days")
+
+db_dependency = Annotated[Session, Depends(get_db_dependency)]
 
 logger.debug("Create system users if necessary")
 admin_users = crud.create_system_users(SessionLocal())
@@ -654,24 +705,28 @@ async def delete_image_by_id(db: db_dependency, image_id: int = Path(gt=0), curr
     )
 
 @app.delete("/securia/image/recursive/days/{older_than}")
-async def delete_images_older_than(db: db_dependency, older_than: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
+async def delete_images_older_than(db: db_dependency, background_tasks: BackgroundTasks, older_than: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    data = crud.prune_all_images_older_than(db, older_than)
-    if data is None:
-        raise HTTPException(status_code=404, detail='Not Found')
-    logger.debug(f"Images older than: {older_than} and all related objects pruned")
+    logger.debug(f"Starting background task for pruning")
+    if not task_manager.schedule_task(background_tasks, prune_images_background, older_than):
+        raise HTTPException(
+            status_code=409,
+            detail="Another maintenance task is currently running. Please try again later."
+        )
+    # background_tasks.add_task(prune_images_background, older_than)
+    logger.debug(f"Images older than: {older_than} and all related objects scheduled for pruning")
     return responses.JSONResponse(
-        status_code=200,
-        content={"message": f"Images older than {older_than} pruned"}
+        status_code=202,
+        content={"message": f"Images older than {older_than} pruning initiated"}
     )
 
 @app.delete("/securia/data_maintenance/recursive/{image_id}")
-async def delete_image_and_metadata_by_id(db: db_dependency, image_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
+async def delete_image_and_metadata_by_id(db: db_dependency, background_tasks: BackgroundTasks, image_id: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     if AccessHierarchy.can_create_update_delete_object(current_user['role']):
@@ -681,27 +736,35 @@ async def delete_image_and_metadata_by_id(db: db_dependency, image_id: int = Pat
     data = crud.prune_all_data(db, image_id)
     if data is None:
         raise HTTPException(status_code=404, detail='Not Found')
-    logger.debug(f"Image with id: {image_id} and all related objects pruned")
     return responses.JSONResponse(
-        status_code=200,
+        status_code=202,
         content={"message": f"Image with id {image_id} pruned"}
     )
 
 @app.delete("/securia/data_maintenance/recursive/days/{older_than}")
-async def delete_images_and_metadata_older_than(db: db_dependency, older_than: int = Path(gt=0), current_user: dict = Depends(get_current_user)):
+async def delete_images_and_metadata_older_than(db: db_dependency,
+                                                background_tasks: BackgroundTasks,
+                                                older_than: int = Path(gt=0),
+                                                current_user: dict = Depends(get_current_user),
+                                                ):
     if config['api']['maintenance_mode']:
         raise HTTPException(status_code=422, detail='Maintenance Mode')
     if AccessHierarchy.can_create_update_delete_object(current_user['role']):
         pass
     else:
         raise HTTPException(status_code=403, detail="Access denied by hierarchy")
-    data = crud.prune_all_data_older_than(db, older_than)
-    if data is None:
-        raise HTTPException(status_code=404, detail='Not Found')
-    logger.debug(f"Images older than: {older_than} and all related objects pruned")
+    # Try to schedule the background task
+    logger.debug(f"Starting background task for pruning")
+    if not task_manager.schedule_task(background_tasks, prune_data_background, older_than):
+        raise HTTPException(
+            status_code=409,
+            detail="Another maintenance task is currently running. Please try again later."
+        )
+    # background_tasks.add_task(prune_data_background, older_than)
+    logger.debug(f"Images older than: {older_than} and all related objects pruning background task initiated")
     return responses.JSONResponse(
-        status_code=200,
-        content={"message": f"Images older than {older_than} pruned"}
+        status_code=202,
+        content={"message": f"Images older than {older_than} pruning initiated"}
     )
 
 @app.get("/securia/image/channel/{fid_id}",response_model=list[schemas.Image])

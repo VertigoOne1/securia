@@ -26,10 +26,10 @@ appConfig:
         version: latest
     maintenance:
         enabled: True
-        prune_data_older_than_days: 7 # prunes all metadata and related images from object storage
-        prune_images_older_than_days: 3 # prunes only images from object storage leaving the meta
-        prune_data_check_interval_seconds: 3577
-        prune_images_check_interval_seconds: 3933
+        prune_data_older_than_days: 2 # prunes all metadata and related images from object storage
+        prune_images_older_than_days: 1 # prunes only images from object storage leaving the meta
+        prune_data_check_interval_seconds: 47
+        prune_images_check_interval_seconds: 67
     api:
         default_port: 8191
         debug_level: info

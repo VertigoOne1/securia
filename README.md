@@ -45,9 +45,12 @@ Dev is k3s + strimzi + rancher + harbor + percona + s3ninja + github actions
 
 ## TODO
 
-stop messing around and start focusing on the detection system
 
-- working on improved deployment pipeline
+- llm dev - implement the guard, collection of recent events -> context -> response
+- llm dev - implement the analyst, function -> llm -> pydantic -> dataset -> llm -> response
+- ui dev - detections, xyxy overlays
+- ui dev - per recorder configuration of yolo and llm settings, ignored objects, static objects
+
 - create additional tables to manage user preferences to detection filters, confidence levels and recorders and channels
 - user_preferences, user_recorder_attachment, recorder_preferences, channel_preferences, detection_preferences. basically a preference management overlay
 - seen_detections table to manage which detections are "interesting"
@@ -56,17 +59,14 @@ stop messing around and start focusing on the detection system
 - ui dev - llm - implement image description extraction into channel description with edits
 - detection filtering and ignore list
 - detection summaries across recorder
-- llm dev - implement the guard, collection of recent events -> context -> response
-- llm dev - implement the analyst, function -> llm -> pydantic -> dataset -> llm -> response
-- ui dev - detections, xyxy overlays
-- ui dev - per recorder configuration of yolo and llm settings, ignored objects, static objects
 
 - builds current take about 8 minutes, which is not bad, but i can get it lower
   - https://www.kenmuse.com/blog/building-github-actions-runner-images-with-a-tool-cache/
   - https://gha-cache-server.falcondev.io/getting-started
 
 - metric system development, start getting that together
-- Turn gpustat --json into prometheus metrics (will need to watch temps)
+- sqlalchemy can export to collectd `docker pull collectd/ci:focal_amd64`
+
 - training and xyxy overlays
 - implement "remember me" cookies, and expiry notifications for ui
 - test crop extraction and population
@@ -87,8 +87,15 @@ stop messing around and start focusing on the detection system
 - configure securia charts to use the secrets from percona operator via secret injection, then database user management is automated, same for kafkauser
 - longer term, were going to be multi-tenant, this requires ownership and membership systems
 
+## In Testing
+
 ## DONE
 
+- token expiry issue - fixed, login routine reuse bug
+- connection pool issues - fixed, background task manager not returning connections
+- pruning system background task manager - done
+- Turn gpustat --json into prometheus metrics (will need to watch temps) - no longer necessary, have nvidia exporter in cluster now
+- working on improved deployment pipeline - arogocd is done, works pretty good!
 - user create api is missing the optional fields, i think they are just not mapped - fixed
 - simplify the ACL checker into something oneliny to reduce the code duplication for the api controller - don't think it is possible yet
 - channel descriptions and friendly names are vital for LLM integration, make it easier to do by providing a preview image
@@ -409,3 +416,5 @@ yolov8l.pt
 ## Further research
 
 https://github.com/defog-ai/sqlcoder
+
+

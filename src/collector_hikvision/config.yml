@@ -16,10 +16,10 @@ collector:
   recorder_location: "House"
   recorder_contact: "12345"
   recorder_owner_user_id: "1"
-  capture_interval: 5
+  capture_interval: 60
   write_local_file: True
   temp_output_folder: /tmp/images
-  channel_delay_time: 0.3
+  channel_delay_time: 1
   collection_timeout: 10
   time_format: "%Y%m%d_%H%M%S.%f%z"
   image_filename_prefix: "image"
@@ -33,7 +33,7 @@ collector:
     - 701
     - 801
 kafka:
-  broker_url: ["10.0.0.59:32394"]
+  broker_url: ["10.0.0.95:32394"]
   security_protocol: SASL_PLAINTEXT
   sasl_mechanism: SCRAM-SHA-512
   sasl_plain_username: admin

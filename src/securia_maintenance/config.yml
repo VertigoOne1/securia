@@ -9,7 +9,7 @@ maintenance:
   prune_data_older_than_days: 7 # prunes all metadata and related images from object storage
   prune_images_older_than_days: 3 # prunes only images from object storage leaving the meta
   prune_data_check_interval_seconds: 13
-  prune_images_check_interval_seconds: 17
+  prune_images_check_interval_seconds: 19
 api:
   uri: http://10.0.0.95:8088/securia
   username: apiuser

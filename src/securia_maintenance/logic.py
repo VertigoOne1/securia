@@ -39,6 +39,7 @@ class BearerAuth(requests.auth.AuthBase):
     def refresh_token(self):
         # Call the refresh token function and update the token and expiration
         new_token = self.refresh_token_func()
+        logger.debug(f"New Token - {new_token}")
         self.token = new_token
         self.payload = jwt.decode(new_token, options={"verify_signature": False})
         self.expires_at = self.payload.get("exp")
@@ -69,36 +70,43 @@ def login():
         if response.status_code == 200:
             # Successful login
             token = response.json().get("access_token")
+            logger.debug("Login success: {token}")
             return token
         else:
             logger.error("Invalid username or password. Please try again.")
     except requests.exceptions.RequestException as e:
         logger.error(f"requests - An error occurred: {e}")
 
-auth = BearerAuth(token=login(), refresh_token_func=login())
+auth = BearerAuth(token=login(), refresh_token_func=login)
 
 def data_pruning_maintenance():
     logger.info("Running data pruning maintenance")
     response = requests.delete(f"{config['api']['uri']}/data_maintenance/recursive/days/{config['maintenance']['prune_data_older_than_days']}", auth=auth)
-    if response.status_code == 200:
-        logger.info("Pruned data")
+    if response.status_code == 202:
+        logger.info("Data prune initiated")
         return response.json()
     elif response.status_code == 404:
         logger.info(f"No data to prune: {response.status_code}")
         return response
+    elif response.status_code == 409:
+        logger.info(f"Previous pruning still running: {response.status_code}")
+        return response
     else:
-        logger.error(f"Expected response {response}")
+        logger.error(f"Unexpected response {response}")
         return None
 
 def image_pruning_maintenance():
     logger.info("Running image pruning maintenance")
     response = requests.delete(f"{config['api']['uri']}/image/recursive/days/{config['maintenance']['prune_images_older_than_days']}", auth=auth)
-    if response.status_code == 200:
-        logger.info("Pruned data")
+    if response.status_code == 202:
+        logger.info("Image prune initiated")
         return response.json()
     elif response.status_code == 404:
         logger.info(f"No images to prune: {response.status_code}")
         return response
+    elif response.status_code == 409:
+        logger.info(f"Previous pruning still running: {response.status_code}")
+        return response
     else:
-        logger.error(f"Expected response {response}")
+        logger.error(f"Unexpected response {response}")
         return None

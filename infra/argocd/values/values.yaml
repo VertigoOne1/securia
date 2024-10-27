@@ -42,7 +42,7 @@ crds:
 global:
   # -- Default domain used by all components
   ## Used for ingresses, certificates, SSO, notifications, etc.
-  domain: argocd.marnus.com
+  domain: argocd.example.com
 
   # -- Runtime class name for all components
   runtimeClassName: ""
@@ -71,7 +71,7 @@ global:
     # -- Set the global logging format. Either: `text` or `json`
     format: text
     # -- Set the global logging level. One of: `debug`, `info`, `warn` or `error`
-    level: debug
+    level: info
 
   # -- Annotations for the all deployed Statefulsets
   statefulsetAnnotations: {}
@@ -195,7 +195,7 @@ configs:
 
     # -- Enable Status Badge
     ## Ref: https://argo-cd.readthedocs.io/en/stable/user-guide/status-badge/
-    statusbadge.enabled: true
+    statusbadge.enabled: false
 
     # Dex configuration
     # dex.config: |
@@ -274,7 +274,7 @@ configs:
     ## Server properties
     # -- Run server without TLS
     ## NOTE: This value should be set when you generate params by other means as it changes ports used by ingress template.
-    server.insecure: true
+    server.insecure: false
     # -- Value for base href in index.html. Used if Argo CD is running behind reverse proxy under subpath different from /
     server.basehref: /
     # -- Used if Argo CD is running behind reverse proxy under subpath different from /
@@ -302,13 +302,13 @@ configs:
     # -- A list of glob patterns specifying where to look for ApplicationSet resources. (e.g. `"argocd,argocd-appsets-*"`)
     # @default -- `""` (default is only the ns where the controller is installed)
     ## For more information: https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Appset-Any-Namespace/
-    applicationsetcontroller.namespaces: "argocd,securia"
+    applicationsetcontroller.namespaces: ""
 
     # -- Enables [Applications in any namespace]
     ## List of additional namespaces where applications may be created in and reconciled from.
     ## The namespace where Argo CD is installed to will always be allowed.
     ## Set comma-separated list. (e.g. app-team-one, app-team-two)
-    application.namespaces: "securia"
+    application.namespaces: ""
 
     # -- JQ Path expression timeout
     ## By default, the evaluation of a JQPathExpression is limited to one second.
@@ -413,28 +413,28 @@ configs:
   # Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/config-management-plugins/
   cmp:
     # -- Create the argocd-cmp-cm configmap
-    create: true
+    create: false
 
     # -- Annotations to be added to argocd-cmp-cm configmap
     annotations: {}
 
     # -- Plugin yaml files to be added to argocd-cmp-cm
-    plugins:
+    plugins: {}
       # --- First plugin
-      my-plugin:
-        init:
-          command: [sh]
-          args: [-c, 'echo "Initializing..."']
-        generate:
-          command: [sh, -c]
-          args:
-            - |
-              echo "{\"kind\": \"ConfigMap\", \"apiVersion\": \"v1\", \"metadata\": { \"name\": \"$ARGOCD_APP_NAME\", \"namespace\": \"$ARGOCD_APP_NAMESPACE\", \"annotations\": {\"Foo\": \"$ARGOCD_ENV_FOO\", \"KubeVersion\": \"$KUBE_VERSION\", \"KubeApiVersion\": \"$KUBE_API_VERSIONS\",\"Bar\": \"baz\"}}}"
-        discover:
-          fileName: "./subdir/s*.yaml"
-          find:
-            glob: "**/Chart.yaml"
-            command: [sh, -c, find . -name env.yaml]
+      # my-plugin:
+      #   init:
+      #     command: [sh]
+      #     args: [-c, 'echo "Initializing..."']
+      #   generate:
+      #     command: [sh, -c]
+      #     args:
+      #       - |
+      #         echo "{\"kind\": \"ConfigMap\", \"apiVersion\": \"v1\", \"metadata\": { \"name\": \"$ARGOCD_APP_NAME\", \"namespace\": \"$ARGOCD_APP_NAMESPACE\", \"annotations\": {\"Foo\": \"$ARGOCD_ENV_FOO\", \"KubeVersion\": \"$KUBE_VERSION\", \"KubeApiVersion\": \"$KUBE_API_VERSIONS\",\"Bar\": \"baz\"}}}"
+      #   discover:
+      #     fileName: "./subdir/s*.yaml"
+      #     find:
+      #       glob: "**/Chart.yaml"
+      #       command: [sh, -c, find . -name env.yaml]
 
       # --- Second plugin
       # my-plugin2:
@@ -1282,7 +1282,7 @@ redis:
   ## Prometheus redis-exporter sidecar
   exporter:
     # -- Enable Prometheus redis-exporter sidecar
-    enabled: true
+    enabled: false
     # -- Environment variables to pass to the Redis exporter
     env: []
     ## Prometheus redis-exporter image
@@ -1562,7 +1562,7 @@ redis-ha:
   ## Prometheus redis-exporter sidecar
   exporter:
     # -- Enable Prometheus redis-exporter sidecar
-    enabled: true
+    enabled: false
     # -- Repository to use for the redis-exporter
     image: public.ecr.aws/bitnami/redis-exporter
     # -- Tag to use for the redis-exporter
@@ -1907,7 +1907,7 @@ server:
   ## If your target Kubernetes cluster(s) require a custom credential (exec) plugin
   ## you could use this (and the same in the application controller pod) to provide such executable
   ## Ref: https://kubernetes.io/docs/reference/access-authn-authz/authentication/#client-go-credential-plugins
-  initContainers: []  # MARNUS
+  initContainers: []
   #  - name: download-tools
   #    image: alpine:3
   #    command: [sh, -c]
@@ -2201,7 +2201,7 @@ server:
   # Argo CD server ingress configuration
   ingress:
     # -- Enable an ingress resource for the Argo CD server
-    enabled: true
+    enabled: false
     # -- Specific implementation for ingress controller. One of `generic`, `aws` or `gke`
     ## Additional configuration might be required in related configuration sections
     controller: generic
@@ -2209,17 +2209,12 @@ server:
     labels: {}
     # -- Additional ingress annotations
     ## Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-1-ssl-passthrough
-    annotations:
-      cert-manager.io/issuer: le-prod-http
-      cert-manager.io/issuer-kind: ClusterIssuer
-      external-dns.alpha.kubernetes.io/hostname: argocd.marnus.com
-      external-dns.alpha.kubernetes.io/target: 165.255.241.184
-      helm.sh/resource-policy: keep
+    annotations: {}
       # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
       # nginx.ingress.kubernetes.io/ssl-passthrough: "true"
 
     # -- Defines which ingress controller will implement the resource
-    ingressClassName: "traefik"
+    ingressClassName: ""
 
     # -- Argo CD server hostname
     # @default -- `""` (defaults to global.domain)
@@ -2234,7 +2229,7 @@ server:
     # -- Enable TLS configuration for the hostname defined at `server.ingress.hostname`
     ## TLS certificate will be retrieved from a TLS secret `argocd-server-tls`
     ## You can create this secret via `certificate` or `certificateSecret` option
-    tls: true
+    tls: false
 
     # -- The list of additional hostnames to be covered by ingress record
     # @default -- `[]` (See [values.yaml])
@@ -2271,6 +2266,9 @@ server:
     # -- Additional TLS configuration
     # @default -- `[]` (See [values.yaml])
     extraTls: []
+      # - hosts:
+      #   - argocd.example.com
+      #   secretName: your-certificate-name
 
     # AWS specific options for Application Load Balancer
     # Applies only when `serv.ingress.controller` is set to `aws`
@@ -2484,8 +2482,6 @@ repoServer:
 
   # -- Environment variables to pass to repo server
   env: []
-  #   - name: SOPS_AGE_KEY_FILE
-  #     value: /sops/age/keys.txt
 
   # -- envFrom to pass to repo server
   # @default -- `[]` (See [values.yaml])
@@ -2501,29 +2497,14 @@ repoServer:
   # -- Additional containers to be added to the repo server pod
   ## Ref: https://argo-cd.readthedocs.io/en/stable/user-guide/config-management-plugins/
   ## Note: Supports use of custom Helm templates
-  extraContainers:
-    - name: helmfile-plugin
-      image: harbor.marnus.com:443/infra/helmfile-sops-age:v2
-      command: [/var/run/argocd/argocd-cmp-server]
-      env:
-        - name: SOPS_AGE_KEY_FILE
-          value: /sops/age/argocd.key
+  extraContainers: []
     # - name: cmp-my-plugin
     #   command:
     #     - "/var/run/argocd/argocd-cmp-server"
     #   image: busybox
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 999
-      volumeMounts:
-        - mountPath: /sops/age
-          name: age-secret-key
-        - mountPath: /var/run/argocd
-          name: var-files
-        - mountPath: /home/argocd/cmp-server/plugins
-          name: plugins
-        - mountPath: /tmp
-          name: helmfile-cmp-tmp
+    #   securityContext:
+    #     runAsNonRoot: true
+    #     runAsUser: 999
     #   volumeMounts:
     #     - mountPath: /var/run/argocd
     #       name: var-files
@@ -2565,12 +2546,12 @@ repoServer:
   volumeMounts: []
 
   # -- Additional volumes to the repo server pod
-  volumes:
-    - name: age-secret-key
-      secret:
-        secretName: age-secret
-    - emptyDir: {}
-      name: helmfile-cmp-tmp
+  volumes: []
+  #  - name: argocd-cmp-cm
+  #    configMap:
+  #      name: argocd-cmp-cm
+  #  - name: cmp-tmp
+  #    emptyDir: {}
 
   # -- Volumes to be used in replacement of emptydir on default volumes
   existingVolumes: {}

@@ -28,7 +28,7 @@ logger = logger.setup_custom_logger(__name__)
 
 config = EnvYAML('config.yml')
 
-auth = BearerAuth(token=login(), refresh_token_func=login())
+auth = BearerAuth(token=login(), refresh_token_func=login)
 
 def login():
     username = config['api']['username']

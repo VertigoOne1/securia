@@ -10,7 +10,7 @@ import s3, tempfile
 logger = logger.setup_custom_logger(__name__)
 config = EnvYAML('config.yml')
 
-auth = BearerAuth(token=login(), refresh_token_func=login())
+auth = BearerAuth(token=login(), refresh_token_func=login)
 
 def calculate_sha256(content):
     sha256_hash = hashlib.sha256()

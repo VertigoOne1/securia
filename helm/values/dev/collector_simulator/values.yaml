@@ -25,11 +25,11 @@ appConfig:
     default_debug_level: DEBUG
     version: dev
   collector:
-    enabled: True
-    capture_interval: 60
+    enabled: False
+    capture_interval: 600
     write_local_file: False
     temp_output_folder: /tmp/images
-    channel_delay_time: 1
+    channel_delay_time: 5
     collection_timeout: 10
     time_format: "%Y%m%d_%H%M%S.%f%z"
     image_filename_prefix: "image"

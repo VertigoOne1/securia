@@ -8,7 +8,7 @@ general:
   dataframe_cache_expire_seconds: 30
 storage:
   bucket_name: test
-  endpoint_hostname: 10.0.0.59
+  endpoint_hostname: 10.0.0.95
   endpoint_method: http
   port: 32650
   access_key: AKIAIOSFODNN7EXAMPLE

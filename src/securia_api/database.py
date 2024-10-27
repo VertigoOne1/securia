@@ -15,10 +15,17 @@ config = EnvYAML('config.yml')
 
 SQLALCHEMY_DATABASE_URL = config["database"]["uri"]
 
+engine_pool_settings = {
+        'pool_size': 10,
+        'max_overflow': 10,
+        'pool_timeout': 30,
+        'pool_recycle': 60
+    }
+
 def create_engine_with_retry(url, max_retries=3, retry_interval=2):
     for attempt in range(max_retries):
         try:
-            engine = create_engine(url, connect_args={'connect_timeout': 2})
+            engine = create_engine(url, connect_args={'connect_timeout': 2}, **engine_pool_settings)
             engine.connect()
             return engine
         except OperationalError as e:
@@ -35,11 +42,3 @@ engine = create_engine_with_retry(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
-
-# def get_db():
-#     db = SessionLocal()
-#     try:
-#         return db
-#     finally:
-#         db.close()
-

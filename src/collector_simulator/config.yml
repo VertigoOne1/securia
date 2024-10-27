@@ -33,7 +33,7 @@ collector:
     # - 701
     # - 801
 kafka:
-  broker_url: ["10.0.0.59:32394"]
+  broker_url: ["10.0.0.95:32394"]
   security_protocol: SASL_PLAINTEXT
   sasl_mechanism: SCRAM-SHA-512
   sasl_plain_username: admin
