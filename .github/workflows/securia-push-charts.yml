@@ -42,8 +42,8 @@ jobs:
         export $(grep -v '^#' src/.env | xargs -d '\n')
         sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
         export $(grep -v '^#' src/.env.secrets | xargs -d '\n')
-        export $(grep -v '^#' helm/.env | xargs -d '\n')
-        cd helm
+        export $(grep -v '^#' helm/securia/.env | xargs -d '\n')
+        cd helm/securia
         echo "${REGISTRY_PASSWORD}" | helm registry login -u ${REGISTRY_USERNAME} --password-stdin ${REGISTRY_HOST}
         for dir in charts/*/; do
           if [ -d "$dir" ]; then

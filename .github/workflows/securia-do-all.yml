@@ -56,14 +56,14 @@ jobs:
           fi
         done < src/.env
 
-        cat helm/.env
+        cat helm/securia/.env
 
         while IFS='=' read -r key value; do
           if [[ ! $key =~ ^# && -n $key ]]; then
             echo "$key=$value" >> $GITHUB_ENV
             echo "Set $key"
           fi
-        done < helm/.env
+        done < helm/securia/.env
 
       env:
         SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
@@ -124,8 +124,8 @@ jobs:
         sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
         export $(grep -v '^#' src/.env.secrets | xargs -d '\n')
         git checkout HEAD src/.env.secrets
-        export $(grep -v '^#' helm/.env | xargs -d '\n')
-        cd helm
+        export $(grep -v '^#' helm/securia/.env | xargs -d '\n')
+        cd helm/securia
         echo "${REGISTRY_PASSWORD}" | helm registry login -u ${REGISTRY_USERNAME} --password-stdin ${REGISTRY_HOST}
         export PIPELINE_VERSION=${BASE_VERSION}-${{ github.run_number }}
         echo "Versioning:"
@@ -149,9 +149,9 @@ jobs:
 
     - name: Update env run number
       run: |
-        sed -i 's|RUN_NUMBER=.*|RUN_NUMBER='${{github.run_number}}'|' helm/.env
+        sed -i 's|RUN_NUMBER=.*|RUN_NUMBER='${{github.run_number}}'|' helm/securia/.env
         git config --global user.name 'GitHub Actions'
         git config --global user.email 'actions@github.com'
-        git add helm/.env
+        git add helm/securia/.env
         git commit -m "Update run-number [skip ci]"
         git push
