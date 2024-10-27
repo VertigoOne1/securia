@@ -7,12 +7,13 @@ environments:
       - keycloak_chart_version: 22.2.1
 
 releases:
-- name: keycloak
-  namespace: keycloak-{{ .Environment.Name }}
-  createNamespace: true
-  chart: oci://registry-1.docker.io/bitnamicharts/keycloak
-  version: {{ .Environment.Values.keycloak_chart_version }}
-  values:
-    - values/dev/keycloak/values.yaml
-  secrets:
-    - values/dev/keycloak/values_secrets.yaml
+  - name: keycloak
+    namespace: keycloak-{{ .Environment.Name }}
+    forceNamespace: keycloak-{{ .Environment.Name }}
+    createNamespace: true
+    chart: oci://registry-1.docker.io/bitnamicharts/keycloak
+    version: {{ .Environment.Values.keycloak_chart_version }}
+    values:
+      - values/dev/keycloak/values.yaml
+    secrets:
+      - values/dev/keycloak/values_secrets.yaml
