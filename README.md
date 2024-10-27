@@ -45,6 +45,9 @@ Dev is k3s + strimzi + rancher + harbor + percona + s3ninja + github actions
 
 ## TODO
 
+gahhhh - need to implement SSO for the various infrastructure supporting this
+- which means i need to add the infra to argocd.
+- which means i need to standardise the infra
 
 - llm dev - implement the guard, collection of recent events -> context -> response
 - llm dev - implement the analyst, function -> llm -> pydantic -> dataset -> llm -> response

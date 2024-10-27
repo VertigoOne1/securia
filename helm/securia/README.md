@@ -1,4 +1,4 @@
-# Helm objects
+# Helm manual quick deploys (moved to ARGOCD)
 
 ## Push to registry
 
