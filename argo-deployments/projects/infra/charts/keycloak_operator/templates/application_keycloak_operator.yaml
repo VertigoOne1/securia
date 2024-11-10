@@ -12,7 +12,7 @@ spec:
     namespace: keycloak
   source:
     repoURL: https://github.com/VertigoOne1/securia.git
-    path: helm/infra/charts/keycloak/crds
+    path: helm/infra/charts/keycloak/operator
     targetRevision: HEAD
     directory:
       include: "*.yml"
@@ -20,6 +20,12 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    retry:
+      limit: 1
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
     syncOptions:
       - CreateNamespace=true
   info:
