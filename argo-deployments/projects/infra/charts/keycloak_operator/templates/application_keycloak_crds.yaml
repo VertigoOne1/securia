@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: keycloak_operator
+  name: keycloak-crds
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -9,10 +9,9 @@ spec:
   project: infrastructure
   destination:
     server: https://kubernetes.default.svc
-    namespace: keycloak
   source:
     repoURL: https://github.com/VertigoOne1/securia.git
-    path: helm/infra/charts/keycloak
+    path: helm/infra/charts/keycloak/crds
     targetRevision: HEAD
     directory:
       include: "*.yml"
@@ -20,8 +19,6 @@ spec:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
   info:
-    - name: 'Keycloak Operator Deployment'
+    - name: 'Keycloak CRD Deployment'
       value: 'https://login.marnus.com'
