@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: infra-dev
+  name: keycloak
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -9,7 +9,7 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: infra-dev
+    namespace: keycloak
   source:
     repoURL: https://github.com/VertigoOne1/securia.git
     path: helm/infra
@@ -27,5 +27,5 @@ spec:
     manual: {}
 
   info:
-    - name: 'Infrastructure Dev'
-      value: 'https://securia.marnus.com'
+    - name: 'Keycloak'
+      value: 'https://login.marnus.com'

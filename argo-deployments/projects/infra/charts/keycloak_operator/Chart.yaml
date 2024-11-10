@@ -1,0 +1,9 @@
+apiVersion: v2
+name: Infrastructure Resources - Keycloak Operator Application
+description: A Helm chart that deploys the keycloak operator Application
+
+type: application
+
+version: 0.1.0
+
+appVersion: "1.16.0"

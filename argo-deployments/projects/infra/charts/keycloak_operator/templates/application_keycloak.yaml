@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keycloak_operator
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: infrastructure
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keycloak
+  source:
+    repoURL: https://github.com/VertigoOne1/securia.git
+    path: helm/infra/charts/keycloak
+    targetRevision: HEAD
+    directory:
+      include: "*.yml"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  info:
+    - name: 'Keycloak Operator Deployment'
+      value: 'https://login.marnus.com'

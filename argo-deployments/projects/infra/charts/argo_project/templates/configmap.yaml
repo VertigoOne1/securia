@@ -1,0 +1,9 @@
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: test
+#   labels:
+#     app.kubernetes.io/part-of: argocd
+# data:
+#   config.yml: |-
+#     abc123
