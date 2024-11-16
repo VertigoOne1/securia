@@ -1,0 +1,157 @@
+name: Infra - Build, Push (CI)
+
+on: workflow_dispatch
+  # push:
+  #   branches: [ "main" ]
+  #   # paths-ignore:
+  #   #   - 'docs/**'
+  #   # paths:
+  #   #   - '**.js'
+  # pull_request:
+  #   branches: [ "main" ]
+
+jobs:
+
+  build-push-images:
+    timeout-minutes: 1440
+
+    environment:
+      name: dev
+
+    runs-on: homelab
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup AGE
+      uses: alessiodionisi/setup-age-action@v1.3.0
+
+    - name: Check AGE version
+      run: age --version
+
+    - name: Setup SOPS
+      uses: nhedger/setup-sops@v2
+
+    - name: Check SOPS version
+      run: sops --version
+
+    - name: populate dotenvs
+      run: |
+        sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
+
+        while IFS='=' read -r key value; do
+          if [[ ! $key =~ ^# && -n $key ]]; then
+            echo "$key=$value" >> $GITHUB_ENV
+            echo "Set $key"
+          fi
+        done < src/.env.secrets
+        
+        git status
+        git checkout HEAD src/.env.secrets
+
+        while IFS='=' read -r key value; do
+          if [[ ! $key =~ ^# && -n $key ]]; then
+            echo "$key=$value" >> $GITHUB_ENV
+            echo "Set $key"
+          fi
+        done < src/.env
+
+        cat helm/securia/.env
+
+        while IFS='=' read -r key value; do
+          if [[ ! $key =~ ^# && -n $key ]]; then
+            echo "$key=$value" >> $GITHUB_ENV
+            echo "Set $key"
+          fi
+        done < helm/securia/.env
+
+      env:
+        SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+
+    - name: Login to Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY_HOST }}
+        username: ${{ env.REGISTRY_USERNAME }}
+        password: ${{ env.REGISTRY_PASSWORD }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Wait a bit?
+      run: |
+        sleep 30
+
+    - name: Build and push images
+      uses: docker/bake-action@v5
+      with:
+        source: "."
+        files: "docker-compose.yaml"
+        workdir: ./infra
+        push: true
+      env:
+        BASE_VERSION: ${{ env.BASE_VERSION }}
+        PIPELINE_VERSION: ${{ env.BASE_VERSION }}-${{github.run_number}}
+
+  # package-push-charts:
+  #   needs: [build-push-images]
+  #   environment:
+  #     name: dev
+
+  #   runs-on: homelab
+
+  #   steps:
+  #   - uses: actions/checkout@v4
+
+  #   - name: Setup Helm
+  #     uses: azure/setup-helm@v4.2.0
+
+  #   - name: Setup AGE
+  #     uses: alessiodionisi/setup-age-action@v1.3.0
+
+  #   - name: Check AGE version
+  #     run: age --version
+
+  #   - name: Setup SOPS
+  #     uses: nhedger/setup-sops@v2
+
+  #   - name: Check SOPS version
+  #     run: sops --version
+
+  #   - name: Package and push charts
+  #     run: |
+  #       export $(grep -v '^#' src/.env | xargs -d '\n')
+  #       sops -i -d --input-type dotenv --output-type dotenv src/.env.secrets
+  #       export $(grep -v '^#' src/.env.secrets | xargs -d '\n')
+  #       git checkout HEAD src/.env.secrets
+  #       export $(grep -v '^#' helm/securia/.env | xargs -d '\n')
+  #       cd helm/securia
+  #       echo "${REGISTRY_PASSWORD}" | helm registry login -u ${REGISTRY_USERNAME} --password-stdin ${REGISTRY_HOST}
+  #       export PIPELINE_VERSION=${BASE_VERSION}-${{ github.run_number }}
+  #       echo "Versioning:"
+  #       echo ${BASE_VERSION}
+  #       echo ${PIPELINE_VERSION}
+  #       for dir in charts/*/; do
+  #         if [ -d "$dir" ]; then
+  #           chart_name=$(basename "$dir")
+  #           echo "Packaging chart: $chart_name"
+  #           package_name=$(echo "${chart_name}" | tr '_' '-')
+  #           helm package "$dir" --version ${BASE_VERSION}
+  #           helm package "$dir" --version ${PIPELINE_VERSION}
+  #           echo "Pushing chart: $chart_name"
+  #           helm push $package_name-${PIPELINE_VERSION}.tgz oci://${REGISTRY_HOST}/securia/charts
+  #           helm push $package_name-${BASE_VERSION}.tgz oci://${REGISTRY_HOST}/securia/charts
+  #         fi
+  #       done
+  #       rm *tgz
+  #     env:
+  #       SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+
+  #   - name: Update env run number
+  #     run: |
+  #       sed -i 's|RUN_NUMBER=.*|RUN_NUMBER='${{github.run_number}}'|' helm/securia/.env
+  #       git config --global user.name 'GitHub Actions'
+  #       git config --global user.email 'actions@github.com'
+  #       git add helm/securia/.env
+  #       git commit -m "Update run-number [skip ci]"
+  #       git push

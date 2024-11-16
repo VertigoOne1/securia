@@ -1,9 +1,17 @@
 services:
-  helmfile-sops-age:
-    image: ${REGISTRY_HOST}/infra/helmfile-sops-age:v2
+  argocd-helm-secrets:
+    image: ${REGISTRY_HOST}/infra/argocd-helm-secrets:v2
     build:
-      context: ./argocd/sidecars/helmfile_sops_age
+      context: ./argocd_v2
       cache_from:
-       - type=registry,ref=${REGISTRY_HOST}/infra/helmfile-sops-age:buildcache
+       - type=registry,ref=${REGISTRY_HOST}/infra/argocd-helm-secret:buildcache
       cache_to:
-       - type=registry,ref=${REGISTRY_HOST}/infra/helmfile-sops-age:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+       - type=registry,ref=${REGISTRY_HOST}/infra/argocd-helm-secret:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true
+  # helmfile-sops-age:
+  #   image: ${REGISTRY_HOST}/infra/helmfile-sops-age:v2
+  #   build:
+  #     context: ./argocd/sidecars/helmfile_sops_age
+  #     cache_from:
+  #      - type=registry,ref=${REGISTRY_HOST}/infra/helmfile-sops-age:buildcache
+  #     cache_to:
+  #      - type=registry,ref=${REGISTRY_HOST}/infra/helmfile-sops-age:buildcache,mode=max,compression=zstd,oci-mediatypes=true,image-manifest=true

@@ -1,0 +1,1 @@
+The Helm charts that deploy the Percona PostgreSQL Operator
