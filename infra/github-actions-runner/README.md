@@ -23,6 +23,41 @@ helm install \
   --set crds.enabled=true
 ```
 
+## New
+
+### GHA Scale set Controller
+
+```bash
+NAMESPACE="arc-systems"
+helm install arc-controller \
+    --namespace "${NAMESPACE}" \
+    --create-namespace \
+    --kubeconfig ~/iot/kubeconfigs/legion \
+    oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller
+```
+
+### Runner scale set
+
+```bash
+INSTALLATION_NAME="homelab"
+NAMESPACE="arc-runners"
+GITHUB_CONFIG_URL="https://github.com/VertigoOne1/securia"
+GITHUB_PAT=${GITHUB_PRIVATE_PAT}
+helm upgrade "${INSTALLATION_NAME}" \
+    oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set \
+    --install \
+    --namespace "${NAMESPACE}" \
+    --create-namespace \
+    --set githubConfigUrl="${GITHUB_CONFIG_URL}" \
+    --set githubConfigSecret.github_token="${GITHUB_PAT}" \
+    --set containerMode.type="dind" \
+    --set minRunners=1 \
+    --set maxRunners=5 \
+    --kubeconfig ~/iot/kubeconfigs/legion
+```
+
+## Old
+
 ## Install ARC Controller
 
 ```bash

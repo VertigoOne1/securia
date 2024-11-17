@@ -33,6 +33,10 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     mkdir -p /gitops-tools/helm-plugins
 
+RUN \
+    GO_ARCH=$(uname -m | sed -e 's/x86_64/amd64/') && \
+    echo "Architecture is ${GO_ARCH}"
+
 # curl installation
 RUN \
     GO_ARCH=$(uname -m | sed -e 's/x86_64/amd64/') && \
