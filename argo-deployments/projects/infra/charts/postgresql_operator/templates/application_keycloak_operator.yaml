@@ -1,0 +1,31 @@
+# application.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgresql-operator
+  namespace: argocd
+spec:
+  project: infrastructure
+  source:
+    chart: percona/pg-operator
+    repoURL: https://percona.github.io/percona-helm-charts/
+    targetRevision: 2.50.0
+    helm:
+      releaseName: postgresql-operator
+      # values: |
+      #   controller:
+      #     service:
+      #       type: LoadBalancer
+      #     resources:
+      #       requests:
+      #         cpu: 100m
+      #         memory: 128Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: postgresql-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -20,6 +20,10 @@ spec:
     server: https://kubernetes.default.svc
     name: in-cluster
 
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+
   # # Deny all cluster-scoped resources from being created, except for Namespace
   # clusterResourceWhitelist:
   # - group: ''

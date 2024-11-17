@@ -78,9 +78,9 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Wait a bit?
+    - name: Wait a bit - DinD container readiness
       run: |
-        sleep 15
+        sleep 5
 
     - name: Build and push images
       uses: docker/bake-action@v5
