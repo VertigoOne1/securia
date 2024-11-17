@@ -2,6 +2,7 @@ ARG ARGOCD_VERSION="v2.12.7"
 FROM quay.io/argoproj/argocd:$ARGOCD_VERSION
 ARG SOPS_VERSION=3.9.0
 ARG KUBECTL_VERSION=1.30.2
+ARG CURL_VERSION=v8.11.0
 ARG VALS_VERSION=0.37.3
 ARG HELM_SECRETS_VERSION=4.6.0
 ARG AGE_VERSION="v1.2.0"
@@ -35,9 +36,8 @@ RUN apt-get update && \
 # curl installation
 RUN \
     GO_ARCH=$(uname -m | sed -e 's/x86_64/amd64/') && \
-    wget -qO "/gitops-tools/curl" "https://github.com/moparisthebest/static-curl/releases/latest/download/curl-${GO_ARCH}" && \
+    wget -qO "/gitops-tools/curl" "https://github.com/moparisthebest/static-curl/releases/download/${CURL_VERSION}/curl-${GO_ARCH}" && \
     true
-
 # kubectl installation
 RUN \
     GO_ARCH=$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/') && \
