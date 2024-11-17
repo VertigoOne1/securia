@@ -28,7 +28,7 @@ ENV HELM_SECRETS_BACKEND="vals" \
 USER root
 RUN apt-get update && \
     apt-get install -y \
-      wget && \
+      curl wget && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     mkdir -p /gitops-tools/helm-plugins
@@ -37,11 +37,11 @@ RUN \
     GO_ARCH=$(uname -m | sed -e 's/x86_64/amd64/') && \
     echo "Architecture is ${GO_ARCH}"
 
-# curl installation
-RUN \
-    GO_ARCH=$(uname -m | sed -e 's/x86_64/amd64/') && \
-    wget -O "/gitops-tools/curl" "https://github.com/moparisthebest/static-curl/releases/download/${CURL_VERSION}/curl-${GO_ARCH}" && \
-    true
+# # curl installation
+# RUN \
+#     GO_ARCH=$(uname -m | sed -e 's/x86_64/amd64/') && \
+#     wget -O "/gitops-tools/curl" "https://github.com/moparisthebest/static-curl/releases/download/${CURL_VERSION}/curl-${GO_ARCH}" && \
+#     true
 # kubectl installation
 RUN \
     GO_ARCH=$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/') && \
