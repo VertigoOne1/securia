@@ -18,7 +18,7 @@ jobs:
     environment:
       name: dev
 
-    runs-on: arc-runner-set
+    runs-on: homelab
 
     steps:
     - uses: actions/checkout@v4
